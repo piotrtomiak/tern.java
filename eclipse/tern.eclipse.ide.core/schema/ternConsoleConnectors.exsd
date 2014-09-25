@@ -54,7 +54,7 @@
                   
                </documentation>
                <appInfo>
-                  <meta.attribute kind="java" basedOn=":tern.eclipse.ide.core.ITernServerFactory"/>
+                  <meta.attribute kind="java" basedOn=":tern.eclipse.ide.core.ITernConsoleConnector"/>
                </appInfo>
             </annotation>
          </attribute>
