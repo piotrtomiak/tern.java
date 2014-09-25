@@ -90,17 +90,19 @@
        point="org.eclipse.ui.preferencePages">  
        <!-- Tern Global preferences page -->  
        <page
-	          class="tern.eclipse.ide.internal.ui.preferences.TernGlobalPreferencesPage"
-	          id="tern.eclipse.ide.preferences"
-	          name="%TernPreferencePage.name"/>
+             category="org.eclipse.wst.jsdt.ui.preferences.JavaBasePreferencePage"
+             class="tern.eclipse.ide.internal.ui.preferences.TernGlobalPreferencesPage"
+             id="tern.eclipse.ide.preferences"
+             name="%TernPreferencePage.name"/>
 	</extension>
 
 	<extension
          point="org.eclipse.ui.propertyPages">		      
       <page
-            name="%TernMainPropertyPage.name"        
+            category="org.eclipse.wst.jsdt.internal.ui.preferences.JavaScriptMainPage"
             class="tern.eclipse.ide.internal.ui.properties.TernMainPropertyPage"
-            id="tern.eclipse.ide.ui.properties.TernMainPropertyPage">
+            id="tern.eclipse.ide.ui.properties.TernMainPropertyPage"
+            name="%TernMainPropertyPage.name">
          <enabledWhen>
 		     <adapt type="org.eclipse.core.resources.IProject">
                   <test property="tern.eclipse.ide.ui.isTernProject" />
