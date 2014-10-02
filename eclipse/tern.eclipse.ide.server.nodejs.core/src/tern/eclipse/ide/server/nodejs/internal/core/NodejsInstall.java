@@ -60,6 +60,8 @@ public class NodejsInstall implements INodejsInstall {
 						this.path.setExecutable(true);
 					}
 				}
+			} else if (!this.path.canExecute()) {
+				this.path.setExecutable(true);
 			}
 		}
 	}
