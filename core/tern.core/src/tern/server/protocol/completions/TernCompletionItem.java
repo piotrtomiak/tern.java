@@ -216,9 +216,9 @@ public class TernCompletionItem {
 					for (int nbMaxOptionalParams = 0; nbMaxOptionalParams < optionalParameters
 							.size(); nbMaxOptionalParams++) {
 						// loop for each optional parameters.
-						for (Parameter optional : optionalParameters) {
-							addType(types, nbMaxOptionalParams, optional, null);
-						}
+						//for (Parameter optional : optionalParameters) {
+							addType(types, nbMaxOptionalParams, optionalParameters.get(0), null);
+						//}
 					}
 					allTypes = types.toArray(StringUtils.EMPTY_ARRAY);
 				}
@@ -311,7 +311,7 @@ public class TernCompletionItem {
 
 		if (newIndex != null) {
 			// next optional parameter must be treat, do it.
-			addType(types, nbMaxOptional, optional, newIndex);
+			//addType(types, nbMaxOptional, optional, newIndex);
 		}
 	}
 
