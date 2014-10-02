@@ -23,7 +23,9 @@ public class TernImagesRegistry {
 	public static final String IMG_ARRAY = "tern.eclipse.jface.IMG_ARRAY";
 	public static final String IMG_NUMBER = "tern.eclipse.jface.IMG_NUMBER";
 	public static final String IMG_STRING = "tern.eclipse.jface.IMG_STRING";
+	public static final String IMG_OBJECT = "tern.eclipse.jface.IMG_OBJECT";
 	public static final String IMG_BOOLEAN = "tern.eclipse.jface.IMG_BOOLEAN";
+	public static final String IMG_KEYWORD = "tern.eclipse.jface.IMG_KEYWORD";
 	public static final String IMG_UNKNOWN = "tern.eclipse.jface.IMG_UNKNOWN";
 
 	static {
@@ -37,8 +39,12 @@ public class TernImagesRegistry {
 				TernImagesRegistry.class, "images/number.gif"));
 		imageRegistry.put(IMG_STRING, ImageDescriptor.createFromFile(
 				TernImagesRegistry.class, "images/string.gif"));
+		imageRegistry.put(IMG_OBJECT, ImageDescriptor.createFromFile(
+				TernImagesRegistry.class, "images/object.gif"));
 		imageRegistry.put(IMG_BOOLEAN, ImageDescriptor.createFromFile(
 				TernImagesRegistry.class, "images/boolean.gif"));
+		imageRegistry.put(IMG_KEYWORD, ImageDescriptor.createFromFile(
+				TernImagesRegistry.class, "images/keyword.gif"));
 		imageRegistry.put(IMG_UNKNOWN, ImageDescriptor.createFromFile(
 				TernImagesRegistry.class, "images/unknown.gif"));
 
@@ -76,6 +82,9 @@ public class TernImagesRegistry {
 		if (item.isArray()) {
 			return TernImagesRegistry.IMG_ARRAY;
 		}
+		if (item.isKeyword()) {
+			return TernImagesRegistry.IMG_KEYWORD;
+		}
 		String jsType = item.getJsType();
 		if (jsType != null) {
 			if ("string".equals(jsType)) {
@@ -86,6 +95,10 @@ public class TernImagesRegistry {
 			}
 			if ("bool".equals(jsType)) {
 				return TernImagesRegistry.IMG_BOOLEAN;
+			}
+			if (!"undefined".equals(jsType) &&
+					!"?".equals(jsType)) {
+				return TernImagesRegistry.IMG_OBJECT;
 			}
 		}
 		if (returnNullIfUnknown) {

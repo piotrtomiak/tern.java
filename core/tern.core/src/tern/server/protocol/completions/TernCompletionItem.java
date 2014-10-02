@@ -29,24 +29,36 @@ public class TernCompletionItem {
 
 	private final String signature;
 	private final boolean function;
+	private final boolean keyword;
 	private boolean array;
 	private String jsType;
 	private List<Parameter> parameters;
 	private String[] allTypes;
 
+	@Deprecated
 	public TernCompletionItem(String name, String type, String doc, String url,
 			String origin) {
+		this(name, type, doc, url, origin, false);
+	}
+	
+	public TernCompletionItem(String name, String type, String doc, String url,
+			String origin, boolean keyword) {	
 		this.name = name;
 		this.type = type;
 		this.doc = doc;
 		this.url = url;
 		this.origin = origin;
 		this.parameters = null;
+		this.keyword = keyword;
 		StringBuilder currentParamName = null;
 		boolean currentParamRequired = true;
 		StringBuilder currentParamType = null;
 		StringBuilder signature = new StringBuilder(name);
-		this.jsType = type;
+		if (keyword) {
+			this.jsType = "keyword"; //$NON-NLS-1$
+		} else {
+			this.jsType = type;
+		}
 		if (!StringUtils.isEmpty(type)) {
 			this.function = type.startsWith("fn(");
 			if (function) {
@@ -357,6 +369,10 @@ public class TernCompletionItem {
 
 	public List<Parameter> getParameters() {
 		return parameters;
+	}
+	
+	public boolean isKeyword() {
+		return keyword;
 	}
 
 	public boolean isFunction() {

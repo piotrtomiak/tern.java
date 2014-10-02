@@ -50,9 +50,16 @@ public class JSTernCompletionProposal extends TernCompletionProposal {
 
 	private boolean fToggleEating;
 
+	@Deprecated
 	public JSTernCompletionProposal(String name, String type, String doc,
 			String url, String origin, int pos, int startOffset) {
-		super(name, type, doc, url, origin, pos, startOffset);
+		this(name, type, doc, url, origin, false, pos, startOffset);
+	}
+
+	public JSTernCompletionProposal(String name, String type, String doc,
+			String url, String origin, boolean keyword, int pos,
+			int startOffset) {
+		super(name, type, doc, url, origin, keyword, pos, startOffset);
 	}
 
 	@Override

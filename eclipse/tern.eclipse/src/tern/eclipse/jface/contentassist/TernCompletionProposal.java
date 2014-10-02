@@ -54,9 +54,16 @@ public class TernCompletionProposal extends TernCompletionItem implements
 	private char[] fTriggers;
 	private IInformationControlCreator ternControlCreator;
 
+	@Deprecated
 	public TernCompletionProposal(String name, String type, String doc,
 			String url, String origin, int pos, int startOffset) {
-		super(name, type, doc, url, origin);
+		this(name, type, doc, url, origin, false, pos, startOffset);
+	}
+
+	public TernCompletionProposal(String name, String type, String doc,
+			String url, String origin, boolean keyword, int pos,
+			int startOffset) {	
+		super(name, type, doc, url, origin, keyword);
 
 		String text = super.getSignature();
 		this.fReplacementString = text;

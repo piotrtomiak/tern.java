@@ -72,7 +72,11 @@ public class TernCompletionProposalComputer implements
 						query.setCaseInsensitive(true);
 						query.setLineCharPositions(true);
 						query.setExpandWordForward(false);
-
+						//ME tweaks
+						query.add("omitObjectPrototype", false); //$NON-NLS-1$
+						query.add("depths", true); //$NON-NLS-1$
+						query.add("includeKeywords", true); //$NON-NLS-1$
+						
 						int startOffset = context.getInvocationOffset();
 						ternProject.request(query, scriptFile, document,
 								startOffset, new JSDTTernCompletionCollector(

@@ -23,15 +23,28 @@ import tern.eclipse.ide.ui.contentassist.JSTernCompletionProposal;
 public class JSDTTernCompletionProposal extends JSTernCompletionProposal
 		implements IJavaCompletionProposal {
 
+	private int relevance;
+	
+	@Deprecated
 	public JSDTTernCompletionProposal(String name, String type, String doc,
 			String url, String origin, int pos, int startOffset) {
 		super(name, type, doc, url, origin, pos, startOffset);
 	}
+	
+	public JSDTTernCompletionProposal(String name, String type, String doc,
+			String url, String origin, boolean keyword, int depth, 
+			int pos, int startOffset) {
+		super(name, type, doc, url, origin, keyword, pos, startOffset);
+		if (keyword) {
+			relevance = 0;
+		} else {
+			relevance = 1000000 - depth;
+		}
+	}
 
 	@Override
 	public int getRelevance() {
-		// TODO : compute relevance switch type?
-		return 10000;
+		return relevance;
 	}
 
 }

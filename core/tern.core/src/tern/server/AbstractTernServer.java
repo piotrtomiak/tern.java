@@ -15,6 +15,7 @@ import java.util.List;
 
 import tern.TernFileManager;
 import tern.TernProject;
+import tern.server.protocol.completions.IMeTernCompletionCollector;
 import tern.server.protocol.completions.ITernCompletionCollector;
 
 public abstract class AbstractTernServer implements ITernServer {
@@ -101,8 +102,20 @@ public abstract class AbstractTernServer implements ITernServer {
 		String doc = getText(completion, "doc");
 		String url = getText(completion, "url");
 		String origin = getText(completion, "origin");
-		collector.addProposal(name, type, doc, url, origin, pos, completion,
-				this);
+		if (collector instanceof IMeTernCompletionCollector) {
+			boolean keyword = Boolean.parseBoolean(getText(completion, "isKeyword"));
+			int depth = 10000;
+			try {
+				depth = Integer.parseInt(getText(completion, "depth"));
+			} catch (Exception e) {
+				//ignore
+			}
+			((IMeTernCompletionCollector)collector).addProposal(name, type, doc, 
+					url, origin, keyword, depth, pos, completion, this);
+		} else {
+			collector.addProposal(name, type, doc, url, origin, pos, completion,
+					this);
+		}
 	}
 
 	public abstract String getText(Object value);
