@@ -13,6 +13,7 @@ package tern.eclipse.ide.internal.core.scriptpath;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
@@ -22,7 +23,6 @@ import tern.eclipse.ide.core.IIDETernProject;
 import tern.eclipse.ide.core.TernCorePlugin;
 import tern.eclipse.ide.core.scriptpath.IScriptResource;
 import tern.eclipse.ide.core.scriptpath.ITernScriptPath;
-import tern.eclipse.ide.internal.core.IDETernProject;
 import tern.eclipse.ide.internal.core.Trace;
 import tern.server.protocol.TernDoc;
 
@@ -56,23 +56,31 @@ public class ProjectScriptPath extends AbstractTernScriptPath {
 	public String getPath() {
 		return ((IProject) getResource()).getName();
 	}
+	
+	private Collection<ITernScriptPath> getScriptPaths() throws CoreException {
+		IProject project = (IProject) getResource();
+		if (getType() == ScriptPathsType.PROJECT && project.equals(ownerProject)) {
+			return Collections.<ITernScriptPath>singletonList(
+					new FolderScriptPath(project, getExternalLabel()));
+		}
+		IIDETernProject ternProject = TernCorePlugin
+				.getTernProject(project);
+		Collection<ITernScriptPath> scriptPaths = ternProject
+				.getScriptPaths();
+		return scriptPaths;
+	}
 
 	@Override
 	public Collection<IScriptResource> getScriptResources() {
 		this.scripts.clear();
-		IProject project = (IProject) getResource();
 		try {
-			IIDETernProject ternProject = TernCorePlugin
-					.getTernProject(project);
-			Collection<ITernScriptPath> scriptPaths = ternProject
-					.getScriptPaths();
-			for (ITernScriptPath scriptPath : scriptPaths) {
+			for (ITernScriptPath scriptPath : getScriptPaths()) {
 				this.scripts.addAll(scriptPath.getScriptResources());
 			}
 		} catch (CoreException e) {
 			Trace.trace(Trace.SEVERE,
 					"Error while retrieving script resources from the project script path "
-							+ project.getName(), e);
+							+ getResource().getName(), e);
 		}
 		return scripts;
 	}
@@ -80,26 +88,14 @@ public class ProjectScriptPath extends AbstractTernScriptPath {
 	@Override
 	public void updateFiles(TernFileManager ternFileManager, TernDoc doc,
 			JsonArray names) throws IOException {
-
-		IProject project = (IProject) getResource();
 		try {
-			IIDETernProject ternProject = TernCorePlugin
-					.getTernProject(project);
-			Collection<ITernScriptPath> scriptPaths = ternProject
-					.getScriptPaths();
-			for (ITernScriptPath scriptPath : scriptPaths) {
-				if (!(scriptPath.getType() == ScriptPathsType.PROJECT && scriptPath
-						.getOwnerProject().equals(project))) {
-					// the current script path is project type and it's the same
-					// current project, ignore it to avoid StackOverFlow
-					// see https://github.com/angelozerr/tern.java/issues/104
-					scriptPath.updateFiles(ternFileManager, doc, names);
-				}
+			for (ITernScriptPath scriptPath : getScriptPaths()) {
+				scriptPath.updateFiles(ternFileManager, doc, names);
 			}
 		} catch (CoreException e) {
 			Trace.trace(Trace.SEVERE,
 					"Error while updating files script resources from the project script path "
-							+ project.getName(), e);
+							+ getResource().getName(), e);
 		}
 	}
 

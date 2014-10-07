@@ -13,11 +13,9 @@ package tern.eclipse.ide.internal.core.scriptpath;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
 
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
-import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IResourceVisitor;
 import org.eclipse.core.runtime.CoreException;
@@ -43,7 +41,7 @@ public class FolderScriptPath extends AbstractTernScriptPath {
 
 	private IResourceVisitor scriptResourcesVisitor;
 
-	public FolderScriptPath(IFolder folder, String external) {
+	public FolderScriptPath(IContainer folder, String external) {
 		super(folder, ScriptPathsType.FOLDER, external);
 		this.scripts = new ArrayList<IScriptResource>();
 	}
@@ -51,7 +49,7 @@ public class FolderScriptPath extends AbstractTernScriptPath {
 	@Override
 	public Collection<IScriptResource> getScriptResources() {
 		this.scripts.clear();
-		IFolder folder = (IFolder) getResource();
+		IContainer folder = (IContainer) getResource();
 		try {
 			folder.accept(getScriptResourcesVisitor());
 		} catch (CoreException e) {
