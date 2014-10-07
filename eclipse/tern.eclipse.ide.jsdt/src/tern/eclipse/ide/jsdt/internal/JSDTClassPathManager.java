@@ -111,6 +111,9 @@ public class JSDTClassPathManager implements IElementChangedListener,
 				return null;
 			case IJavaScriptElementDelta.CHANGED:
 				int flags = delta.getFlags();
+				if ((flags & IJavaScriptElementDelta.F_INCLUDEPATH_CHANGED) != 0) {
+					return element.getJavaScriptProject();
+				}
 				if ((flags & IJavaScriptElementDelta.F_CLOSED) != 0
 						|| (flags & IJavaScriptElementDelta.F_OPENED) != 0) {
 					return null;
