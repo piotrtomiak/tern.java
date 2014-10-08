@@ -1,9 +1,2 @@
 /bin
 /target
-
-#JET generated files
-TernDefGenerator.java
-TernPluginGenerator.java
-HTMLCodeMirrorEditor.java
-HTMLOrionEditor.java
-HTMLAceEditor.java
