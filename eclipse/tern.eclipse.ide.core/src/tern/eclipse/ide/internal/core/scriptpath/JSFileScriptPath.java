@@ -47,7 +47,10 @@ public class JSFileScriptPath extends AbstractTernScriptPath {
 	@Override
 	public void updateFiles(TernFileManager ternFileManager, TernDoc doc,
 			JsonArray names) throws IOException {
-		ternFileManager.updateFile(getResource(), doc, names);
+		//fail safe
+		if (getResource().exists()) {
+			ternFileManager.updateFile(getResource(), doc, names);
+		}
 	}
 
 }
