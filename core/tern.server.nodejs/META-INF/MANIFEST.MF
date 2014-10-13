@@ -9,7 +9,7 @@ Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Export-Package: tern.server.nodejs,tern.server.nodejs.process
 Require-Bundle: tern.core;bundle-version="0.2.0"
 Bundle-ClassPath: .
-Import-Package: com.eclipsesource.json,
+Import-Package: com.eclipsesource.json;version="[0.9.1,1.0.0)",
  org.apache.commons.logging,
  org.apache.http,
  org.apache.http.client,

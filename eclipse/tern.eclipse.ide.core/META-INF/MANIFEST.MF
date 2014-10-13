@@ -18,5 +18,5 @@ Export-Package: tern.eclipse.ide.core,
  tern.eclipse.ide.core.scriptpath,
  tern.eclipse.ide.core.utils
 Bundle-ActivationPolicy: lazy
-Import-Package: com.eclipsesource.json
+Import-Package: com.eclipsesource.json;version="[0.9.1,1.0.0)"
 Bundle-Activator: tern.eclipse.ide.core.TernCorePlugin

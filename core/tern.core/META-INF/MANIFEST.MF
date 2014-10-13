@@ -24,7 +24,7 @@ Export-Package: tern,
  tern.server.protocol.lint,
  tern.server.protocol.type,
  tern.utils
-Import-Package: com.eclipsesource.json,
+Import-Package: com.eclipsesource.json;version="[0.9.1,1.0.0)",
  org.osgi.framework
 Bundle-Activator: tern.Activator
 Bundle-ActivationPolicy: lazy
