@@ -48,6 +48,7 @@ public class TernCompletionProposal extends TernCompletionItem implements
 	private int fCursorPosition;
 	private Image fImage;
 	private IContextInformation fContextInformation;
+	private boolean fContextInformationComputed;
 	private String fAdditionalProposalInfo;
 	private boolean fUpdateLengthOnValidate;
 	private String fAlternateMatch;
@@ -73,7 +74,6 @@ public class TernCompletionProposal extends TernCompletionItem implements
 
 		this.fImage = getDefaultImage();
 		this.fDisplayString = super.getText();
-		this.fContextInformation = createContextInformation();
 		this.fAdditionalProposalInfo = doc != null ? doc.toString() : null;
 
 	}
@@ -83,7 +83,7 @@ public class TernCompletionProposal extends TernCompletionItem implements
 	 * 
 	 * @return
 	 */
-	private IContextInformation createContextInformation() {
+	private synchronized IContextInformation createContextInformation() {
 		List<Parameter> parameters = getParameters();
 		if (parameters != null) {
 			StringBuilder info = new StringBuilder();
@@ -238,10 +238,7 @@ public class TernCompletionProposal extends TernCompletionItem implements
 		// return new Point(this.fReplacementOffset + this.fCursorPosition, 0);
 	}
 
-	// public IContextInformation getContextInformation() {
-	// return this.fContextInformation;
-	// }
-
+	@Override
 	public Image getImage() {
 		return this.fImage;
 	}
@@ -250,23 +247,24 @@ public class TernCompletionProposal extends TernCompletionItem implements
 		this.fImage = fImage;
 	}
 
+	@Override
 	public String getDisplayString() {
 		if (this.fDisplayString != null)
 			return this.fDisplayString;
 		return this.fReplacementString;
 	}
 
+	@Override
 	public String getAdditionalProposalInfo() {
 		return this.fAdditionalProposalInfo;
 	}
 
-	// public String getAdditionalProposalInfo() {
-	// // return fProposal.getAdditionalProposalInfo();
-	// return fAdditionalProposalInfo;
-	// }
-
+	@Override
 	public IContextInformation getContextInformation() {
-		// return fProposal.getContextInformation();
+		if (!fContextInformationComputed) {
+			fContextInformation = createContextInformation();
+			fContextInformationComputed = true;
+		}
 		return fContextInformation;
 	}
 
@@ -274,12 +272,7 @@ public class TernCompletionProposal extends TernCompletionItem implements
 		fContextInformation = contextInfo;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.eclipse.jface.text.contentassist.ICompletionProposalExtension#
-	 * getContextInformationPosition()
-	 */
+	@Override
 	public int getContextInformationPosition() {
 		// https://bugs.eclipse.org/bugs/show_bug.cgi?id=110355
 		// return getCursorPosition();

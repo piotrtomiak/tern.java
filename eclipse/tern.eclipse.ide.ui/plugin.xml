@@ -85,24 +85,39 @@
 		
 	</extension>
 		 
+	<!-- Preferences initialization -->
+	<extension
+		point="org.eclipse.core.runtime.preferences">
+		<initializer
+			class="tern.eclipse.ide.internal.ui.preferences.TernUIPreferenceInitializer" />
+	</extension>
+			 
 	<!--Preferences:-->
     <extension
        point="org.eclipse.ui.preferencePages">  
        <!-- Tern Global preferences page -->  
        <page
-             category="org.eclipse.wst.jsdt.ui.preferences.JavaBasePreferencePage"
-             class="tern.eclipse.ide.internal.ui.preferences.TernGlobalPreferencesPage"
-             id="tern.eclipse.ide.preferences"
-             name="%TernPreferencePage.name"/>
+	          name="%TernPreferencePage.name"
+              category="org.eclipse.wst.jsdt.ui.preferences.JavaBasePreferencePage"
+	          class="tern.eclipse.ide.internal.ui.preferences.TernGlobalPreferencesPage"
+	          id="tern.eclipse.ide.preferences" />	  
+       <page  name="%TernConsolePropertyPage.name"
+              category="tern.eclipse.ide.preferences"
+	          class="tern.eclipse.ide.internal.ui.preferences.TernConsolePreferencesPage"
+	          id="tern.eclipse.ide.ui.preferences.TernConsolePropertyPage" />
+	   <page  name="%TernContentAssistPropertyPage.name"
+              category="tern.eclipse.ide.preferences"
+	          class="tern.eclipse.ide.internal.ui.preferences.TernContentAssistPreferencesPage"
+	          id="tern.eclipse.ide.ui.preferences.TernContentAssistPropertyPage" />	          	          	          
 	</extension>
 
 	<extension
          point="org.eclipse.ui.propertyPages">		      
       <page
+            name="%TernMainPropertyPage.name"        
             category="org.eclipse.wst.jsdt.internal.ui.preferences.JavaScriptMainPage"
             class="tern.eclipse.ide.internal.ui.properties.TernMainPropertyPage"
-            id="tern.eclipse.ide.ui.properties.TernMainPropertyPage"
-            name="%TernMainPropertyPage.name">
+            id="tern.eclipse.ide.ui.properties.TernMainPropertyPage">
          <enabledWhen>
 		     <adapt type="org.eclipse.core.resources.IProject">
                   <test property="tern.eclipse.ide.ui.isTernProject" />
@@ -134,14 +149,25 @@
 	  <page
             name="%TernConsolePropertyPage.name"
             category="tern.eclipse.ide.ui.properties.TernMainPropertyPage"        
-            class="tern.eclipse.ide.internal.ui.properties.TernConsolePropertyPage"
+            class="tern.eclipse.ide.internal.ui.preferences.TernConsolePreferencesPage"
             id="tern.eclipse.ide.ui.properties.TernConsolePropertyPage">
          <enabledWhen>
 		     <adapt type="org.eclipse.core.resources.IProject">
                   <test property="tern.eclipse.ide.ui.isTernProject" />
 		     </adapt>         
          </enabledWhen>
-      </page>                    		          		  	
+      </page>
+	  <page
+            name="%TernContentAssistPropertyPage.name"
+            category="tern.eclipse.ide.ui.properties.TernMainPropertyPage"        
+            class="tern.eclipse.ide.internal.ui.preferences.TernContentAssistPreferencesPage"
+            id="tern.eclipse.ide.ui.properties.TernContentAssistPropertyPage">
+         <enabledWhen>
+		     <adapt type="org.eclipse.core.resources.IProject">
+                  <test property="tern.eclipse.ide.ui.isTernProject" />
+		     </adapt>         
+         </enabledWhen>
+      </page>                          		          		  	
 	</extension>
      
     <!-- Tern Console -->
@@ -198,6 +224,10 @@
          class="tern.eclipse.ide.internal.ui.descriptors.options.LintRulesTernModuleOptionFactory" >         
       </optionFactory>       
       <!-- Tern def descriptors -->
+      <image
+      	 id="chrome-apps"
+      	 icon="/icons/full/obj16/chrome-apps.png" >
+      </image>
       <image
       	 id="browser"
       	 icon="/icons/full/obj16/browser.gif" >
@@ -262,7 +292,19 @@
   	  <image
             id="meteor"
             icon="/icons/full/obj16/meteor.png" >        
-      </image>                    
+      </image>
+  	  <image
+            id="node-express"
+            icon="/icons/full/obj16/node-express.png" >
+      </image>
+  	  <image
+            id="node-mongodb-native"
+            icon="/icons/full/obj16/node-mongodb-native.png" >
+      </image>
+  	  <image
+            id="node-mongoose"
+            icon="/icons/full/obj16/node-mongoose.png" >
+      </image>                                      
   	  <image
             id="node"
             icon="/icons/full/obj16/node.png" >

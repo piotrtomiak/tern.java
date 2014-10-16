@@ -15,7 +15,8 @@ import tern.metadata.TernModuleMetadataManager;
 
 public enum TernPlugin implements ITernPlugin {
 
-	aui("tern/plugin/aui"), angular("tern/plugin/angular"), component(
+	aui("tern/plugin/aui"), angular("tern/plugin/angular"), chrome_apps(
+			"chrome-apps", "chrome-apps", null, null), component(
 			"tern/plugin/component"), ckeditor_4_4_1("ckeditor", "4.4.1"), closure(
 			""), cordovajs("tern/plugin/cordovajs"), doc_comment(
 			"tern/plugin/doc_comment"), dojotoolkit_1_6("dojotoolkit", "1.6"), dojotoolkit_1_8(
@@ -23,7 +24,10 @@ public enum TernPlugin implements ITernPlugin {
 			"extjs", "4.2.1"), extjs_5_0_0("extjs", "5.0.0"), gas(
 			"tern/plugin/gas"), gmaps_3_16("gmaps", "3.16"), gmaps_3_17(
 			"gmaps", "3.17"), grunt("tern/plugin/grunt"), liferay(
-			"tern/plugin/liferay"), lint("tern/plugin/lint"), node(
+			"tern/plugin/liferay"), lint("tern/plugin/lint"), node_express(
+			"node-express", "node-express", null, null), node_mongodb_native(
+			"node-mongodb-native", "node-mongodb-native", null, null), node_mongoose(
+			"node-mongoose", "node-mongoose", null, null), node(
 			"tern/plugin/node"), meteor("tern/plugin/meteor"), qooxdoo_4_1(
 			"qooxdoo", "4.1"), requirejs("tern/plugin/requirejs"), yui(
 			"tern/plugin/yui");
