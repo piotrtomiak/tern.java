@@ -26,6 +26,7 @@ public abstract class AbstractTernServer implements ITernServer {
 
 	private boolean dataAsJsonString;
 	private boolean dispose;
+	private boolean loadingLocalPlugins;
 
 	public AbstractTernServer(ITernProject project) {
 		this.project = project;
@@ -141,5 +142,15 @@ public abstract class AbstractTernServer implements ITernServer {
 	@Override
 	public void addFile(String name, String text) {
 		addFile(name, text, null);
+	}
+
+	@Override
+	public void setLoadingLocalPlugins(boolean loadingLocalPlugins) {
+		this.loadingLocalPlugins = loadingLocalPlugins;
+	}
+
+	@Override
+	public boolean isLoadingLocalPlugins() {
+		return loadingLocalPlugins;
 	}
 }

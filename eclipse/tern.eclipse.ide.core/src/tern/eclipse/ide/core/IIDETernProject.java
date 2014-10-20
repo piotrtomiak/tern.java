@@ -1,5 +1,5 @@
 /**
- *  Copyright (c) 2013-2014 Angelo ZERR.
+ *  Copyright (c) 2013-2014 Angelo ZERR and Genuitec LLC.
  *  All rights reserved. This program and the accompanying materials
  *  are made available under the terms of the Eclipse Public License v1.0
  *  which accompanies this distribution, and is available at
@@ -7,6 +7,7 @@
  *
  *  Contributors:
  *  Angelo Zerr <angelo.zerr@gmail.com> - initial API and implementation
+ *  Piotr Tomiak <piotr@genuitec.com> - refactoring of file management API
  */
 package tern.eclipse.ide.core;
 
@@ -20,6 +21,7 @@ import org.eclipse.core.resources.IResource;
 import tern.ITernProject;
 import tern.scriptpath.ITernScriptPath;
 import tern.scriptpath.ITernScriptPath.ScriptPathsType;
+import tern.server.ITernModule;
 import tern.server.ITernServerListener;
 
 /**
@@ -70,5 +72,12 @@ public interface IIDETernProject extends ITernProject {
 	void setData(String key, Object value);
 
 	IProject getProject();
+
+	/**
+	 * Returns the tern plugin hosted on the root project.
+	 * 
+	 * @return the tern plugin hosted on the root project.
+	 */
+	List<ITernModule> getProjectModules();
 
 }

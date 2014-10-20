@@ -1,5 +1,5 @@
 /**
- *  Copyright (c) 2013-2014 Angelo ZERR.
+ *  Copyright (c) 2013-2014 Angelo ZERR and Genuitec LLC.
  *  All rights reserved. This program and the accompanying materials
  *  are made available under the terms of the Eclipse Public License v1.0
  *  which accompanies this distribution, and is available at
@@ -7,10 +7,12 @@
  *
  *  Contributors:
  *  Angelo Zerr <angelo.zerr@gmail.com> - initial API and implementation
+ *  Piotr Tomiak <piotr@genuitec.com> - refactoring of file management API
  */
 package tern.eclipse.ide.core;
 
 import java.io.File;
+import java.io.IOException;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
@@ -58,10 +60,8 @@ public class TernCorePlugin extends Plugin {
 
 		// Initialize the NodeJs tern base dir usefull if (if tern.eclipse is
 		// not started).
-		File ternCoreBaseDir = FileLocator.getBundleFile(Platform
-				.getBundle(tern.Activator.PLUGIN_ID));
-		NodejsProcessManager.getInstance().init(ternCoreBaseDir);
-		TernModuleMetadataManager.getInstance().init(ternCoreBaseDir);
+		NodejsProcessManager.getInstance().init(getTernBaseDir());
+		TernModuleMetadataManager.getInstance().init(getTernCoreBaseDir());
 		TernFileConfigurationManager.getManager().initialize();
 		
 		//set up resource management for IDE
@@ -71,6 +71,16 @@ public class TernCorePlugin extends Plugin {
 		
 	}
 
+	public static File getTernCoreBaseDir() throws IOException {
+		return FileLocator.getBundleFile(Platform
+				.getBundle(tern.Activator.PLUGIN_ID));
+	}
+
+	public static File getTernBaseDir() throws IOException {
+		return new File(FileLocator.getBundleFile(Platform
+				.getBundle(tern.Activator.PLUGIN_ID)), "node_modules/tern");
+	}
+	
 	@Override
 	public void stop(BundleContext context) throws Exception {
 		NodejsProcessManager.getInstance().dispose();
