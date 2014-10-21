@@ -20,7 +20,6 @@ import java.util.Map;
 
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
-import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IResourceVisitor;
@@ -28,8 +27,6 @@ import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 
 import tern.ITernFile;
-import tern.ITernProject;
-import tern.TernResourcesManager;
 import tern.eclipse.ide.core.IIDETernProject;
 import tern.eclipse.ide.core.ITernConsoleConnector;
 import tern.eclipse.ide.core.ITernProjectLifecycleListener.LifecycleEventType;
@@ -42,21 +39,15 @@ import tern.eclipse.ide.internal.core.TernNatureAdaptersManager;
 import tern.eclipse.ide.internal.core.TernProjectLifecycleManager;
 import tern.eclipse.ide.internal.core.Trace;
 import tern.eclipse.ide.internal.core.preferences.TernCorePreferencesSupport;
-import tern.eclipse.ide.internal.core.scriptpath.FolderScriptPath;
-import tern.eclipse.ide.internal.core.scriptpath.IDEProjectScriptPath;
 import tern.resources.TernProject;
 import tern.scriptpath.ITernScriptPath;
 import tern.scriptpath.ITernScriptPath.ScriptPathsType;
-import tern.scriptpath.impl.JSFileScriptPath;
-import tern.scriptpath.impl.dom.DOMElementsScriptPath;
 import tern.server.ITernModule;
 import tern.server.ITernServer;
 import tern.server.ITernServerListener;
 import tern.server.TernServerAdapter;
-import tern.server.protocol.JsonHelper;
 import tern.utils.TernModuleHelper;
 
-import com.eclipsesource.json.JsonArray;
 import com.eclipsesource.json.JsonObject;
 
 /**
@@ -66,30 +57,21 @@ import com.eclipsesource.json.JsonObject;
 public class IDETernProject extends TernProject implements
 		IIDETernProject, ITernServerPreferencesListener {
 
-	private static final String PATH_JSON_FIELD = "path"; //$NON-NLS-1$
-
-	private static final String TYPE_JSON_FIELD = "type"; //$NON-NLS-1$
-
-	private static final String SCRIPT_PATHS_JSON_FIELD = "scriptPaths"; //$NON-NLS-1$
-
 	private static final String IDE_JSON_FIELD = "ide"; //$NON-NLS-1$
 
 	private static final long serialVersionUID = 1L;
 
-	private final IProject project;
+	protected final IProject project;
 
 	private ITernServer ternServer;
-
-	private final List<ITernScriptPath> scriptPaths;
 
 	private final Map<String, Object> data;
 
 	private final List<ITernServerListener> listeners;
 
-	IDETernProject(IProject project) throws CoreException {
+	protected IDETernProject(IProject project) throws CoreException {
 		super(project.getLocation().toFile());
 		this.project = project;
-		this.scriptPaths = new ArrayList<ITernScriptPath>();
 		this.data = new HashMap<String, Object>();
 		this.listeners = new ArrayList<ITernServerListener>();
 		TernCorePlugin.getTernServerTypeManager().addServerPreferencesListener(
@@ -187,41 +169,9 @@ public class IDETernProject extends TernProject implements
 	 */
 	private void loadIDEInfos() {
 		// Load script paths
-		this.scriptPaths.clear();
 		JsonObject ide = (JsonObject) super.get(IDE_JSON_FIELD);
 		if (ide != null) {
 			// There is ide information.
-			JsonArray jsonScripts = (JsonArray) ide
-					.get(SCRIPT_PATHS_JSON_FIELD);
-			if (jsonScripts != null) {
-				// There is scriptPaths defined.
-				JsonObject jsonScript = null;
-				String type = null;
-				String path = null;
-				// Loop for each script path.
-				for (Object object : jsonScripts) {
-					jsonScript = (JsonObject) object;
-					type = JsonHelper.getString(jsonScript, TYPE_JSON_FIELD);
-					path = JsonHelper.getString(jsonScript, PATH_JSON_FIELD);
-					if (type != null && path != null) {
-						ScriptPathsType pathType = ScriptPathsType
-								.getType(type);
-						if (pathType == null) {
-							pathType = ScriptPathsType.FILE;
-						}
-						if (pathType != null) {
-							// script path type exists.
-							IResource resource = getResource(path, pathType);
-							if (resource != null && resource.exists()) {
-								// the script path exists, add it.
-								this.scriptPaths.add(createScriptPath(resource,
-										pathType));
-							}
-						}
-					}
-				}
-			}
-
 		}
 	}
 
@@ -304,22 +254,6 @@ public class IDETernProject extends TernProject implements
 	 */
 	private void saveIDEInfos() {
 		JsonObject ide = new JsonObject();
-		// script path
-		if (scriptPaths.size() > 0) {
-			JsonArray jsonScripts = new JsonArray();
-			// Loop for each script path and save it in the JSON file
-			// .tern-project.
-			for (ITernScriptPath scriptPath : scriptPaths) {
-				if (!scriptPath.isExternal()) {
-					JsonObject jsonScript = new JsonObject();
-					jsonScript
-							.add(TYPE_JSON_FIELD, scriptPath.getType().name());
-					jsonScript.add(PATH_JSON_FIELD, scriptPath.getPath());
-					jsonScripts.add(jsonScript);
-				}
-			}
-			ide.add(SCRIPT_PATHS_JSON_FIELD, jsonScripts);
-		}
 		super.set(IDE_JSON_FIELD, ide);
 	}
 
@@ -330,7 +264,7 @@ public class IDETernProject extends TernProject implements
 	 */
 	@Override
 	public List<ITernScriptPath> getScriptPaths() {
-		return scriptPaths;
+		throw new UnsupportedOperationException();
 	}
 
 	/**
@@ -344,36 +278,7 @@ public class IDETernProject extends TernProject implements
 	 */
 	public ITernScriptPath createScriptPath(IResource resource,
 			ScriptPathsType type) {
-		return createScriptPath(resource, type, null);
-	}
-
-	private ITernScriptPath createScriptPath(IResource resource,
-			ScriptPathsType type, String external) {
-		switch (type) {
-			case FOLDER:
-				return new FolderScriptPath(this, (IFolder) resource, external);
-			case FILE:
-				ITernFile file = getFile(resource);
-				if (file == null) {
-					break;
-				}
-				if (TernResourcesManager.isJSFile(file)) {
-					return new JSFileScriptPath(this, file, external);
-				}
-				return new DOMElementsScriptPath(this, file, external);
-			case PROJECT:
-				ITernProject project;
-				try {
-					project = TernCorePlugin.getTernProject((IProject) resource);
-					if (project != null) {
-						return new IDEProjectScriptPath(project, this, external);
-					}
-				} catch (CoreException e) {
-					Trace.trace(Trace.SEVERE, "Project " + resource.getName() + " is not a Tern project", e);
-				}
-		}
-		throw new UnsupportedOperationException(
-				"Cannot create script path for the given type " + type);
+		throw new UnsupportedOperationException();
 	}
 
 	/**
@@ -384,29 +289,18 @@ public class IDETernProject extends TernProject implements
 	 */
 	public void setScriptPaths(List<ITernScriptPath> scriptPaths)
 			throws IOException {
-		this.scriptPaths.clear();
-		this.scriptPaths.addAll(scriptPaths);
-		save();
+		throw new UnsupportedOperationException();
 	}
 
 	@Override
 	public ITernScriptPath addExternalScriptPath(IResource resource,
 			ScriptPathsType type, String external) throws IOException {
-		ITernScriptPath path = createScriptPath(resource, type, external);
-		scriptPaths.add(path);
-		saveIfNeeded();
-		return path;
+		throw new UnsupportedOperationException();
 	}
 
 	@Override
 	public void removeExternalScriptPaths(String external) {
-		List<ITernScriptPath> initialScriptPaths = new ArrayList<ITernScriptPath>(
-				scriptPaths);
-		for (ITernScriptPath scriptPath : initialScriptPaths) {
-			if (external.equals(scriptPath.getExternalLabel())) {
-				scriptPaths.remove(scriptPath);
-			}
-		}
+		throw new UnsupportedOperationException();
 	}
 	
 	@Override
@@ -435,7 +329,7 @@ public class IDETernProject extends TernProject implements
 	 * @return the script path instance from the given path and null otherwise.
 	 */
 	public ITernScriptPath getScriptPath(String path) {
-		for (ITernScriptPath scriptPath : scriptPaths) {
+		for (ITernScriptPath scriptPath : getScriptPaths()) {
 			if (scriptPath.getPath().equals(path)) {
 				return scriptPath;
 			}

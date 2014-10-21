@@ -36,7 +36,7 @@ public class IDEResourcesManager implements ITernResourcesManagerDelegate {
 
 	private static IDEResourcesManager instance = new IDEResourcesManager();
 	
-	private IDEResourcesManager() {
+	protected IDEResourcesManager() {
 	}
 	
 	public static IDEResourcesManager getInstance() {

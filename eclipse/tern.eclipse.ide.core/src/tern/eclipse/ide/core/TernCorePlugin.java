@@ -21,14 +21,15 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.Plugin;
 import org.eclipse.core.runtime.Status;
+import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 
+import tern.ITernResourcesManagerDelegate;
 import tern.TernResourcesManager;
 import tern.eclipse.ide.internal.core.TernFileConfigurationManager;
 import tern.eclipse.ide.internal.core.TernNatureAdaptersManager;
 import tern.eclipse.ide.internal.core.TernProjectLifecycleManager;
 import tern.eclipse.ide.internal.core.TernServerTypeManager;
-import tern.eclipse.ide.internal.core.resources.IDEResourcesManager;
 import tern.eclipse.ide.internal.core.resources.IDETernProject;
 import tern.internal.resources.InternalTernResourcesManager;
 import tern.metadata.TernModuleMetadataManager;
@@ -67,8 +68,10 @@ public class TernCorePlugin extends Plugin {
 		//set up resource management for IDE
 		InternalTernResourcesManager resMan = InternalTernResourcesManager.getInstance();
 		resMan.setScriptTagRegionProvider(TernFileConfigurationManager.getManager());
-		resMan.setTernResourcesManagerDelegate(IDEResourcesManager.getInstance());
-		
+		//ME: use MyEclipse resources manager delegate
+		Bundle meTern = Platform.getBundle("com.genuitec.eclipse.javascript.tern");
+		Class<?> meResMan = meTern.loadClass("com.genuitec.eclipse.javascript.tern.MyEclipseResourcesManager");
+		resMan.setTernResourcesManagerDelegate((ITernResourcesManagerDelegate) meResMan.getMethod("getInstance").invoke(null));		
 	}
 
 	public static File getTernCoreBaseDir() throws IOException {

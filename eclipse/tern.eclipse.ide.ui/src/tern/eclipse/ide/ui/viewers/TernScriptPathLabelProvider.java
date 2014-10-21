@@ -40,7 +40,11 @@ public class TernScriptPathLabelProvider extends LabelProvider {
 	public Image getImage(Object element) {
 		if (element instanceof ITernScriptPath) {
 			IResource res = (IResource) ((ITernScriptPath) element).getAdapter(IResource.class);
-			return provider.getImage(res);
+			if (res != null) {
+				return provider.getImage(res);
+			} else {
+				return ImageResource.getImage(ImageResource.IMG_SCRIPT);
+			}
 		}
 		if (element instanceof ITernScriptResource) {
 			return ImageResource.getImage(ImageResource.IMG_SCRIPT);
