@@ -400,7 +400,7 @@ public class TernProject extends DirtyableJsonObject implements
 		return null;
 	}
 
-	protected void synchronize(TernQuery query, JsonArray names, ITernScriptPath scriptPath, 
+	protected void synchronize(TernDoc doc, JsonArray names, ITernScriptPath scriptPath, 
 			Node domNode, ITernFile file) {
 		ITernFileSynchronizer synchronizer = getFileSynchronizer();
 		synchronizer.ensureSynchronized();
@@ -415,8 +415,8 @@ public class TernProject extends DirtyableJsonObject implements
 					handleException(e);
 				}
 			}
-			if (query != null) {
-				query.setFile(file.getFullName(this));
+			if (doc.getQuery() != null) {
+				doc.getQuery().setFile(file.getFullName(this));
 			}
 		}
 		if (names != null) {
@@ -446,9 +446,9 @@ public class TernProject extends DirtyableJsonObject implements
 			ITernScriptPath scriptPath, Node domNode, ITernFile file,
 			ITernCompletionCollector collector) throws IOException,
 			TernException {
-		synchronize(query, names, scriptPath, domNode, file);
-		ITernServer server = getTernServer();
 		TernDoc doc = new TernDoc(query);
+		synchronize(doc, names, scriptPath, domNode, file);
+		ITernServer server = getTernServer();
 		server.request(doc, collector);
 	}
 
@@ -464,9 +464,9 @@ public class TernProject extends DirtyableJsonObject implements
 			ITernScriptPath scriptPath, Node domNode, ITernFile file,
 			ITernDefinitionCollector collector) throws IOException,
 			TernException {
-		synchronize(query, names, scriptPath, domNode, file);
-		ITernServer server = getTernServer();
 		TernDoc doc = new TernDoc(query);
+		synchronize(doc, names, scriptPath, domNode, file);
+		ITernServer server = getTernServer();
 		server.request(doc, collector);
 	}
 
@@ -480,18 +480,18 @@ public class TernProject extends DirtyableJsonObject implements
 	public void request(TernQuery query, JsonArray names,
 			ITernScriptPath scriptPath, Node domNode, ITernFile file,
 			ITernTypeCollector collector) throws IOException, TernException {
-		synchronize(query, names, scriptPath, domNode, file);
-		ITernServer server = getTernServer();
 		TernDoc doc = new TernDoc(query);
+		synchronize(doc, names, scriptPath, domNode, file);
+		ITernServer server = getTernServer();
 		server.request(doc, collector);
 	}
 
 	@Override
 	public void request(TernQuery query, ITernFile file,
 			ITernLintCollector collector) throws IOException, TernException {
-		synchronize(query, null, null, null, file);
-		ITernServer server = getTernServer();
 		TernDoc doc = new TernDoc(query);
+		synchronize(doc, null, null, null, file);
+		ITernServer server = getTernServer();
 		server.request(doc, collector);
 	}
 }
