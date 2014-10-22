@@ -13,6 +13,8 @@ package tern.eclipse.ide.jsdt.internal.contentassist;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 import org.eclipse.core.resources.IFile;
@@ -22,6 +24,7 @@ import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.contentassist.ICompletionProposal;
 import org.eclipse.jface.text.contentassist.IContextInformationValidator;
 import org.eclipse.wst.jsdt.internal.ui.text.java.JavaParameterListValidator;
+import org.eclipse.wst.jsdt.ui.text.java.IJavaCompletionProposal;
 import org.eclipse.wst.sse.ui.contentassist.CompletionProposalInvocationContext;
 import org.eclipse.wst.sse.ui.contentassist.ICompletionProposalComputer;
 import org.eclipse.wst.xml.ui.internal.contentassist.AbstractContentAssistProcessor;
@@ -32,7 +35,6 @@ import tern.eclipse.ide.core.TernCorePlugin;
 import tern.eclipse.ide.core.resources.TernDocumentFile;
 import tern.eclipse.ide.jsdt.internal.Trace;
 import tern.eclipse.ide.jsdt.internal.utils.DOMUtils;
-import tern.eclipse.ide.ui.contentassist.JSTernCompletionCollector;
 import tern.server.protocol.completions.TernCompletionsQuery;
 
 /**
@@ -44,6 +46,25 @@ import tern.server.protocol.completions.TernCompletionsQuery;
 public class TernContentAssistProcessor extends AbstractContentAssistProcessor
 		implements ICompletionProposalComputer {
 
+	private static final Comparator<ICompletionProposal> COMPARATOR = new Comparator<ICompletionProposal>() {
+		@Override
+		public int compare(ICompletionProposal o1, ICompletionProposal o2) {
+			int result = relevance(o2) - relevance(o1);
+			if (result == 0) {
+				result = o1.getDisplayString().compareToIgnoreCase(o2.getDisplayString());
+			}
+			return result;
+		}
+
+		private int relevance(ICompletionProposal proposal) {
+			if (proposal instanceof IJavaCompletionProposal) {
+				return ((IJavaCompletionProposal) proposal).getRelevance();
+			}
+			return 0;
+		}
+		
+	};
+	
 	private IContextInformationValidator fValidator;
 
 	@Override
@@ -83,9 +104,8 @@ public class TernContentAssistProcessor extends AbstractContentAssistProcessor
 					query.add("includeKeywords", true); //$NON-NLS-1$
 
 					ternProject.request(query, tf, 
-							new JSTernCompletionCollector(
+							new JSDTTernCompletionCollector(
 									proposals, startOffset, project));
-					return proposals;
 
 				} catch (Exception e) {
 					Trace.trace(Trace.SEVERE,
@@ -93,6 +113,8 @@ public class TernContentAssistProcessor extends AbstractContentAssistProcessor
 				}
 			}
 		}
+		//proposals have to be sorted
+		Collections.sort(proposals, COMPARATOR);
 		return proposals;
 	}
 
