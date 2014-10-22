@@ -11,6 +11,7 @@
 package tern.eclipse.ide.ui.controls;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -36,7 +37,6 @@ import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Label;
@@ -44,7 +44,6 @@ import org.eclipse.swt.widgets.TabFolder;
 import org.eclipse.swt.widgets.TabItem;
 import org.eclipse.swt.widgets.Table;
 
-import tern.TernException;
 import tern.eclipse.ide.core.IIDETernProject;
 import tern.eclipse.ide.core.TernCorePlugin;
 import tern.eclipse.ide.internal.ui.TernUIMessages;
@@ -57,14 +56,8 @@ import tern.eclipse.ide.internal.ui.viewers.TernModuleVersionEditingSupport;
 import tern.eclipse.ide.ui.TernUIPlugin;
 import tern.eclipse.ide.ui.viewers.TernModuleLabelProvider;
 import tern.metadata.TernModuleMetadata;
-import tern.server.ITernDef;
 import tern.server.ITernModule;
-import tern.server.ITernPlugin;
 import tern.utils.TernModuleHelper;
-
-import com.eclipsesource.json.JsonArray;
-import com.eclipsesource.json.JsonObject;
-import com.eclipsesource.json.JsonValue;
 
 /**
  * Block to select Tern plugins + JSON Type Definitions.
@@ -77,6 +70,8 @@ public class TernModulesBlock extends AbstractTableBlock {
 
 	private Composite fControl;
 	private final Map<String, ITernModule> ternModules = new HashMap<String, ITernModule>();
+	private Object[] oldCheckedModules;
+	private Object[] curCheckedModules;
 	private CheckboxTableViewer tableViewer;
 	private DetailsPanel detailsPanel;
 	private DependenciesPanel dependenciesPanel;
@@ -84,7 +79,7 @@ public class TernModulesBlock extends AbstractTableBlock {
 	private TabItem optionsTabItem;
 	private TabFolder tabFolder;
 	private TabItem detailsTabItem;
-	private Button selectDependenciesCheckbox;
+	//private Button selectDependenciesCheckbox;
 
 	public TernModulesBlock(IProject project, String tableLabel) {
 		this.project = project;
@@ -106,19 +101,20 @@ public class TernModulesBlock extends AbstractTableBlock {
 		GridData data;
 		if (tableLabel != null) {
 			Composite header = new Composite(parent, SWT.NONE);
-			data = new GridData();
-			data.horizontalSpan = 2;
+			data = new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1);
 			header.setLayoutData(data);
-			header.setLayout(new GridLayout(2, false));
+			layout = new GridLayout(2, false);
+			layout.marginHeight = 0;
+			layout.marginWidth = 0;
+			header.setLayout(layout);
 
 			// Create description
-			Label tableLabel = new Label(header, SWT.NONE);
+			Label tableLabel = new Label(header, SWT.WRAP);
 			tableLabel.setText(this.tableLabel);
-			tableLabel.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+			data = new GridData(SWT.FILL, SWT.CENTER, true, false);
+			data.widthHint = 200;
+			tableLabel.setLayoutData(data);
 			tableLabel.setFont(font);
-			// Create dependencies checkbox
-			selectDependenciesCheckbox = new Button(header, SWT.CHECK);
-			selectDependenciesCheckbox.setSelection(true);
 		}
 
 		SashForm sashForm = new SashForm(parent, SWT.HORIZONTAL | SWT.SMOOTH);
@@ -151,6 +147,7 @@ public class TernModulesBlock extends AbstractTableBlock {
 
 		GridData data = new GridData(GridData.FILL_BOTH);
 		data.widthHint = 350;
+		data.heightHint = 300;
 		table.setLayoutData(data);
 		table.setFont(parent.getFont());
 
@@ -217,6 +214,7 @@ public class TernModulesBlock extends AbstractTableBlock {
 							}
 						}
 					}
+					storeCheckedElements();
 				} finally {
 					checkUpdating = false;
 				}
@@ -248,6 +246,7 @@ public class TernModulesBlock extends AbstractTableBlock {
 		tabFolder = new TabFolder(parent, SWT.NONE);
 		GridData data = new GridData(GridData.FILL_HORIZONTAL);
 		data.heightHint = 80;
+		data.widthHint = 200;
 		tabFolder.setLayoutData(data);
 
 		// create details tab
@@ -339,14 +338,34 @@ public class TernModulesBlock extends AbstractTableBlock {
 		}
 		tableViewer.setInput(ternModules.values());
 	}
+	
+	public boolean isModified() {
+		return !Arrays.equals(getCheckedModules(), oldCheckedModules);
+	}
+	
+	public boolean isDisposed() {
+		return tableViewer.getTable().isDisposed();
+	}
+
+	private void storeCheckedElements() {
+		curCheckedModules = tableViewer.getCheckedElements();
+	}
 
 	public Object[] getCheckedModules() {
-		return tableViewer.getCheckedElements();
+		return curCheckedModules;
 	}
 
 	public void setCheckedModules(Object[] selectedModules) {
 		tableViewer.setCheckedElements(selectedModules);
-
+		storeCheckedElements();
+		
+		//create deep copy of selected elements for later comparisons
+		selectedModules = getCheckedModules();
+		oldCheckedModules = new Object[selectedModules.length];
+		for (int i = 0; i < selectedModules.length; i++) {
+			oldCheckedModules[i] = TernModuleHelper.clone((ITernModule)selectedModules[i]);
+		}
+		
 		/*
 		 * if (selectedModules == null) { setSelection(new
 		 * StructuredSelection()); } else { setSelection(new
@@ -386,8 +405,8 @@ public class TernModulesBlock extends AbstractTableBlock {
 		try {
 			List<ITernModule> checkedModules = project != null ? new ArrayList<ITernModule>()
 					: null;
-			IIDETernProject ternProject = project != null ? TernCorePlugin
-					.getTernProject(project) : null;
+			IIDETernProject ternProject = project != null && TernCorePlugin.hasTernNature(project) ? 
+					TernCorePlugin.getTernProject(project) : null;
 			// Load list of Tern Plugins + JSON Type Definitions.
 			ITernModule[] allModules = TernCorePlugin
 					.getTernServerTypeManager().getTernModules(ternProject, checkedModules);
@@ -433,7 +452,6 @@ public class TernModulesBlock extends AbstractTableBlock {
 	 *         module is selected and false otherwise.
 	 */
 	private boolean isSelectDependencies() {
-		return selectDependenciesCheckbox != null
-				&& selectDependenciesCheckbox.getSelection();
+		return true;
 	}
 }

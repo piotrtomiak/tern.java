@@ -67,6 +67,13 @@ public class TernModuleHelper {
 			}
 		}
 	}
+	
+	public static ITernModule clone(ITernModule module) {
+		if (module instanceof TernModuleConfigurable) {
+			return ((TernModuleConfigurable)module).clone();
+		}
+		return module;		
+	}
 
 	/**
 	 * Returns true if the given module can be configured and false otherwise.

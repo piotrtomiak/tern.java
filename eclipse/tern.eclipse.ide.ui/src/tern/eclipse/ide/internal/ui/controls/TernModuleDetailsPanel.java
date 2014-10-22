@@ -97,6 +97,8 @@ public class TernModuleDetailsPanel extends AbstractTernModulePanel {
 			data.horizontalSpan = 2;
 			descTextField.setLayoutData(data);
 			descTextField.setText(metadata.getDescription());
+			descTextField.setBackground(nestedDetailsComposite.getBackground());
+			descTextField.setForeground(nestedDetailsComposite.getForeground());
 		}
 
 		// Home page
@@ -157,6 +159,8 @@ public class TernModuleDetailsPanel extends AbstractTernModulePanel {
 			textField.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 			textField.setText(valueInfo != null ? valueInfo : "");
 			if (textField != null) {
+				textField.setBackground(parent.getBackground());
+				textField.setForeground(parent.getForeground());
 				textField.setFont(font);
 			}
 		}

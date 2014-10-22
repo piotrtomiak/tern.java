@@ -49,6 +49,10 @@ public class DetailsPanel extends AbstractPanel {
 				| SWT.READ_ONLY);
 		noSelectionTextField.setLayoutData(new GridData(
 				GridData.FILL_HORIZONTAL));
+		noSelectionTextField.setBackground(
+				parent.getBackground());
+		noSelectionTextField.setForeground(
+				parent.getForeground());
 		noSelectionTextField
 				.setText(TernUIMessages.DetailsPanel_noSelectionLabel);
 

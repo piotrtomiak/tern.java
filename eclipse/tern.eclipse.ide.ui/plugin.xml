@@ -124,6 +124,7 @@
 		     </adapt>         
          </enabledWhen>
       </page>    
+      <!-- 
 	  <page
             name="%TernModulesPropertyPage.name"
             category="tern.eclipse.ide.ui.properties.TernMainPropertyPage"        
@@ -135,7 +136,7 @@
 		     </adapt>         
          </enabledWhen>
       </page>     
-      <!--
+      
 	  <page
             name="%TernScriptPathsPropertyPage.name"
             category="tern.eclipse.ide.ui.properties.TernMainPropertyPage"        

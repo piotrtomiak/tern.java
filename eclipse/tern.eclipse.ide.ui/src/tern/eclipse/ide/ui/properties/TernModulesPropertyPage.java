@@ -15,6 +15,7 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPreferencePage;
 
@@ -48,7 +49,7 @@ public class TernModulesPropertyPage extends AbstractTernPropertyPage implements
 	}
 
 	@Override
-	protected Control createContents(Composite parent) {
+	public Control createContents(Composite parent) {
 		initializeDialogUnits(parent);
 
 		noDefaultAndApplyButton();
@@ -79,10 +80,22 @@ public class TernModulesPropertyPage extends AbstractTernPropertyPage implements
 
 	@Override
 	public boolean performOk() {
-		// save column settings
-		modulesBlock.saveColumnSettings();
+		if (Thread.currentThread() == Display.getDefault().getThread()) {
+			// save column settings
+			modulesBlock.saveColumnSettings();
+		} else {
+			Display.getDefault().asyncExec(new Runnable() {
+				@Override
+				public void run() {
+					if (!modulesBlock.isDisposed()) {
+						// save column settings
+						modulesBlock.saveColumnSettings();
+					}
+				}
+			});
+		}
 		// save the checked plugins in the tern project
-		Object[] checkedModules = modulesBlock.getCheckedModules();
+		final Object[] checkedModules = modulesBlock.getCheckedModules();
 		try {
 			IIDETernProject ternProject = getTernProject();
 			// clear Plugin + JSON Type Definition
@@ -93,9 +106,41 @@ public class TernModulesPropertyPage extends AbstractTernPropertyPage implements
 				TernModuleHelper.update((ITernModule) module, ternProject);
 			}
 			ternProject.save();
+			if (Thread.currentThread() == Display.getDefault().getThread()) {
+				modulesBlock.setCheckedModules(checkedModules);
+				modulesBlock.loadModules();
+			} else {
+				Display.getDefault().asyncExec(new Runnable() {
+					@Override
+					public void run() {
+						if (!modulesBlock.isDisposed()) {
+							modulesBlock.setCheckedModules(checkedModules);
+							modulesBlock.loadModules();
+						}
+					}
+				});
+			}
 		} catch (Exception e) {
 			Trace.trace(Trace.SEVERE, "Error while saving tern project", e);
 		}
 		return super.performOk();
 	}
+
+	public boolean hasChanges() {
+		return modulesBlock != null && modulesBlock.isModified();
+	}
+	
+	public void reset() {
+		if (Thread.currentThread() != Display.getDefault().getThread()) {
+			Display.getCurrent().asyncExec(new Runnable() {
+				@Override
+				public void run() {
+					reset();
+				}
+			});
+		} else if (modulesBlock != null && !modulesBlock.isDisposed()) {
+			modulesBlock.loadModules();
+		}
+	}
+
 }

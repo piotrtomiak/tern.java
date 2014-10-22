@@ -12,6 +12,7 @@ package tern.server;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import com.eclipsesource.json.JsonObject;
@@ -19,6 +20,7 @@ import com.eclipsesource.json.JsonObject;
 import tern.TernException;
 import tern.metadata.TernModuleMetadata;
 import tern.utils.StringUtils;
+import tern.utils.TernModuleHelper;
 
 /**
  * Wrapper for {@link ITernModule} used to configure {@link ITernModule} :
@@ -29,7 +31,7 @@ import tern.utils.StringUtils;
  * </ul>
  *
  */
-public class TernModuleConfigurable implements ITernModuleConfigurable {
+public class TernModuleConfigurable implements ITernModuleConfigurable, Cloneable {
 
 	private ITernModule wrappedModule;
 	private final Map<String, ITernModule> modules;
@@ -107,4 +109,31 @@ public class TernModuleConfigurable implements ITernModuleConfigurable {
 	public void setOptions(JsonObject options) {
 		this.options = options;
 	}
+	
+	@Override
+	public boolean equals(Object obj) {
+		if (obj instanceof TernModuleConfigurable) {
+			TernModuleConfigurable tmp = (TernModuleConfigurable)obj;
+			return wrappedModule.equals(tmp.wrappedModule) &&
+					((options == null && tmp.options == null) ||
+					 (options != null && options.equals(tmp.options))) &&
+					modules.equals(tmp.modules);
+		}
+		return super.equals(obj);
+	}
+	
+	@Override
+	public TernModuleConfigurable clone() {
+		TernModuleConfigurable result = new TernModuleConfigurable(wrappedModule);
+		result.wrappedModule = TernModuleHelper.clone(wrappedModule);
+		if (options != null) {
+			result.options = new JsonObject(options);
+		}
+		result.modules.clear();
+		for (Entry<String, ITernModule> entry: modules.entrySet()) {
+			result.modules.put(entry.getKey(), entry.getValue());
+		}
+		return result;
+	}
+	
 }
