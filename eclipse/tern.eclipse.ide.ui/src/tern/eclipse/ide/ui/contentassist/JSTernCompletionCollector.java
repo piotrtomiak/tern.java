@@ -34,8 +34,8 @@ import tern.server.protocol.completions.ITernCompletionCollector;
 public class JSTernCompletionCollector implements ITernCompletionCollector, 
 		IMeTernCompletionCollector {
 
-	private final List<ICompletionProposal> proposals;
-	private final int startOffset;
+	protected final List<ICompletionProposal> proposals;
+	protected final int startOffset;
 	private boolean generateAnonymousFunction;
 	private boolean expandFunction;
 

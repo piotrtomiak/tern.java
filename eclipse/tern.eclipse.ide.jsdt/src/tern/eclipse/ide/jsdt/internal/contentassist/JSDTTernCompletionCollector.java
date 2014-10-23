@@ -13,7 +13,13 @@ package tern.eclipse.ide.jsdt.internal.contentassist;
 import java.util.List;
 
 import org.eclipse.core.resources.IProject;
+import org.eclipse.jface.dialogs.Dialog;
+import org.eclipse.jface.resource.JFaceResources;
+import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.contentassist.ICompletionProposal;
+import org.eclipse.jface.text.contentassist.IContextInformation;
+import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.graphics.Point;
 
 import tern.eclipse.ide.ui.contentassist.JSTernCompletionCollector;
 import tern.eclipse.ide.ui.contentassist.JSTernCompletionProposal;
@@ -37,5 +43,40 @@ public class JSDTTernCompletionCollector extends JSTernCompletionCollector {
 		return new JSDTTernCompletionProposal(name, type, doc, url, 
 				origin, keyword, depth, pos, startOffset);
 	}
-	
+
+	public void timedOut(final String message) {
+		proposals.add(new ICompletionProposal() {
+			
+			@Override
+			public Point getSelection(IDocument document) {
+				return new Point(startOffset, 0);
+			}
+			
+			@Override
+			public Image getImage() {
+				return JFaceResources.getImage(Dialog.DLG_IMG_MESSAGE_INFO);
+			}
+			
+			@Override
+			public String getDisplayString() {
+				return message;
+			}
+			
+			@Override
+			public IContextInformation getContextInformation() {
+				return null;
+			}
+			
+			@Override
+			public String getAdditionalProposalInfo() {
+				return null;
+			}
+			
+			@Override
+			public void apply(IDocument document) {
+				//do nothing
+			}
+			
+		});
+	}
 }

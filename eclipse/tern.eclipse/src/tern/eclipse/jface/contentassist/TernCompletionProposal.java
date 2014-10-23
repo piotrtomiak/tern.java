@@ -72,7 +72,6 @@ public class TernCompletionProposal extends TernCompletionItem implements
 		this.fReplacementLength = pos;
 		this.fCursorPosition = text.length();
 
-		this.fImage = getDefaultImage();
 		this.fDisplayString = super.getText();
 		this.fAdditionalProposalInfo = doc != null ? doc.toString() : null;
 
@@ -240,6 +239,9 @@ public class TernCompletionProposal extends TernCompletionItem implements
 
 	@Override
 	public Image getImage() {
+		if (this.fImage == null) {
+			this.fImage = getDefaultImage();
+		}
 		return this.fImage;
 	}
 
