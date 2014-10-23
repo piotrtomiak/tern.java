@@ -37,11 +37,7 @@ public class TernHyperLinkDetector extends AbstractHyperlinkDetector {
 		if (region == null || textViewer == null) {
 			return null;
 		}
-		ITextEditor textEditor = (ITextEditor) getAdapter(ITextEditor.class);
-		if (textEditor == null) {
-			return null;
-		}
-		IResource resource = EditorUtils.getResource(textEditor);
+		IResource resource = getResource(textViewer);
 		if (resource == null) {
 			return null;
 		}
@@ -63,6 +59,14 @@ public class TernHyperLinkDetector extends AbstractHyperlinkDetector {
 			}
 		}
 		return null;
+	}
+	
+	protected IResource getResource(ITextViewer textViewer) {
+		ITextEditor textEditor = (ITextEditor) getAdapter(ITextEditor.class);
+		if (textEditor == null) {
+			return null;
+		}
+		return EditorUtils.getResource(textEditor);
 	}
 
 }
