@@ -14,6 +14,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.eclipse.core.resources.IProject;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchWindow;
@@ -113,9 +114,20 @@ public class TernUIPlugin extends AbstractUIPlugin {
 		return getActiveWorkbenchWindow().getActivePage();
 	}
 
-	public ITernConsole getConsole(IIDETernProject project) {
+	public ITernConsole getConsole(final IIDETernProject project) {
+		if (Display.getDefault().getThread() != Thread.currentThread()) {
+			final ITernConsole[] result = new ITernConsole[1];
+			Display.getDefault().asyncExec(new Runnable() {
+				@Override
+				public void run() {
+					result[0] = getConsole(project);
+				}
+			});
+			return result[0];
+		}
 		TernConsole console = consoles.get(project.getProject());
 		if (console == null) {
+			
 			console = new TernConsole(project);
 			consoles.put(project.getProject(), console);
 		}
