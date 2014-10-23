@@ -40,7 +40,7 @@ public class TernFile extends JsonObject {
 		super.add(TEXT_FIELD_NAME, getText(text, tags));
 		if (offset != null) {
 			super.add(TYPE_FIELD_NAME, FileType.part.name());
-			super.add(OFFSET_LINES_FIELD_TYPE, offset);
+			super.add(OFFSET_FIELD_NAME, offset);
 		} else {
 			super.add(TYPE_FIELD_NAME, FileType.full.name());
 		}
