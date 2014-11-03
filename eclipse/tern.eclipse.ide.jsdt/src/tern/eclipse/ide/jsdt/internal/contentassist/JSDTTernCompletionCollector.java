@@ -17,6 +17,7 @@ import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.resource.JFaceResources;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.contentassist.ICompletionProposal;
+import org.eclipse.jface.text.contentassist.ICompletionProposalExtension4;
 import org.eclipse.jface.text.contentassist.IContextInformation;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
@@ -45,38 +46,54 @@ public class JSDTTernCompletionCollector extends JSTernCompletionCollector {
 	}
 
 	public void timedOut(final String message) {
-		proposals.add(new ICompletionProposal() {
-			
-			@Override
-			public Point getSelection(IDocument document) {
-				return new Point(startOffset, 0);
-			}
-			
-			@Override
-			public Image getImage() {
-				return JFaceResources.getImage(Dialog.DLG_IMG_MESSAGE_INFO);
-			}
-			
-			@Override
-			public String getDisplayString() {
-				return message;
-			}
-			
-			@Override
-			public IContextInformation getContextInformation() {
-				return null;
-			}
-			
-			@Override
-			public String getAdditionalProposalInfo() {
-				return null;
-			}
-			
-			@Override
-			public void apply(IDocument document) {
-				//do nothing
-			}
-			
-		});
+		proposals.add(new InfoProposal(startOffset, message));
 	}
+	
+	private static final class InfoProposal implements ICompletionProposal, ICompletionProposalExtension4 {
+
+		private int startOffset;
+		private String message;
+		
+		public InfoProposal(int startOffset, String message) {
+			this.startOffset = startOffset;
+			this.message = message;
+		}
+		
+		@Override
+		public Point getSelection(IDocument document) {
+			return new Point(startOffset, 0);
+		}
+		
+		@Override
+		public Image getImage() {
+			return JFaceResources.getImage(Dialog.DLG_IMG_MESSAGE_INFO);
+		}
+		
+		@Override
+		public String getDisplayString() {
+			return message;
+		}
+		
+		@Override
+		public IContextInformation getContextInformation() {
+			return null;
+		}
+		
+		@Override
+		public String getAdditionalProposalInfo() {
+			return null;
+		}
+		
+		@Override
+		public void apply(IDocument document) {
+			//do nothing
+		}
+
+		@Override
+		public boolean isAutoInsertable() {
+			return false;
+		}
+		
+	}
+	
 }
