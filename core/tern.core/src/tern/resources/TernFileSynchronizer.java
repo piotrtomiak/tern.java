@@ -40,8 +40,7 @@ import com.eclipsesource.json.JsonArray;
  */
 public class TernFileSynchronizer implements ITernFileSynchronizer {
 
-	private static final int MAX_FILES = 60;
-	private static final int MAX_ALLOWED_FILES = 4000;
+	private static final int MAX_FILES = 20;
 
 	/**
 	 * List of JS files which was already parsed by the tern server.
@@ -187,16 +186,11 @@ public class TernFileSynchronizer implements ITernFileSynchronizer {
 			// make sure we do not send duplicate files
 			Set<String> requestedFiles = new HashSet<String>();
 			syncedFilesPerPath.clear();
-			Set<String> lastSynced = new HashSet<String>(syncedFiles);
 			syncedFiles.clear();
 			for (ITernScriptPath path : getProject().getScriptPaths()) {
 				Set<String> perPath = new HashSet<String>();
 				syncedFilesPerPath.put(path, perPath);
 				for (ITernScriptResource resource : path.getScriptResources()) {
-					//limit the number of files being sent to the Tern server
-					if (syncedFiles.size() >= MAX_ALLOWED_FILES) {
-						break;
-					}
 					ITernFile file = resource.getFile();
 					if (file == null) {
 						continue;
@@ -204,8 +198,7 @@ public class TernFileSynchronizer implements ITernFileSynchronizer {
 					String name = file.getFullName(getProject());
 					perPath.add(name);
 					syncedFiles.add(name);
-					if (!indexedFiles.contains(name) 
-							&& !lastSynced.contains(name) //do not send the same file several times
+					if (!indexedFiles.contains(name)
 							&& !requestedFiles.contains(name)) {
 						try {
 							doc.addFile(file.toTernServerFile(getProject()));
@@ -239,10 +232,6 @@ public class TernFileSynchronizer implements ITernFileSynchronizer {
 			Set<String> perPath = new HashSet<String>();
 			syncedFilesPerPath.put(path, perPath);
 			for (ITernScriptResource resource : path.getScriptResources()) {
-				//limit the number of files being sent to the Tern server
-				if (syncedFiles.size() >= MAX_ALLOWED_FILES) {
-					break;
-				}
 				ITernFile file = resource.getFile();
 				if (file == null) {
 					continue;
@@ -250,8 +239,7 @@ public class TernFileSynchronizer implements ITernFileSynchronizer {
 				String name = file.getFullName(getProject());
 				syncedFiles.add(name);
 				perPath.add(name);
-				if ((!(indexedFiles.contains(name) || syncedFiles.contains(name))
-						|| forcedFiles.contains(name)) 
+				if ((!indexedFiles.contains(name) || forcedFiles.contains(name))
 						&& !requestedFiles.contains(name)) {
 					try {
 						doc.addFile(file.toTernServerFile(getProject()));
