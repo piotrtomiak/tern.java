@@ -45,7 +45,7 @@ public class TernModuleConfigurable implements ITernModuleConfigurable, Cloneabl
 
 	@Override
 	public String getName() {
-		return getType();
+		return wrappedModule.getName();
 	}
 
 	@Override

@@ -13,15 +13,15 @@
 ###############################################################################
  -->
 <plugin>
-	
-	<extension-point id="ternServerTypes" name="%ternServerTypes.name"
-		schema="schema/ternServerTypes.exsd" />	
+
 	<extension-point id="ternConsoleConnectors" name="%ternConsoleConnectors.name"
-		schema="schema/ternConsoleConnectors.exsd" />	
-	<extension-point id="ternNatureAdapters" name="%ternNatureAdapters.name"
-		schema="schema/ternNatureAdapters.exsd" />	
+		schema="schema/ternConsoleConnectors.exsd" />
 	<extension-point id="ternFileConfigurations" name="%ternFileConfigurations.name"
 		schema="schema/ternFileConfigurations.exsd" />
+	<extension-point id="ternNatureAdapters" name="%ternNatureAdapters.name"
+		schema="schema/ternNatureAdapters.exsd" />
+	<extension-point id="ternServerTypes" name="%ternServerTypes.name"
+		schema="schema/ternServerTypes.exsd" />
 			
 	<!-- =================================================================================== -->
 	<!-- Tern Builder                                                                        -->
@@ -35,27 +35,8 @@
 			<run class="tern.eclipse.ide.internal.core.builder.TernBuilder">
 			</run>
 		</builder>
-	</extension>
-	-->			
-	<!-- =================================================================================== -->
-	<!-- Tern Nature                                                                         -->
-	<!-- =================================================================================== -->
-	
-	<extension
-		id="ternnature"
-		name="%ternNature.name"
-		point="org.eclipse.core.resources.natures">
-		<runtime>
-			<run
-				class="tern.eclipse.ide.core.TernNature">
-			</run>
-		</runtime>
-		<!--
-	    <builder
-	          id="tern.eclipse.ide.core.ternBuilder">
-	    </builder>
-	    -->		
-	</extension>	
+	</extension>					
+	-->
 	
 	<!-- Preferences initialization -->
 	<extension
@@ -63,5 +44,5 @@
 		<initializer
 			class="tern.eclipse.ide.internal.core.preferences.TernCorePreferenceInitializer" />
 	</extension>
-		
+				
 </plugin>        

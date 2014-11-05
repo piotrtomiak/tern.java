@@ -33,10 +33,10 @@ import tern.server.protocol.TernFile;
 import com.eclipsesource.json.JsonArray;
 
 /**
- * Tern file synchronizer is used to maintain a cache with indexed files which was
- * already parsed by the tern server to avoid parsing files on each tern
- * request. It is also responsible to keep up-to-date version of those files on the 
- * server.
+ * Tern file synchronizer is used to maintain a cache with indexed files which
+ * was already parsed by the tern server to avoid parsing files on each tern
+ * request. It is also responsible to keep up-to-date version of those files on
+ * the server.
  */
 public class TernFileSynchronizer implements ITernFileSynchronizer {
 
@@ -128,8 +128,6 @@ public class TernFileSynchronizer implements ITernFileSynchronizer {
 
 	// ----------------- Internal methods
 
-
-	
 	/**
 	 * Add the given file name to the the indexed files.
 	 * 
@@ -163,7 +161,7 @@ public class TernFileSynchronizer implements ITernFileSynchronizer {
 	protected boolean internalIsIndexedFile(String name) {
 		return indexedFiles.contains(name);
 	}
-	
+
 	// ------- Main synchronization code
 	@Override
 	public void fillSyncedFileNames(JsonArray fileNames, ITernScriptPath path) {
@@ -174,25 +172,27 @@ public class TernFileSynchronizer implements ITernFileSynchronizer {
 			} else {
 				files = syncedFiles;
 			}
-			for (String file: files) {
-				fileNames.add(file);
+			if (files != null) {
+				for (String file : files) {
+					fileNames.add(file);
+				}
 			}
 		}
 	}
-	
+
 	@Override
 	public void ensureSynchronized() {
 		TernDoc doc = new TernDoc();
-		synchronized(indexedFiles) {
-			//make sure we do not send duplicate files
+		synchronized (indexedFiles) {
+			// make sure we do not send duplicate files
 			Set<String> requestedFiles = new HashSet<String>();
 			syncedFilesPerPath.clear();
 			Set<String> lastSynced = new HashSet<String>(syncedFiles);
 			syncedFiles.clear();
-			for (ITernScriptPath path: getProject().getScriptPaths()) {
+			for (ITernScriptPath path : getProject().getScriptPaths()) {
 				Set<String> perPath = new HashSet<String>();
 				syncedFilesPerPath.put(path, perPath);
-				for (ITernScriptResource resource: path.getScriptResources()) {
+				for (ITernScriptResource resource : path.getScriptResources()) {
 					//limit the number of files being sent to the Tern server
 					if (syncedFiles.size() >= MAX_ALLOWED_FILES) {
 						break;
@@ -204,9 +204,9 @@ public class TernFileSynchronizer implements ITernFileSynchronizer {
 					String name = file.getFullName(getProject());
 					perPath.add(name);
 					syncedFiles.add(name);
-					if (!indexedFiles.contains(name) &&
-							!lastSynced.contains(name) && //do not send the same file several times
-							!requestedFiles.contains(name)) {
+					if (!indexedFiles.contains(name) 
+							&& !lastSynced.contains(name) //do not send the same file several times
+							&& !requestedFiles.contains(name)) {
 						try {
 							doc.addFile(file.toTernServerFile(getProject()));
 							requestedFiles.add(name);
@@ -217,7 +217,7 @@ public class TernFileSynchronizer implements ITernFileSynchronizer {
 				}
 			}
 		}
-		//perform actual synchronization with the server
+		// perform actual synchronization with the server
 		sendFiles(doc);
 	}
 
@@ -228,17 +228,17 @@ public class TernFileSynchronizer implements ITernFileSynchronizer {
 		doc.addFile(file.toTernServerFile(getProject()));
 		request(doc);
 	}
-	
+
 	@Override
 	public void synchronizeScriptPath(ITernScriptPath path, String... forced) {
 		TernDoc doc = new TernDoc();
-		synchronized(indexedFiles) {
-			//make sure we do not send duplicate files
+		synchronized (indexedFiles) {
+			// make sure we do not send duplicate files
 			Set<String> requestedFiles = new HashSet<String>();
 			List<String> forcedFiles = Arrays.asList(forced);
 			Set<String> perPath = new HashSet<String>();
 			syncedFilesPerPath.put(path, perPath);
-			for (ITernScriptResource resource: path.getScriptResources()) {
+			for (ITernScriptResource resource : path.getScriptResources()) {
 				//limit the number of files being sent to the Tern server
 				if (syncedFiles.size() >= MAX_ALLOWED_FILES) {
 					break;
@@ -251,8 +251,8 @@ public class TernFileSynchronizer implements ITernFileSynchronizer {
 				syncedFiles.add(name);
 				perPath.add(name);
 				if ((!(indexedFiles.contains(name) || syncedFiles.contains(name))
-						|| forcedFiles.contains(name)) &&
-						!requestedFiles.contains(name)) {
+						|| forcedFiles.contains(name)) 
+						&& !requestedFiles.contains(name)) {
 					try {
 						doc.addFile(file.toTernServerFile(getProject()));
 						requestedFiles.add(name);
@@ -262,10 +262,10 @@ public class TernFileSynchronizer implements ITernFileSynchronizer {
 				}
 			}
 		}
-		//perform actual synchronization with the server
+		// perform actual synchronization with the server
 		sendFiles(doc);
 	}
-	
+
 	protected void sendFiles(TernDoc doc) {
 		if (doc.hasFiles()) {
 			JsonArray files = doc.getFiles();
@@ -289,7 +289,7 @@ public class TernFileSynchronizer implements ITernFileSynchronizer {
 			doc.cleanFiles();
 		}
 	}
-	
+
 	protected void request(TernDoc doc) {
 		ITernServer server = project.getTernServer();
 		if (server == null) {
@@ -313,7 +313,10 @@ public class TernFileSynchronizer implements ITernFileSynchronizer {
 		});
 	}
 
-
+	@Override
+	public void dispose() {
+		cleanIndexedFiles();
+	}
 	/*
 	 * private void updateFragmentAround(TernDoc doc, String name, IDocument
 	 * document, int start, int end) {
@@ -355,5 +358,5 @@ public class TernFileSynchronizer implements ITernFileSynchronizer {
 	 * "part", name: data.name, offsetLines: from.line, text: doc.getRange(from,
 	 * Pos(endLine, 0))}; }
 	 */
-	
+
 }

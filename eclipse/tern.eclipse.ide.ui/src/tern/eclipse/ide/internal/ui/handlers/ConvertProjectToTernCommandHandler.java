@@ -10,85 +10,82 @@
  */
 package tern.eclipse.ide.internal.ui.handlers;
 
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 
-import org.eclipse.core.commands.AbstractHandler;
-import org.eclipse.core.commands.ExecutionEvent;
-import org.eclipse.core.commands.ExecutionException;
 import org.eclipse.core.resources.IProject;
-import org.eclipse.core.resources.IProjectDescription;
-import org.eclipse.core.resources.ResourcesPlugin;
-import org.eclipse.core.resources.WorkspaceJob;
-import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Platform;
-import org.eclipse.core.runtime.Status;
-import org.eclipse.jface.viewers.ISelection;
-import org.eclipse.jface.viewers.IStructuredSelection;
-import org.eclipse.ui.handlers.HandlerUtil;
+import org.eclipse.core.runtime.preferences.IPreferencesService;
+import org.eclipse.core.runtime.preferences.IScopeContext;
+import org.eclipse.osgi.util.NLS;
 
-import tern.eclipse.ide.core.TernNature;
+import tern.eclipse.ide.core.TernCorePlugin;
 import tern.eclipse.ide.internal.ui.TernUIMessages;
+import tern.eclipse.ide.internal.ui.preferences.TernUIPreferenceConstants;
+import tern.eclipse.ide.ui.TernUIPlugin;
+import tern.eclipse.ide.ui.handlers.AbstractConvertProjectCommandHandler;
+import tern.server.ITernDef;
+import tern.server.ITernPlugin;
 
 /**
  * Convert selected project to Tern project.
  * 
  */
-public class ConvertProjectToTernCommandHandler extends AbstractHandler {
+public class ConvertProjectToTernCommandHandler extends
+		AbstractConvertProjectCommandHandler {
 
-	public Object execute(ExecutionEvent event) throws ExecutionException {
+	private IPreferencesService fPreferenceService;
 
-		final IProject project = getSelectedProject(event);
+	public ConvertProjectToTernCommandHandler() {
+		fPreferenceService = Platform.getPreferencesService();
+	}
 
-		if (project == null) {
-			return null;
-		}
+	@Override
+	protected ITernPlugin[] getPlugins(IScopeContext[] fLookupOrder) {
+		return getPlugins(fPreferenceService.getString(TernUIPlugin
+				.getDefault().getBundle().getSymbolicName(),
+				TernUIPreferenceConstants.TERN_PLUGINS,
+				TernUIPreferenceConstants.TERN_PLUGINS_DEFAULT, fLookupOrder));
+	}
 
-		WorkspaceJob convertJob = new WorkspaceJob(
-				TernUIMessages.ConvertProjectToTern_converting_project_job_title) {
-			public IStatus runInWorkspace(IProgressMonitor monitor)
-					throws CoreException {
+	@Override
+	protected ITernDef[] getDefs(IScopeContext[] fLookupOrder) {
+		return getDefs(fPreferenceService.getString(TernUIPlugin.getDefault()
+				.getBundle().getSymbolicName(),
+				TernUIPreferenceConstants.TERN_DEFS,
+				TernUIPreferenceConstants.TERN_DEFS_DEFAULT, fLookupOrder));
+	}
 
-				IProjectDescription projectDescription = project
-						.getDescription();
+	protected String getConvertingProjectJobTitle(IProject project) {
+		return NLS
+				.bind(TernUIMessages.ConvertProjectToTern_converting_project_job_title,
+						project.getName());
+	}
 
-				// Configure natures:
-				List newNatures = new LinkedList();
-				String[] natures = projectDescription.getNatureIds();
-				for (int c = 0; c < natures.length; ++c) {
-					if (!natures[c].equals(TernNature.ID)) {
-						newNatures.add(natures[c]);
-					}
-				}
-				newNatures.add(TernNature.ID);
-
-				projectDescription.setNatureIds((String[]) newNatures
-						.toArray(new String[newNatures.size()]));
-
-				// Save project description:
-				project.setDescription(projectDescription, monitor);
-				return Status.OK_STATUS;
+	private ITernDef[] getDefs(String defsAsString) {
+		ITernDef def = null;
+		List<ITernDef> defs = new ArrayList<ITernDef>();
+		String[] s = defsAsString.split(",");
+		for (int i = 0; i < s.length; i++) {
+			def = TernCorePlugin.getTernServerTypeManager().findTernDef(s[i]);
+			if (def != null) {
+				defs.add(def);
 			}
-		};
-		convertJob.setUser(true);
-		convertJob.setRule(ResourcesPlugin.getWorkspace().getRoot());
-		convertJob.schedule();
-
-		return null;
-	}
-
-	private IProject getSelectedProject(ExecutionEvent event) {
-		ISelection currentSelection = HandlerUtil.getCurrentSelection(event);
-
-		if (currentSelection instanceof IStructuredSelection) {
-			Object element = ((IStructuredSelection) currentSelection)
-					.getFirstElement();
-			return (IProject) Platform.getAdapterManager().getAdapter(element,
-					IProject.class);
 		}
-		return null;
+		return defs.toArray(ITernDef.EMPTY_DEF);
 	}
 
+	private ITernPlugin[] getPlugins(String pluginsAsString) {
+		ITernPlugin plugin = null;
+		List<ITernPlugin> plugins = new ArrayList<ITernPlugin>();
+		String[] s = pluginsAsString.split(",");
+		for (int i = 0; i < s.length; i++) {
+			plugin = TernCorePlugin.getTernServerTypeManager().findTernPlugin(
+					s[i]);
+			if (plugin != null) {
+				plugins.add(plugin);
+			}
+		}
+		return plugins.toArray(ITernPlugin.EMPTY_PLUGIN);
+	}
 }

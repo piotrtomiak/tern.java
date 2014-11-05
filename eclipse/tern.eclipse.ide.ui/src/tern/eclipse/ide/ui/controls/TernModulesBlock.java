@@ -17,7 +17,6 @@ import java.util.List;
 import java.util.Map;
 
 import org.eclipse.core.resources.IProject;
-import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.dialogs.IDialogSettings;
 import org.eclipse.jface.viewers.ArrayContentProvider;
@@ -68,7 +67,6 @@ public class TernModulesBlock extends AbstractTableBlock {
 	private final String tableLabel;
 	private final IProject project;
 
-	private Composite fControl;
 	private final Map<String, ITernModule> ternModules = new HashMap<String, ITernModule>();
 	private Object[] oldCheckedModules;
 	private Object[] curCheckedModules;
@@ -86,7 +84,7 @@ public class TernModulesBlock extends AbstractTableBlock {
 		this.tableLabel = tableLabel;
 	}
 
-	public void createControl(Composite ancestor) {
+	public Control createControl(Composite ancestor) {
 
 		Composite parent = new Composite(ancestor, SWT.NULL);
 		GridLayout layout = new GridLayout();
@@ -96,7 +94,6 @@ public class TernModulesBlock extends AbstractTableBlock {
 		parent.setLayout(layout);
 		Font font = ancestor.getFont();
 		parent.setFont(font);
-		fControl = parent;
 
 		GridData data;
 		if (tableLabel != null) {
@@ -125,6 +122,7 @@ public class TernModulesBlock extends AbstractTableBlock {
 		createModulesDetails(sashForm);
 
 		Dialog.applyDialogFont(parent);
+		return parent;
 	}
 
 	/**
@@ -327,14 +325,10 @@ public class TernModulesBlock extends AbstractTableBlock {
 		});
 	}
 
-	public Control getControl() {
-		return fControl;
-	}
-
 	protected void setTernModules(ITernModule[] vms) {
 		ternModules.clear();
 		for (ITernModule module : vms) {
-			ternModules.put(module.getName(), module);
+			ternModules.put(module.getType(), module);
 		}
 		tableViewer.setInput(ternModules.values());
 	}
@@ -395,7 +389,7 @@ public class TernModulesBlock extends AbstractTableBlock {
 
 	@Override
 	protected String getQualifier() {
-		return "";
+		return TernUIPlugin.PLUGIN_ID + ".modules.";
 	}
 
 	/**
@@ -409,37 +403,19 @@ public class TernModulesBlock extends AbstractTableBlock {
 					TernCorePlugin.getTernProject(project) : null;
 			// Load list of Tern Plugins + JSON Type Definitions.
 			ITernModule[] allModules = TernCorePlugin
-					.getTernServerTypeManager().getTernModules(ternProject, checkedModules);
-			/*if (project != null) {
-				// Select Tern Plugins + JSON Type Definitions according
-				// settings of
-				// the project.
-				checkedModules = new ArrayList<ITernModule>();
-				// Tern Plugins
-				JsonValue options = null;
-				JsonObject plugins = ternProject.getPlugins();
-				for (String name : plugins.names()) {
-					options = plugins.get(name);
-					ITernPlugin plugin = TernCorePlugin
-							.getTernServerTypeManager().findTernPlugin(
-									name.toString());
-					updateCheckedModule(plugin, options, allModules,
+					.getTernServerTypeManager().getTernModules(ternProject,
 							checkedModules);
-				}
-				// JSON Type Definitions
-				JsonArray defs = ternProject.getLibs();
-				for (JsonValue name : defs) {
-					ITernDef def = TernCorePlugin.getTernServerTypeManager()
-							.findTernDef(name.asString());
-					updateCheckedModule(def, null, allModules, checkedModules);
-				}
-			}*/
 			this.setTernModules(allModules);
 			if (checkedModules != null) {
 				this.setCheckedModules(checkedModules.toArray());
+				/*
+				 * if (checkedModules.size() > 0) { ITernModule firstModule =
+				 * checkedModules.get(0); tableViewer.setSelection(new
+				 * StructuredSelection( firstModule)); }
+				 */
 			}
 
-		} catch (CoreException e) {
+		} catch (Throwable e) {
 			Trace.trace(Trace.SEVERE, "Error while loading plugins.", e);
 		}
 	}
