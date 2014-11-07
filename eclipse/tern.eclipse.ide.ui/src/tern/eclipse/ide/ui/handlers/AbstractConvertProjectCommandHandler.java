@@ -11,8 +11,6 @@
 package tern.eclipse.ide.ui.handlers;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 
 import org.eclipse.core.commands.AbstractHandler;
 import org.eclipse.core.commands.ExecutionEvent;
@@ -21,8 +19,6 @@ import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.resources.WorkspaceJob;
 import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.runtime.IConfigurationElement;
-import org.eclipse.core.runtime.IExtension;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Platform;
@@ -30,14 +26,14 @@ import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.preferences.DefaultScope;
 import org.eclipse.core.runtime.preferences.IScopeContext;
 import org.eclipse.core.runtime.preferences.InstanceScope;
-import org.eclipse.jface.preference.PreferenceDialog;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.window.Window;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IWorkbenchWindow;
-import org.eclipse.ui.dialogs.PreferencesUtil;
 import org.eclipse.ui.handlers.HandlerUtil;
+
+import com.genuitec.eclipse.core.util.PreferencesUtils;
 
 import tern.eclipse.ide.core.IIDETernProject;
 import tern.eclipse.ide.core.TernCorePlugin;
@@ -128,22 +124,6 @@ public abstract class AbstractConvertProjectCommandHandler extends
 
 	private void showPropertiesOn(final IProject project,
 			final IProgressMonitor monitor, final ExecutionEvent event) {
-		IExtension[] extensions = Platform
-				.getExtensionRegistry()
-				.getExtensionPoint("org.eclipse.ui.propertyPages").getExtensions(); //$NON-NLS-1$
-		final List<String> pageIds = new ArrayList<String>(8);
-		for (int i = 0; i < extensions.length; i++) {
-			if (extensions[i].getNamespaceIdentifier().startsWith(
-					"tern.eclipse.ide.ui")) { //$NON-NLS-1$
-				IConfigurationElement[] configurationElements = extensions[i]
-						.getConfigurationElements();
-				for (int j = 0; j < configurationElements.length; j++) {
-					if ("page".equals(configurationElements[j].getName())) { //$NON-NLS-1$
-						pageIds.add(configurationElements[j].getAttribute("id")); //$NON-NLS-1$
-					}
-				}
-			}
-		}
 		Shell shell = HandlerUtil.getActiveShell(event);
 		if (shell == null) {
 			IWorkbenchWindow activeWorkbenchWindow = TernUIPlugin.getDefault()
@@ -155,12 +135,10 @@ public abstract class AbstractConvertProjectCommandHandler extends
 		if (finalShell != null) {
 			finalShell.getDisplay().asyncExec(new Runnable() {
 				public void run() {
-					PreferenceDialog dialog = PreferencesUtil
-							.createPropertyDialogOn(
-									finalShell,
-									project,
-									"tern.eclipse.ide.ui.properties.TernModulesPropertyPage", (String[]) pageIds.toArray(new String[pageIds.size()]), null); //$NON-NLS-1$
-					if (dialog.open() == Window.CANCEL) {
+					if (PreferencesUtils.openPropertiesDialog(
+							project, finalShell, 
+							"myeclipse.root/org.eclipse.wst.jsdt.ui.propertyPages.BuildPathsPropertyPage",  //$NON-NLS-1$
+							"myeclipse.root/org.eclipse.wst.jsdt.internal.ui.preferences.JavaScriptMainPage") == Window.CANCEL) { //$NON-NLS-1$
 						doUninstall(project, monitor);
 					}
 				}
