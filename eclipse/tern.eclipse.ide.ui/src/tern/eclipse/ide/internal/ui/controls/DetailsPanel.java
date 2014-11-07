@@ -41,14 +41,16 @@ public class DetailsPanel extends AbstractPanel {
 
 	public DetailsPanel(Composite parent, IProject project) {
 		super(parent, project);
+		refresh(null);
 	}
 
 	@Override
 	protected void createEmptyBodyContent(Composite parent) {
 		final Text noSelectionTextField = new Text(parent, SWT.WRAP
 				| SWT.READ_ONLY);
-		noSelectionTextField.setLayoutData(new GridData(
-				GridData.FILL_HORIZONTAL));
+		GridData gd = new GridData(GridData.FILL_HORIZONTAL);
+		gd.widthHint = 50;
+		noSelectionTextField.setLayoutData(gd);
 		noSelectionTextField.setBackground(
 				parent.getBackground());
 		noSelectionTextField.setForeground(
