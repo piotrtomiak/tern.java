@@ -10,6 +10,7 @@
  */
 package tern.utils;
 
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -37,6 +38,38 @@ import com.eclipsesource.json.JsonValue;
  */
 public class TernModuleHelper {
 
+	public static final Comparator<String> MODULE_VERSION_COMPARATOR = new Comparator<String>() {
+		
+		@Override
+		public int compare(String version1, String version2) {
+			int[] v1 = parseVersion(version1);
+			int[] v2 = parseVersion(version2);
+			for (int i = 0; i < v1.length || i < v2.length; i++) {
+				int a = i >= v1.length ? 0 : v1[i];
+				int b = i >= v2.length ? 0 : v2[i];
+				if (a > b) {
+					return 1;
+				} else if (a < b) {
+					return -1;
+				}
+			}
+			return 0;
+		}
+		
+		private int[] parseVersion(String version) {
+			String[] segments = version.split("\\."); //$NON-NLS-1$
+			int[] result = new int[segments.length];
+			for (int i = 0; i < result.length; i++) {
+				try {
+					result[i] = Integer.parseInt(segments[i]);
+				} catch (Exception e) {
+					//ignore - assume 0
+				}
+			}
+			return result;
+		}
+	};
+	
 	/**
 	 * Group the given list {@link ITernDef} by {@link ITernModule#getType()};
 	 * 
@@ -63,6 +96,15 @@ public class TernModuleHelper {
 					groupedModules.add(wrapper);
 				} else {
 					wrapper.addModule(module);
+					if (wrapper.getVersion() != null && 
+							MODULE_VERSION_COMPARATOR.compare(wrapper.getVersion(), 
+									module.getVersion()) < 0) {
+						try {
+							wrapper.setVersion(module.getVersion());
+						} catch (TernException e) {
+							//ignore, best effort
+						}
+					}
 				}
 			}
 		}

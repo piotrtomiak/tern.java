@@ -10,10 +10,10 @@
  */
 package tern.server;
 
-import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.TreeMap;
 
 import com.eclipsesource.json.JsonObject;
 
@@ -38,7 +38,7 @@ public class TernModuleConfigurable implements ITernModuleConfigurable, Cloneabl
 	private JsonObject options;
 
 	public TernModuleConfigurable(ITernModule module) {
-		this.modules = new LinkedHashMap<String, ITernModule>();
+		this.modules = new TreeMap<String, ITernModule>(TernModuleHelper.MODULE_VERSION_COMPARATOR);
 		this.wrappedModule = module;
 		addModule(module);
 	}
