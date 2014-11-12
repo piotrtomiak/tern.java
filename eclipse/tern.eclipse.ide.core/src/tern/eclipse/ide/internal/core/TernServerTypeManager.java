@@ -213,7 +213,13 @@ public class TernServerTypeManager implements ITernServerTypeManager,
 			List<ITernModule> checkedModules) throws TernException {
 		ITernModule[] modulesArray = null;
 		List<ITernModule> allModules = new ArrayList<ITernModule>();
-		ITernRepository repository = ternProject.getRepository();
+		ITernRepository repository;
+		if (ternProject == null) {
+			repository = TernCorePlugin.getTernRepositoryManager().getRepository(
+					TernRepositoryManager.DEFAULT_REPOSITORY_NAME);
+		} else {
+			repository = ternProject.getRepository();
+		}
 		ITernModule[] modules = repository.getModules();
 		TernModuleHelper.groupByType(modules, allModules);
 		if (ternProject != null) {
