@@ -35,6 +35,11 @@ public class BasicTernPlugin implements ITernPlugin {
 	public String getName() {
 		return name;
 	}
+	
+	@Override
+	public String getDisplayName() {
+		return type;
+	}
 
 	@Override
 	public String getType() {

@@ -15,31 +15,40 @@ import tern.metadata.TernModuleMetadataManager;
 
 public enum TernDef implements ITernDef {
 
-	browser("tern/defs/browser.json"), chai("tern/defs/chai.json"), ecma5(
-			"tern/defs/ecma5.json"), jquery("tern/defs/jquery.json"), underscore(
-			"tern/defs/underscore.json");
+	browser("tern/defs/browser.json", "Browser"), 
+	chai("tern/defs/chai.json", "Chai"), 
+	ecma5("tern/defs/ecma5.json", "ECMAScript 5"), 
+	jquery("tern/defs/jquery.json", "JQuery"), 
+	underscore("tern/defs/underscore.json", "Underscore");
 
 	private final String name;
 	private final String type;
+	private final String displayName;
 	private final String version;
 	private final String path;
 	private TernModuleMetadata metadata;
 
-	private TernDef(String path) {
-		this(null, null, null, path);
+	private TernDef(String path, String displayName) {
+		this(null, null, null, path, displayName);
 	}
 
-	private TernDef(String name, String type, String version, String path) {
+	private TernDef(String name, String type, String version, String path, String displayName) {
 		this.name = name != null ? name : name();
 		this.type = type != null ? type : name();
 		this.version = version;
 		this.path = path;
 		this.metadata = null;
+		this.displayName = displayName;
 	}
 
 	@Override
 	public String getName() {
 		return name != null ? name : name();
+	}
+	
+	@Override
+	public String getDisplayName() {
+		return displayName;
 	}
 
 	@Override

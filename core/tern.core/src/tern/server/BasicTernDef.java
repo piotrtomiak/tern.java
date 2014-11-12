@@ -14,6 +14,11 @@ public class BasicTernDef implements ITernDef {
 	public String getName() {
 		return name;
 	}
+	
+	@Override
+	public String getDisplayName() {
+		return name;
+	}
 
 	@Override
 	public String getType() {

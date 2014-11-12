@@ -31,6 +31,11 @@ public interface ITernModule {
 	String getName();
 
 	/**
+	 * Return the name to display to the user
+	 */
+	String getDisplayName();
+	
+	/**
 	 * Returns the type of the def or plugin.
 	 * 
 	 * @return the type of the def or plugin.
