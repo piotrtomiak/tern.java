@@ -45,7 +45,7 @@ import com.eclipsesource.json.JsonValue;
  * 
  */
 public class NodejsTernServer extends AbstractTernServer {
-
+	
 	private String baseURL;
 
 	private List<IInterceptor> interceptors;
@@ -168,31 +168,69 @@ public class NodejsTernServer extends AbstractTernServer {
 			dispose();
 			throw e;
 		}
-
+		
+		List<IInterceptor> interceptors;
+		
+		beginReadState();
+		try {
+			if (this.interceptors != null) {
+				interceptors = new ArrayList<IInterceptor>(this.interceptors);
+			} else {
+				interceptors = null;
+			}
+		} finally {
+			endReadState();
+		}
+		
 		JsonObject json = NodejsTernHelper.makeRequest(baseURL, doc, false,
 				interceptors, this);
 		return json;
 	}
 
 	public void addInterceptor(IInterceptor interceptor) {
+	  beginWriteState();
+	  try {
 		if (interceptors == null) {
 			interceptors = new ArrayList<IInterceptor>();
 		}
 		interceptors.add(interceptor);
+	  } finally {
+		  endWriteState();
+	  }
 	}
 
 	public void removeInterceptor(IInterceptor interceptor) {
+	  beginWriteState();
+	  try {
 		if (interceptors != null) {
 			interceptors.remove(interceptor);
 		}
+	  } finally {
+		  endWriteState();
+	  }
 	}
 
 	public String getBaseURL() throws InterruptedException, TernException {
+	  beginReadState();
+	  try {
 		if (baseURL == null) {
-			int port = getProcess().start(timeout, testNumber);
-			this.baseURL = computeBaseURL(port);
+			endReadState();
+			beginWriteState();
+			try {
+				if (baseURL != null) {//already initialized
+					return baseURL;
+				}
+				int port = getProcess().start(timeout, testNumber);
+				this.baseURL = computeBaseURL(port);
+			} finally {
+				endWriteState();
+				beginReadState();
+			}
 		}
 		return baseURL;
+	  } finally {
+		  endReadState();
+	  }
 	}
 
 	private NodejsProcess getProcess() throws TernException {
@@ -212,6 +250,8 @@ public class NodejsTernServer extends AbstractTernServer {
 	}
 
 	public void addProcessListener(INodejsProcessListener listener) {
+	  beginWriteState();
+	  try {
 		if (listeners == null) {
 			listeners = new ArrayList<INodejsProcessListener>();
 		}
@@ -219,15 +259,23 @@ public class NodejsTernServer extends AbstractTernServer {
 		if (process != null) {
 			process.addProcessListener(listener);
 		}
+	  } finally {
+		  endWriteState();
+	  }
 	}
 
 	public void removeProcessListener(INodejsProcessListener listener) {
+	  beginWriteState();
+	  try {
 		if (listeners != null && listener != null) {
 			listeners.remove(listener);
 		}
 		if (process != null) {
 			process.removeProcessListener(listener);
 		}
+	  } finally {
+		  endWriteState();
+	  }
 	}
 
 	@Override
@@ -350,11 +398,16 @@ public class NodejsTernServer extends AbstractTernServer {
 
 	@Override
 	public void doDispose() {
+	  beginWriteState();
+	  try {
 		if (process != null) {
 			process.kill();
 		}
 		this.baseURL = null;
 		this.process = null;
+	  } finally{
+		  endWriteState();
+	  }
 	}
 
 	/**

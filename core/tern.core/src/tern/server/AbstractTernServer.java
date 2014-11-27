@@ -12,6 +12,7 @@ package tern.server;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import tern.ITernFileSynchronizer;
 import tern.ITernProject;
@@ -28,6 +29,8 @@ public abstract class AbstractTernServer implements ITernServer {
 	private boolean dispose;
 	private boolean loadingLocalPlugins;
 
+	private ReentrantReadWriteLock stateLock = new ReentrantReadWriteLock();
+
 	public AbstractTernServer(ITernProject project) {
 		this.project = project;
 		this.listeners = new ArrayList<ITernServerListener>();
@@ -40,6 +43,22 @@ public abstract class AbstractTernServer implements ITernServer {
 				}
 			});
 		}
+	}
+	
+	protected void beginReadState() {
+		stateLock.readLock().lock();
+	}
+	
+	protected void endReadState() {
+		stateLock.readLock().unlock();
+	}
+	
+	protected void beginWriteState() {
+		stateLock.writeLock().lock();
+	}
+	
+	protected void endWriteState() {
+		stateLock.writeLock().unlock();
 	}
 
 	public boolean isDataAsJsonString() {
@@ -82,11 +101,16 @@ public abstract class AbstractTernServer implements ITernServer {
 
 	@Override
 	public final void dispose() {
+	  beginWriteState();
+	  try {
 		if (!isDisposed()) {
 			this.dispose = true;
 			doDispose();
 			fireEndServer();
 		}
+	  } finally {
+		  endWriteState();
+	  }
 	}
 
 	@Override

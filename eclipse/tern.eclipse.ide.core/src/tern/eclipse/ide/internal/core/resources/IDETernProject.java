@@ -73,6 +73,7 @@ public class IDETernProject extends TernProject implements IIDETernProject,
 	protected final IProject project;
 
 	private ITernServer ternServer;
+	private Object serverLock = new Object();
 
 	private final Map<String, Object> data;
 
@@ -114,6 +115,7 @@ public class IDETernProject extends TernProject implements IIDETernProject,
 	 */
 	@Override
 	public ITernServer getTernServer() {
+	  synchronized(serverLock) {
 		if (isServerDisposed()) {
 			try {
 				ITernServerType type = TernCorePreferencesSupport.getInstance()
@@ -137,10 +139,13 @@ public class IDETernProject extends TernProject implements IIDETernProject,
 
 		}
 		return ternServer;
+	  }
 	}
 
 	public boolean isServerDisposed() {
+	  synchronized (serverLock) {
 		return ternServer == null || ternServer.isDisposed();
+	  }
 	}
 
 	/**
@@ -381,6 +386,7 @@ public class IDETernProject extends TernProject implements IIDETernProject,
 	 * Configure console to show/hide JSON request/response of the tern server.
 	 */
 	public void configureConsole() {
+	  synchronized (serverLock) {	
 		if (ternServer != null) {
 			// There is a tern server instance., Retrieve the well connector the
 			// the eclipse console.
@@ -396,24 +402,31 @@ public class IDETernProject extends TernProject implements IIDETernProject,
 				}
 			}
 		}
+	  }
 	}
 
 	public void disposeServer() {
+	  synchronized(serverLock) {
 		if (!isServerDisposed()) {
 			if (ternServer != null) {
 				ternServer.dispose();
 				ternServer = null;
 			}
 		}
+	  }
 	}
 
 	@SuppressWarnings("unchecked")
 	public <T> T getData(String key) {
-		return (T) data.get(key);
+		synchronized (data) {
+			return (T) data.get(key);
+		}
 	}
 
 	public void setData(String key, Object value) {
-		data.put(key, value);
+		synchronized (data) {
+			data.put(key, value);
+		}
 	}
 
 	@Override
@@ -440,14 +453,21 @@ public class IDETernProject extends TernProject implements IIDETernProject,
 		synchronized (listeners) {
 			listeners.remove(listener);
 		}
+		synchronized(serverLock) {
+			if (ternServer != null) {
+				this.ternServer.removeServerListener(listener);
+			}
+		}
 	}
 
 	private void copyListeners() {
+	  synchronized(serverLock) {
 		if (ternServer != null) {
 			for (ITernServerListener listener : listeners) {
 				this.ternServer.addServerListener(listener);
 			}
 		}
+	  }
 	}
 
 	@Override
