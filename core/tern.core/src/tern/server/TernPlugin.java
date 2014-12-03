@@ -15,56 +15,43 @@ import tern.metadata.TernModuleMetadataManager;
 
 public enum TernPlugin implements ITernPlugin {
 
-	aui("tern/plugin/aui", "AlloyUI"), 
-	angular("tern/plugin/angular", "AngularJS"), 
-	chrome_apps("chrome-apps", "chrome-apps", null, null, "Chrome Apps"), 
-	component("tern/plugin/component", "Component"), 
-	ckeditor_4_4_1("ckeditor", "4.4.1", "CKEditor"), 
-	closure("","Closure"), 
-	cordovajs("tern/plugin/cordovajs", "Cordova Javascript"), 
-	doc_comment("tern/plugin/doc_comment", "JSDoc Support"), 
-	dojotoolkit_1_6("dojotoolkit", "1.6", "Dojo Toolkit"), 
-	dojotoolkit_1_8("dojotoolkit", "1.8", "Dojo Toolkit"), 
-	dojotoolkit_1_9("dojotoolkit", "1.9", "Dojo Toolkit"), 
-	extjs_4_2_1("extjs", "4.2.1", "ExtJS"), 
-	extjs_5_0_0("extjs", "5.0.0", "ExtJS"), 
-	gas("tern/plugin/gas", "Google Apps Script"), 
-	gmaps_3_16("gmaps", "3.16", "Google Maps"), 
-	gmaps_3_17("gmaps", "3.17", "Google Maps"), 
-	grunt("tern/plugin/grunt", "Grunt"), 
-	liferay("tern/plugin/liferay", "Liferay"), 
-	lint("tern/plugin/lint", "Lint"), 
-	node_express("node-express", "node-express", null, null, "Node.js Express"), 
-	node_mongodb_native("node-mongodb-native", "node-mongodb-native", null, null, "Node.js MongoDB Native Driver"), 
-	node_mongoose("node-mongoose", "node-mongoose", null, null, "Node.js Mongoose"), 
-	node("tern/plugin/node", "Node.js"), 
-	meteor("tern/plugin/meteor", "Meteor"), 
-	qooxdoo_4_1("qooxdoo", "4.1", "Qooxdoo"), 
-	requirejs("tern/plugin/requirejs", "RequireJS"), 
-	yui("tern/plugin/yui", "YUI");
+	aui("tern/plugin/aui"), angular("tern/plugin/angular"), chrome_apps(
+			"chrome-apps", "chrome-apps", null, null), component(
+			"tern/plugin/component"), ckeditor_4_4_1("ckeditor", "4.4.1"), closure(
+			""), cordovajs("tern/plugin/cordovajs"), doc_comment(
+			"tern/plugin/doc_comment"), dojotoolkit_1_6("dojotoolkit", "1.6"), dojotoolkit_1_8(
+			"dojotoolkit", "1.8"), dojotoolkit_1_9("dojotoolkit", "1.9"), extjs_4_2_1(
+			"extjs", "4.2.1"), extjs_5_0_0("extjs", "5.0.0"), gas(
+			"tern/plugin/gas"), gmaps_3_16("gmaps", "3.16"), gmaps_3_17(
+			"gmaps", "3.17"), grunt("tern/plugin/grunt"), liferay(
+			"tern/plugin/liferay"), lint("tern/plugin/lint"), node_express(
+			"node-express", "node-express", null, null), node_mongodb_native(
+			"node-mongodb-native", "node-mongodb-native", null, null), node_mongoose(
+			"node-mongoose", "node-mongoose", null, null), node(
+			"tern/plugin/node"), meteor("tern/plugin/meteor"), qooxdoo_4_1(
+			"qooxdoo", "4.1"), requirejs("tern/plugin/requirejs"), yui(
+			"tern/plugin/yui");
 
 	private final String name;
-	private final String displayName;
 	private final String type;
 	private final String version;
 	private final String path;
 	private TernModuleMetadata metadata;
 
-	private TernPlugin(String path, String displayName) {
-		this(null, null, null, path, displayName);
+	private TernPlugin(String path) {
+		this(null, null, null, path);
 	}
 
-	private TernPlugin(String type, String version, String displayName) {
+	private TernPlugin(String type, String version) {
 		this(new StringBuilder(type).append("_").append(version).toString(),
 				type, version, new StringBuilder("tern/plugin/").append(type)
-						.append("_").append(version).toString(), displayName);
+						.append("_").append(version).toString());
 	}
 
-	private TernPlugin(String name, String type, String version, String path, String displayName) {
+	private TernPlugin(String name, String type, String version, String path) {
 		this.name = name != null ? name : name();
 		this.type = type != null ? type : name();
 		this.path = path;
-		this.displayName = displayName;
 		this.version = version;
 		this.metadata = null;
 	}
@@ -72,11 +59,6 @@ public enum TernPlugin implements ITernPlugin {
 	@Override
 	public String getName() {
 		return name;
-	}
-	
-	@Override
-	public String getDisplayName() {
-		return displayName;
 	}
 
 	@Override

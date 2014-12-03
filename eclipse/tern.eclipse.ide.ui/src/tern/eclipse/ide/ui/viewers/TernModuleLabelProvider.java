@@ -39,7 +39,7 @@ public class TernModuleLabelProvider extends LabelProvider implements
 			ITernModule module = (ITernModule) element;
 			switch (columnIndex) {
 			case 0:
-				return module.getDisplayName();
+				return module.getType();
 			case 1:
 				String version = module.getVersion();
 				return version != null ? version : "";

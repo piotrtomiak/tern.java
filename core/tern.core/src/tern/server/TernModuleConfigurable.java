@@ -47,11 +47,6 @@ public class TernModuleConfigurable implements ITernModuleConfigurable, Cloneabl
 	public String getName() {
 		return wrappedModule.getName();
 	}
-	
-	@Override
-	public String getDisplayName() {
-		return wrappedModule.getDisplayName();
-	}
 
 	@Override
 	public String getType() {
@@ -93,10 +88,6 @@ public class TernModuleConfigurable implements ITernModuleConfigurable, Cloneabl
 		}
 		wrappedModule = module;
 		return module;
-	}
-	
-	public ITernModule getModuleByVersion(String version) {
-		return modules.get(version);
 	}
 
 	@Override

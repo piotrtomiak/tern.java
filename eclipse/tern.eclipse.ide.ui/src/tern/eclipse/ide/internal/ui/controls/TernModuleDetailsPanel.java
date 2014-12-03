@@ -109,12 +109,6 @@ public class TernModuleDetailsPanel extends AbstractTernModulePanel {
 		addInfo(nestedDetailsComposite,
 				TernUIMessages.TernModuleDetailsPanel_author, null,
 				metadata != null ? metadata.getAuthor() : "", null, false);
-		
-		//Module id
-		addInfo(nestedDetailsComposite,
-				"Module id:", null,
-				module.getName(), null, false);
-		
 		// Repository URL
 		addInfo(nestedDetailsComposite,
 				TernUIMessages.TernModuleDetailsPanel_repositoryURL, null,
@@ -135,15 +129,8 @@ public class TernModuleDetailsPanel extends AbstractTernModulePanel {
 		GridLayout layout = new GridLayout(2, false);
 		header.setLayout(layout);
 
-		String version = module.getVersion();
-		if (version == null) {
-			version = ""; //$NON-NLS-1$
-		} else {
-			version = " " + version; //$NON-NLS-1$
-		}
-		
 		addInfo(header, null, TernModuleLabelProvider.getImageModule(module),
-				module.getDisplayName() + version,
+				module.getName(),
 				JFaceResources.getFontRegistry().get(DetailsPanel.HEADER_FONT),
 				false);
 	}
