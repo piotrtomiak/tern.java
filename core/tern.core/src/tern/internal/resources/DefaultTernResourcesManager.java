@@ -85,6 +85,8 @@ public class DefaultTernResourcesManager implements
 		} else if (fileObject instanceof File) {
 			return ExtensionUtils.getFileExtension(((File) fileObject)
 					.getName());
+		} else if (fileObject instanceof String) {
+			return ExtensionUtils.getFileExtension((String) fileObject);
 		}
 		return null;
 	}

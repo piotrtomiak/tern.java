@@ -57,19 +57,19 @@ public class TernCompletionProposal extends TernCompletionItem implements
 
 	@Deprecated
 	public TernCompletionProposal(String name, String type, String doc,
-			String url, String origin, int pos, int startOffset) {
-		this(name, type, doc, url, origin, false, pos, startOffset);
+			String url, String origin, int start, int end) {
+		this(name, type, doc, url, origin, false, start, end);
 	}
 
 	public TernCompletionProposal(String name, String type, String doc,
-			String url, String origin, boolean keyword, int pos,
-			int startOffset) {	
+			String url, String origin, boolean keyword, int start,
+			int end) {	
 		super(name, type, doc, url, origin, keyword);
 
 		String text = super.getSignature();
 		this.fReplacementString = text;
-		this.fReplacementOffset = startOffset - pos;
-		this.fReplacementLength = pos;
+		this.fReplacementOffset = start;
+		this.fReplacementLength = end - start;
 		this.fCursorPosition = text.length();
 
 		this.fDisplayString = super.getText();

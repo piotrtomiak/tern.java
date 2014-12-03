@@ -153,7 +153,7 @@ public class NodejsTernServer extends AbstractTernServer {
 			handler.onSuccess(json,
 					handler.isDataAsJsonString() ? json.toString() : null);
 		} catch (Exception e) {
-			handler.onError(e.getMessage());
+			handler.onError(e.getMessage(), e);
 		}
 	}
 
@@ -296,9 +296,15 @@ public class NodejsTernServer extends AbstractTernServer {
 					for (JsonValue value : completions) {
 						if (value.isString()) {
 							collector.addProposal(value.asString(), null, null,
-									null, null, pos, value, this);
+									null, null,
+									startCh != null ? startCh.intValue() : 0,
+									endCh != null ? endCh.intValue() : 0,
+									value, this);
 						} else {
-							super.addProposal(value, pos, collector);
+							super.addProposal(value,
+									startCh != null ? startCh.intValue() : 0,
+									endCh != null ? endCh.intValue() : 0,
+									collector);
 						}
 					}
 				}

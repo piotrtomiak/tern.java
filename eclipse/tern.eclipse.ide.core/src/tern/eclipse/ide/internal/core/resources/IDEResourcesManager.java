@@ -18,13 +18,11 @@ import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.Path;
-import org.eclipse.core.runtime.QualifiedName;
 
-import tern.ITernFileSynchronizer;
-import tern.ITernResourcesManagerDelegate;
 import tern.ITernFile;
+import tern.ITernFileSynchronizer;
 import tern.ITernProject;
-import tern.eclipse.ide.core.TernCorePlugin;
+import tern.ITernResourcesManagerDelegate;
 import tern.eclipse.ide.internal.core.Trace;
 import tern.resources.FilesystemTernFile;
 import tern.utils.ExtensionUtils;
@@ -130,6 +128,8 @@ public class IDEResourcesManager implements ITernResourcesManagerDelegate {
 		} else if (fileObject instanceof File) {
 			return ExtensionUtils.getFileExtension(((File) fileObject)
 					.getName());
+		} else if (fileObject instanceof String) {
+			return ExtensionUtils.getFileExtension((String) fileObject);
 		}
 		return null;
 	}

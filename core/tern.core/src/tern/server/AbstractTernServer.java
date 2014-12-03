@@ -18,6 +18,7 @@ import tern.ITernFileSynchronizer;
 import tern.ITernProject;
 import tern.server.protocol.completions.IMeTernCompletionCollector;
 import tern.server.protocol.completions.ITernCompletionCollector;
+import tern.utils.StringUtils;
 
 public abstract class AbstractTernServer implements ITernServer {
 
@@ -120,7 +121,7 @@ public abstract class AbstractTernServer implements ITernServer {
 
 	protected abstract void doDispose();
 
-	protected void addProposal(Object completion, int pos,
+	protected void addProposal(Object completion, int start, int end,
 			ITernCompletionCollector collector) {
 		String name = getText(completion, "name");
 		String type = getText(completion, "type");
@@ -136,10 +137,10 @@ public abstract class AbstractTernServer implements ITernServer {
 				//ignore
 			}
 			((IMeTernCompletionCollector)collector).addProposal(name, type, doc, 
-					url, origin, keyword, depth, pos, completion, this);
+					url, origin, keyword, depth, start, end, completion, this);
 		} else {
-			collector.addProposal(name, type, doc, url, origin, pos, completion,
-					this);
+			collector.addProposal(name, type, doc, url, origin, start, end,
+			completion, this);
 		}
 	}
 

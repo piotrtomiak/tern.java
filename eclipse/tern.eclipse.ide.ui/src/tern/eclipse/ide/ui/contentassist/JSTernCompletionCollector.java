@@ -63,18 +63,19 @@ public class JSTernCompletionCollector implements ITernCompletionCollector,
 
 	@Override
 	public void addProposal(String name, String type, String doc, String url,
-			String origin, int pos, Object completion, ITernServer ternServer) {
-		addProposal(name, type, doc, url, origin, false, 100000, pos, 
+			String origin, int start, int end, Object completion,
+			ITernServer ternServer) {
+		addProposal(name, type, doc, url, origin, false, 100000, start, end,
 				completion, ternServer);
 	}
 
 	
 	@Override
 	public void addProposal(String name, String type, String doc, String url,
-			String origin, boolean keyword, int depth, int pos,
+			String origin, boolean keyword, int depth, int start, int end,
 			Object completion, ITernServer ternServer) {
 		JSTernCompletionProposal proposal = internalCreateProposal(name, type, 
-				doc, url, origin, keyword, depth, pos, startOffset);
+				doc, url, origin, keyword, depth, start, end);
 		proposals.add(proposal);
 
 		if (expandFunction) {
@@ -88,7 +89,7 @@ public class JSTernCompletionCollector implements ITernCompletionCollector,
 			if (functions != null) {
 				for (int i = 0; i < functions.length; i++) {
 					proposals.add(internalCreateProposal(name, functions[i],
-							doc, url, origin, false, depth, pos, startOffset));
+							doc, url, origin, false, depth, start, end));
 				}
 			}
 		}
@@ -96,18 +97,18 @@ public class JSTernCompletionCollector implements ITernCompletionCollector,
 
 	private JSTernCompletionProposal internalCreateProposal(String name,
 			String type, String doc, String url, String origin, 
-			boolean keyword, int depth, int pos, int startOffset) {
+			boolean keyword, int depth, int start, int end) {
 		JSTernCompletionProposal proposal = createProposal(name, type, doc,
-				url, origin, keyword, depth, pos, startOffset);
+				url, origin, keyword, depth, start, end);
 		proposal.setGenerateAnonymousFunction(generateAnonymousFunction);
 		return proposal;
 	}
 
 	protected JSTernCompletionProposal createProposal(String name, String type,
 			String doc, String url, String origin, boolean keyword, int depth,
-			int pos, int startOffset) {
+			int start, int end) {
 		return new JSTernCompletionProposal(name, type, doc, url, origin, keyword,
-				pos, startOffset);
+				start, end);
 	}
 
 	/**
@@ -124,8 +125,8 @@ public class JSTernCompletionCollector implements ITernCompletionCollector,
 	 */
 	@Deprecated
 	protected JSTernCompletionProposal createProposal(String name, String type,
-			String doc, String url, String origin, int pos, int startOffset) {
+			String doc, String url, String origin, int start, int end) {
 		return createProposal(name, type, doc, url, origin, false, 
-				100000, pos, startOffset);
+				100000, start, end);
 	}
 }

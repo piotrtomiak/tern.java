@@ -19,7 +19,7 @@ import tern.server.ITernServer;
 public interface IMeTernCompletionCollector {
 
 	void addProposal(String name, String type, String doc, String url,
-			String origin, boolean keyword, int depth, int pos, 
+			String origin, boolean keyword, int depth, int start, int end, 
 			Object completion, ITernServer ternServer);
 	
 }

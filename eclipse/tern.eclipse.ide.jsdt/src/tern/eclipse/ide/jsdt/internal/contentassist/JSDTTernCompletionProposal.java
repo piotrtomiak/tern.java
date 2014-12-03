@@ -36,14 +36,14 @@ public class JSDTTernCompletionProposal extends JSTernCompletionProposal
 	
 	@Deprecated
 	public JSDTTernCompletionProposal(String name, String type, String doc,
-			String url, String origin, int pos, int startOffset) {
-		super(name, type, doc, url, origin, pos, startOffset);
+			String url, String origin, int start, int end) {
+		super(name, type, doc, url, origin, start, end);
 	}
 	
 	public JSDTTernCompletionProposal(String name, String type, String doc,
 			String url, String origin, boolean keyword, int depth, 
-			int pos, int startOffset) {
-		super(name, type, doc, url, origin, keyword, pos, startOffset);
+			int start, int end) {
+		super(name, type, doc, url, origin, keyword, start, end);
 		relevance = (10 - getCategory()) * CATEGORY_SEPARATION - depth;
 	}
 	

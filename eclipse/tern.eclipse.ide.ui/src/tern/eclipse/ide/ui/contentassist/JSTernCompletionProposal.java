@@ -55,14 +55,14 @@ public class JSTernCompletionProposal extends TernCompletionProposal {
 
 	@Deprecated
 	public JSTernCompletionProposal(String name, String type, String doc,
-			String url, String origin, int pos, int startOffset) {
-		this(name, type, doc, url, origin, false, pos, startOffset);
+			String url, String origin, int start, int end) {
+		this(name, type, doc, url, origin, false, start, end);
 	}
 
 	public JSTernCompletionProposal(String name, String type, String doc,
-			String url, String origin, boolean keyword, int pos,
-			int startOffset) {
-		super(name, type, doc, url, origin, keyword, pos, startOffset);
+			String url, String origin, boolean keyword, int start,
+			int end) {
+		super(name, type, doc, url, origin, keyword, start, end);
 	}
 
 	@Override
@@ -175,9 +175,9 @@ public class JSTernCompletionProposal extends TernCompletionProposal {
 		StringBuilder replacement = new StringBuilder(super.getName());
 		replacement.append(LPAREN);
 		setCursorPosition(replacement.length());
-
 		computeReplacementString(parameters, replacement, fArgumentOffsets,
 				fArgumentLengths, indentation, 1);
+		replacement.append(RPAREN);
 		return replacement.toString();
 
 	}
@@ -231,8 +231,7 @@ public class JSTernCompletionProposal extends TernCompletionProposal {
 				fArgumentLengths.add(paramName.length());
 			}
 		}
-
-		replacement.append(RPAREN);
+		
 		/*
 		 * if (!hasParameters() || !hasArgumentList()) return
 		 * super.computeReplacementString();
