@@ -12,6 +12,7 @@ package tern.server;
 
 import tern.metadata.TernModuleMetadata;
 import tern.metadata.TernModuleMetadataManager;
+import tern.utils.TernModuleHelper;
 
 public enum TernPlugin implements ITernPlugin {
 
@@ -59,6 +60,11 @@ public enum TernPlugin implements ITernPlugin {
 	@Override
 	public String getName() {
 		return name;
+	}
+	
+	@Override
+	public String getDisplayName() {
+		return TernModuleHelper.getDisplayName(this);
 	}
 
 	@Override

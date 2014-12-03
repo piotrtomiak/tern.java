@@ -24,7 +24,7 @@ public class BasicTernDef extends AbstractBasicTernModule implements ITernDef {
 
 	@Override
 	public String getType() {
-		return null;
+		return getName();
 	}
 
 	@Override

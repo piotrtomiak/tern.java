@@ -16,11 +16,9 @@ import org.eclipse.swt.graphics.Image;
 
 import tern.eclipse.ide.ui.ImageResource;
 import tern.eclipse.ide.ui.TernUIPlugin;
-import tern.metadata.TernModuleMetadata;
 import tern.server.ITernModule;
 import tern.server.ITernModuleConfigurable;
 import tern.server.ITernPlugin;
-import tern.utils.StringUtils;
 
 /**
  * Label provider for {@link ITernPlugin} and {@link ITernModule}.
@@ -41,15 +39,10 @@ public class TernModuleLabelProvider extends LabelProvider implements
 			ITernModule module = (ITernModule) element;
 			switch (columnIndex) {
 			case 0:
-				TernModuleMetadata metadata = module.getMetadata();
-				if (metadata != null
-						&& !StringUtils.isEmpty(metadata.getLabel())) {
-					return metadata.getLabel();
-				}
-				return module.getType();
+				return module.getDisplayName();
 			case 1:
 				String version = module.getVersion();
-				return version != null ? version : "";
+				return version != null ? version : ""; //$NON-NLS-1$
 			}
 		}
 		return element.toString();

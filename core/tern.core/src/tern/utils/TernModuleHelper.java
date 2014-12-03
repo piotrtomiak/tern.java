@@ -330,5 +330,13 @@ public class TernModuleHelper {
 					.append(JS_EXTENSION).toString();
 		}
 	}
+	
+	public static String getDisplayName(ITernModule module) {
+		TernModuleMetadata metadata = module.getMetadata();
+		if (metadata == null || StringUtils.isEmpty(metadata.getLabel())) {
+			return module.getType();
+		}
+		return metadata.getLabel();
+	}
 
 }

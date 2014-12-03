@@ -12,6 +12,7 @@ package tern.server;
 
 import tern.metadata.TernModuleMetadata;
 import tern.metadata.TernModuleMetadataManager;
+import tern.utils.TernModuleHelper;
 
 public enum TernDef implements ITernDef {
 
@@ -40,6 +41,11 @@ public enum TernDef implements ITernDef {
 	@Override
 	public String getName() {
 		return name != null ? name : name();
+	}
+	
+	@Override
+	public String getDisplayName() {
+		return TernModuleHelper.getDisplayName(this);
 	}
 
 	@Override
