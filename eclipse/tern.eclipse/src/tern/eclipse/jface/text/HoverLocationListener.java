@@ -16,6 +16,7 @@ import java.net.URISyntaxException;
 import java.net.URL;
 
 import org.eclipse.jface.internal.text.html.BrowserInformationControl;
+import org.eclipse.jface.text.IDocument;
 import org.eclipse.swt.browser.LocationAdapter;
 import org.eclipse.swt.browser.LocationEvent;
 import org.eclipse.swt.browser.LocationListener;
@@ -52,7 +53,7 @@ public class HoverLocationListener extends LocationAdapter {
 		event.doit = false;
 
 		if (loc.startsWith(TERN_FILE_PROTOCOL)) { //$NON-NLS-1$
-			handleTernFileLink(loc);
+			handleTernFileLink(loc.substring(TERN_FILE_PROTOCOL.length()));
 			return;
 		}
 
@@ -92,6 +93,13 @@ public class HoverLocationListener extends LocationAdapter {
 
 	private void handleTextSet() {
 
+	}
+	
+	protected IDocument getDocument() {
+		if (control.getInput() instanceof TernBrowserInformationControlInput) {
+			return ((TernBrowserInformationControlInput)control.getInput()).getDocument();
+		}
+		return null;
 	}
 
 	private void handleHttpLink(URL url, Display display) {

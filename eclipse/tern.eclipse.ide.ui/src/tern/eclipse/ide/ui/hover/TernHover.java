@@ -83,7 +83,7 @@ public class TernHover implements ITextHover, ITextHoverExtension,
 				HTMLTernTypeCollector collector = new HTMLTernTypeCollector();
 				ternProject.request(query, file, collector);
 				return new TernBrowserInformationControlInput(null,
-						collector.getInfo(), 20);
+						collector.getInfo(), 20, textViewer.getDocument());
 			} catch (Exception e) {
 				Trace.trace(Trace.WARNING, "Error while tern hyperlink", e);
 			}

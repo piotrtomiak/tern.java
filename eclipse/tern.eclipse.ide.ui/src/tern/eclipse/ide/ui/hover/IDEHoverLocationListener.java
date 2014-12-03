@@ -18,6 +18,7 @@ import org.eclipse.jface.internal.text.html.BrowserInformationControl;
 import tern.ITernFile;
 import tern.TernException;
 import tern.eclipse.ide.core.IIDETernProject;
+import tern.eclipse.ide.core.resources.TernDocumentFile;
 import tern.eclipse.ide.ui.utils.EditorUtils;
 import tern.eclipse.jface.text.HoverLocationListener;
 import tern.server.protocol.definition.ITernDefinitionCollector;
@@ -55,7 +56,13 @@ public class IDEHoverLocationListener extends HoverLocationListener implements
 		String filename = provider.getFilemane();
 		if (!StringUtils.isEmpty(filename)) {
 			IIDETernProject ternProject = provider.getTernProject();
-			ITernFile tf = ternProject.getFile(filename);
+			ITernFile tf;
+			if (getDocument() != null) {
+				tf = new TernDocumentFile(provider.getTernProject().getIDEFile(filename), 
+						getDocument());
+			} else {
+				tf = ternProject.getFile(filename);
+			}
 			Integer pos = provider.getOffset();
 			TernDefinitionQuery query = new TernDefinitionQuery(filename, pos);
 			try {
