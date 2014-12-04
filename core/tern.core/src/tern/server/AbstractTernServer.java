@@ -18,7 +18,6 @@ import tern.ITernFileSynchronizer;
 import tern.ITernProject;
 import tern.server.protocol.completions.IMeTernCompletionCollector;
 import tern.server.protocol.completions.ITernCompletionCollector;
-import tern.utils.StringUtils;
 
 public abstract class AbstractTernServer implements ITernServer {
 

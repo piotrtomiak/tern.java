@@ -162,6 +162,9 @@ public class NodejsTernServer extends AbstractTernServer {
 		String baseURL = null;
 		try {
 			baseURL = getBaseURL();
+			if (baseURL == null) {
+				throw new TernException("Server has been disposed");
+			}
 		} catch (NodejsProcessException e) {
 			// the nodejs process cannot start => not a valid node path, dispose
 			// the server.
@@ -217,7 +220,7 @@ public class NodejsTernServer extends AbstractTernServer {
 			endReadState();
 			beginWriteState();
 			try {
-				if (baseURL != null) {//already initialized
+				if (baseURL != null || isDisposed()) {//already initialized or disposed
 					return baseURL;
 				}
 				int port = getProcess().start(timeout, testNumber);
