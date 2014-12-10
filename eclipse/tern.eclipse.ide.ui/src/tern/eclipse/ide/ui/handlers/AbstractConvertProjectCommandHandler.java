@@ -33,6 +33,7 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.handlers.HandlerUtil;
 
+import com.genuitec.eclipse.core.util.PlatformUIUtil;
 import com.genuitec.eclipse.core.util.PreferencesUtils;
 
 import tern.eclipse.ide.core.IIDETernProject;
@@ -124,13 +125,10 @@ public abstract class AbstractConvertProjectCommandHandler extends
 
 	private void showPropertiesOn(final IProject project,
 			final IProgressMonitor monitor, final ExecutionEvent event) {
-		Shell shell = HandlerUtil.getActiveShell(event);
-		if (shell == null) {
-			IWorkbenchWindow activeWorkbenchWindow = TernUIPlugin.getDefault()
-					.getWorkbench().getActiveWorkbenchWindow();
-			if (activeWorkbenchWindow != null)
-				shell = activeWorkbenchWindow.getShell();
-		}
+		Shell shell = null;
+		IWorkbenchWindow activeWorkbenchWindow = PlatformUIUtil.getActiveWorkbenchWindow();
+		if (activeWorkbenchWindow != null)
+			shell = activeWorkbenchWindow.getShell();
 		final Shell finalShell = shell;
 		if (finalShell != null) {
 			finalShell.getDisplay().asyncExec(new Runnable() {
