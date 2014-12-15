@@ -131,7 +131,7 @@ public class TernModulesPropertyPage extends AbstractTernPropertyPage implements
 	
 	public void reset() {
 		if (Thread.currentThread() != Display.getDefault().getThread()) {
-			Display.getCurrent().asyncExec(new Runnable() {
+			Display.getDefault().asyncExec(new Runnable() {
 				@Override
 				public void run() {
 					reset();
