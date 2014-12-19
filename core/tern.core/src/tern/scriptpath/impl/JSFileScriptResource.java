@@ -37,5 +37,16 @@ public class JSFileScriptResource implements ITernScriptResource {
 	public String getLabel() {
 		return file.getFileName() + " - " + file.getFullName(project); //$NON-NLS-1$
 	}
+	
+	@Override
+	public Object getAdapter(Class adapterClass) {
+		if (adapterClass == ITernProject.class) {
+			return project;
+		}
+		if (adapterClass == ITernFile.class) {
+			return file;
+		}
+		return file.getAdapter(adapterClass);
+	}
 
 }

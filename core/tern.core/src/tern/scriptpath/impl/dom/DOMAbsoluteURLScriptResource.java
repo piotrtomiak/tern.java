@@ -40,4 +40,9 @@ public class DOMAbsoluteURLScriptResource implements ITernScriptResource {
 		return url;
 	}
 
+	@Override
+	public Object getAdapter(Class adapterClass) {
+		return null;
+	}
+
 }

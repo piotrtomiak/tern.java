@@ -44,4 +44,8 @@ public class DOMContentScriptResource implements ITernScriptResource {
 		return new StringBuilder("script#").append(indexScript).toString(); //$NON-NLS-1$
 	}
 
+	@Override
+	public Object getAdapter(Class adapterClass) {
+		return domFile.getAdapter(adapterClass);
+	}
 }

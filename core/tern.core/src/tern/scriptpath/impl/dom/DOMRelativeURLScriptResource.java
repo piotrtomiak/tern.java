@@ -41,5 +41,10 @@ public class DOMRelativeURLScriptResource implements ITernScriptResource {
 	public String getLabel() {
 		return src;
 	}
+	
+	@Override
+	public Object getAdapter(Class adapterClass) {
+		return relativeFile.getAdapter(adapterClass);
+	}
 
 }

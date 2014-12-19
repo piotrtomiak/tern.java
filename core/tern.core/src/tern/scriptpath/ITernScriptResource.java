@@ -11,13 +11,14 @@
  */
 package tern.scriptpath;
 
+import tern.ITernAdaptable;
 import tern.ITernFile;
 
 /**
  * Script resource.
  * 
  */
-public interface ITernScriptResource {
+public interface ITernScriptResource extends ITernAdaptable {
 
 	/**
 	 * The tern file containing scripts.
