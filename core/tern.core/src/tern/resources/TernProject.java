@@ -340,10 +340,13 @@ public class TernProject extends JsonObject implements ITernProject {
 	 */
 	protected void doLoad() throws IOException {
 		if (ternProjectFile.exists()) {
+			FileReader fr = new FileReader(ternProjectFile);
 			try {
-				JsonHelper.readFrom(new FileReader(ternProjectFile), this);
+				JsonHelper.readFrom(fr, this);
 			} catch (ParseException e) {
 				throw new IOException(e);
+			} finally {
+				IOUtils.closeQuietly(fr);
 			}
 		} else {
 			createEmptyTernProjectFile();

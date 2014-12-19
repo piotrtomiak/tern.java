@@ -111,7 +111,12 @@ public class TernNodejsInterceptor extends LoggingInterceptor implements
 			try {
 				File ternProject = new File(projectDir,
 						ITernProject.TERN_PROJECT_FILE);
-				json = IOUtils.toString(new FileInputStream(ternProject));
+				FileInputStream fis = new FileInputStream(ternProject);
+				try {
+					json = IOUtils.toString(fis);
+				} finally {
+					IOUtils.closeQuietly(fis);
+				}
 			} catch (Throwable e) {
 				errPrintln(e.getMessage());
 			}
