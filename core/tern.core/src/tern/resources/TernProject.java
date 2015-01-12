@@ -90,6 +90,8 @@ public class TernProject extends JsonObject implements ITernProject {
 
 	private String lastTernProjectFileContent;
 
+	private Object libLock = new Object();
+	
 	/**
 	 * Tern project constructor.
 	 * 
@@ -142,9 +144,11 @@ public class TernProject extends JsonObject implements ITernProject {
 	 */
 	@Override
 	public void addLib(String lib) {
+	  synchronized(libLock) {
 		if (!hasLib(lib)) {
 			getLibs().add(lib);
 		}
+	  }
 	}
 
 	/**
@@ -155,6 +159,7 @@ public class TernProject extends JsonObject implements ITernProject {
 	 */
 	@Override
 	public boolean hasLib(String lib) {
+	  synchronized(libLock) {
 		JsonArray libs = getLibs();
 		if (libs != null) {
 			for (JsonValue l : libs) {
@@ -163,6 +168,7 @@ public class TernProject extends JsonObject implements ITernProject {
 			}
 		}
 		return false;
+	  }
 	}
 
 	/**
@@ -183,12 +189,14 @@ public class TernProject extends JsonObject implements ITernProject {
 	 */
 	@Override
 	public JsonArray getLibs() {
+	  synchronized(libLock) {
 		JsonArray libs = (JsonArray) super.get(LIBS_FIELD_NAME);
 		if (libs == null) {
 			libs = new JsonArray();
 			add(LIBS_FIELD_NAME, libs);
 		}
 		return libs;
+	  }
 	}
 
 	/**
@@ -196,7 +204,9 @@ public class TernProject extends JsonObject implements ITernProject {
 	 */
 	@Override
 	public void clearLibs() {
+	  synchronized(libLock) {
 		remove(LIBS_FIELD_NAME);
+	  }
 	}
 
 	/**
