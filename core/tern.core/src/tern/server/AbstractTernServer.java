@@ -1,5 +1,5 @@
 /**
- *  Copyright (c) 2013-2014 Angelo ZERR.
+ *  Copyright (c) 2013-2015 Angelo ZERR and Genuitec LLC.
  *  All rights reserved. This program and the accompanying materials
  *  are made available under the terms of the Eclipse Public License v1.0
  *  which accompanies this distribution, and is available at
@@ -7,6 +7,8 @@
  *
  *  Contributors:
  *  Angelo Zerr <angelo.zerr@gmail.com> - initial API and implementation
+ *  Piotr Tomiak <piotr@genutiec.com> - asynchronous request processing and 
+ *  									refactoring of collectors API 
  */
 package tern.server;
 
@@ -16,9 +18,14 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import tern.ITernFileSynchronizer;
 import tern.ITernProject;
-import tern.server.protocol.completions.IMeTernCompletionCollector;
-import tern.server.protocol.completions.ITernCompletionCollector;
+import tern.TernException;
+import tern.server.protocol.ITernResultsCollector;
+import tern.server.protocol.TernDoc;
 
+/**
+ * Abstract tern server.
+ * 
+ */
 public abstract class AbstractTernServer implements ITernServer {
 
 	private final ITernProject project;
@@ -28,6 +35,8 @@ public abstract class AbstractTernServer implements ITernServer {
 	private boolean dataAsJsonString;
 	private boolean dispose;
 	private boolean loadingLocalPlugins;
+
+	private ITernServerRequestProcessor reqProcessor;
 
 	private ReentrantReadWriteLock stateLock = new ReentrantReadWriteLock();
 
@@ -44,19 +53,19 @@ public abstract class AbstractTernServer implements ITernServer {
 			});
 		}
 	}
-	
+
 	protected void beginReadState() {
 		stateLock.readLock().lock();
 	}
-	
+
 	protected void endReadState() {
 		stateLock.readLock().unlock();
 	}
-	
+
 	protected void beginWriteState() {
 		stateLock.writeLock().lock();
 	}
-	
+
 	protected void endWriteState() {
 		stateLock.writeLock().unlock();
 	}
@@ -101,16 +110,16 @@ public abstract class AbstractTernServer implements ITernServer {
 
 	@Override
 	public final void dispose() {
-	  beginWriteState();
-	  try {
-		if (!isDisposed()) {
-			this.dispose = true;
-			doDispose();
-			fireEndServer();
+		beginWriteState();
+		try {
+			if (!isDisposed()) {
+				this.dispose = true;
+				doDispose();
+				// fireEndServer();
+			}
+		} finally {
+			endWriteState();
 		}
-	  } finally {
-		  endWriteState();
-	  }
 	}
 
 	@Override
@@ -119,37 +128,6 @@ public abstract class AbstractTernServer implements ITernServer {
 	}
 
 	protected abstract void doDispose();
-
-	protected void addProposal(Object completion, int start, int end,
-			ITernCompletionCollector collector) {
-		String name = getText(completion, "name");
-		String type = getText(completion, "type");
-		String doc = getText(completion, "doc");
-		String url = getText(completion, "url");
-		String origin = getText(completion, "origin");
-		if (collector instanceof IMeTernCompletionCollector) {
-			boolean keyword = Boolean.parseBoolean(getText(completion, "isKeyword"));
-			int depth = 10000;
-			try {
-				depth = Integer.parseInt(getText(completion, "depth"));
-			} catch (Exception e) {
-				//ignore
-			}
-			((IMeTernCompletionCollector)collector).addProposal(name, type, doc, 
-					url, origin, keyword, depth, start, end, completion, this);
-		} else {
-			collector.addProposal(name, type, doc, url, origin, start, end,
-			completion, this);
-		}
-	}
-
-	public abstract String getText(Object value);
-
-	public String getText(Object value, String name) {
-		return getText(getValue(value, name));
-	}
-
-	public abstract Object getValue(Object value, String name);
 
 	@Override
 	public ITernFileSynchronizer getFileSynchronizer() {
@@ -177,4 +155,33 @@ public abstract class AbstractTernServer implements ITernServer {
 	public boolean isLoadingLocalPlugins() {
 		return loadingLocalPlugins;
 	}
+
+	@Override
+	public void request(TernDoc doc, ITernResultsCollector collector)
+			throws TernException {
+		try {
+			if (reqProcessor == null) {
+				// always provide request processor
+				reqProcessor = new SynchronousRequestProcessor(this);
+			}
+			reqProcessor.processRequest(doc, collector);
+		} catch (Exception e) {
+			getFileSynchronizer().uploadFailed(doc);
+			if (e instanceof TernException) {
+				throw (TernException) e;
+			}
+			throw new TernException(e);
+		}
+	}
+
+	@Override
+	public ITernServerRequestProcessor getRequestProcessor() {
+		return reqProcessor;
+	}
+
+	@Override
+	public void setRequestProcessor(ITernServerRequestProcessor reqProcessor) {
+		this.reqProcessor = reqProcessor;
+	}
+
 }

@@ -12,7 +12,6 @@ package tern.eclipse.jface.text;
 
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.jface.internal.text.html.BrowserInformationControlInput;
-import org.eclipse.jface.text.IDocument;
 
 /**
  * Browser input for Javadoc hover.
@@ -24,7 +23,6 @@ public class TernBrowserInformationControlInput extends
 
 	private final String fHtml;
 	private final int fLeadingImageWidth;
-	private final IDocument fDocument;
 
 	/**
 	 * Creates a new browser information control input.
@@ -41,31 +39,10 @@ public class TernBrowserInformationControlInput extends
 	public TernBrowserInformationControlInput(
 			TernBrowserInformationControlInput previous, String html,
 			int leadingImageWidth) {
-		this(previous, html, leadingImageWidth, null);
-	}
-	
-	/**
-	 * Creates a new browser information control input.
-	 *
-	 * @param previous
-	 *            previous input, or <code>null</code> if none available
-	 * @param element
-	 *            the element, or <code>null</code> if none available
-	 * @param html
-	 *            HTML contents, must not be null
-	 * @param leadingImageWidth
-	 *            the indent required for the element image
-	 * @param document
-	 *            document for which the information is created
-	 */
-	public TernBrowserInformationControlInput(
-			TernBrowserInformationControlInput previous, String html,
-			int leadingImageWidth, IDocument document) {
 		super(previous);
 		Assert.isNotNull(html);
 		fHtml = html;
 		fLeadingImageWidth = leadingImageWidth;
-		fDocument = document;
 	}
 
 	/*
@@ -101,10 +78,6 @@ public class TernBrowserInformationControlInput extends
 	@Override
 	public String getInputName() {
 		return "";
-	}
-	
-	public IDocument getDocument() {
-		return fDocument;
 	}
 
 }

@@ -79,12 +79,12 @@ public class TernCorePlugin extends Plugin {
 
 	public static File getTernCoreBaseDir() throws IOException {
 		return FileLocator.getBundleFile(Platform
-				.getBundle(tern.Activator.PLUGIN_ID));
+				.getBundle(ternjs.Activator.PLUGIN_ID));
 	}
 
 	public static File getTernBaseDir() throws IOException {
 		return new File(FileLocator.getBundleFile(Platform
-				.getBundle(tern.Activator.PLUGIN_ID)), "node_modules/tern");
+				.getBundle(ternjs.Activator.PLUGIN_ID)), "node_modules/tern");
 	}
 
 	@Override

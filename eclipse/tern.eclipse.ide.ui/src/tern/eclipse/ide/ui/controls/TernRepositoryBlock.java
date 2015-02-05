@@ -11,38 +11,28 @@
 package tern.eclipse.ide.ui.controls;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.runtime.Platform;
+import org.eclipse.core.runtime.preferences.DefaultScope;
+import org.eclipse.core.runtime.preferences.IScopeContext;
+import org.eclipse.core.runtime.preferences.InstanceScope;
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.dialogs.IDialogSettings;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.viewers.ArrayContentProvider;
-import org.eclipse.jface.viewers.BaseLabelProvider;
 import org.eclipse.jface.viewers.CheckStateChangedEvent;
 import org.eclipse.jface.viewers.CheckboxTableViewer;
 import org.eclipse.jface.viewers.ICheckStateListener;
-import org.eclipse.jface.viewers.ILabelProvider;
-import org.eclipse.jface.viewers.ILabelProviderListener;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
-import org.eclipse.jface.viewers.IStructuredContentProvider;
 import org.eclipse.jface.viewers.IStructuredSelection;
-import org.eclipse.jface.viewers.ITableLabelProvider;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.jface.viewers.StructuredSelection;
-import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.jface.viewers.TableViewerColumn;
-import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.jface.window.Window;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Font;
-import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
@@ -50,29 +40,27 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Table;
 
-import tern.ITernRepository;
-import tern.TernException;
-import tern.TernRepository;
 import tern.eclipse.ide.core.TernCorePlugin;
+import tern.eclipse.ide.core.preferences.TernCorePreferenceConstants;
 import tern.eclipse.ide.internal.ui.TernUIMessages;
-import tern.eclipse.ide.internal.ui.Trace;
 import tern.eclipse.ide.internal.ui.dialogs.EditRepositoryDialog;
 import tern.eclipse.ide.internal.ui.properties.AbstractTableBlock;
 import tern.eclipse.ide.ui.TernUIPlugin;
-import tern.eclipse.ide.ui.viewers.TernModuleLabelProvider;
 import tern.eclipse.ide.ui.viewers.TernRepositoryLabelProvider;
+import tern.repository.ITernRepository;
+import tern.repository.TernRepository;
 import tern.server.ITernModule;
+import tern.utils.TernModuleHelper;
 
 /**
- * Tern repositoryy block.
+ * Tern repository block.
  * 
  */
 public class TernRepositoryBlock extends AbstractTableBlock {
 
 	private CheckboxTableViewer repositoryViewer;
-	private TableViewer modulesViewer;
-
 	private final IProject project;
+	private TernModulesBlock modulesBlock;
 
 	public TernRepositoryBlock(IProject project) {
 		this.project = project;
@@ -158,21 +146,19 @@ public class TernRepositoryBlock extends AbstractTableBlock {
 	}
 
 	private void createModulesTable(Composite parent) {
-		Table table = new Table(parent, SWT.BORDER | SWT.FULL_SELECTION
-				| SWT.V_SCROLL);
+		GridLayout layout = new GridLayout();
+		layout.numColumns = 1;
+		layout.marginHeight = 0;
+		layout.marginWidth = 0;
+		parent.setLayout(layout);
 
+		// create UI modules
+		modulesBlock = new TernModulesBlock(project,
+				TernUIMessages.TernRepositoryBlock_modules_desc);
+		Control control = modulesBlock.createControl(parent);
 		GridData data = new GridData(GridData.FILL_BOTH);
-		data.heightHint = 200;
-		table.setLayoutData(data);
-		table.setFont(parent.getFont());
-
-		table.setHeaderVisible(false);
-		table.setLinesVisible(false);
-
-		modulesViewer = new TableViewer(table);
-
-		modulesViewer.setLabelProvider(new TernModulesLabelProvider());
-		modulesViewer.setContentProvider(new TernModulesContentProvider());
+		data.horizontalSpan = 1;
+		control.setLayoutData(data);
 
 	}
 
@@ -187,13 +173,18 @@ public class TernRepositoryBlock extends AbstractTableBlock {
 	}
 
 	private void refreshModules(ITernRepository repository) {
-		try {
-			modulesViewer.setInput(repository.getModules());
-		} catch (TernException e) {
-			Trace.trace(Trace.WARNING,
-					"Error while getting modules of tern repository.", e);
-			modulesViewer.setInput(Collections.EMPTY_LIST);
-		}
+		IScopeContext[] lookupOrder = new IScopeContext[] {
+				InstanceScope.INSTANCE, DefaultScope.INSTANCE };
+		String moduleNames = Platform.getPreferencesService().getString(
+				TernCorePlugin.getDefault().getBundle().getSymbolicName(),
+				TernCorePreferenceConstants.DEFAULT_TERN_MODULES,
+				TernCorePreferenceConstants.DEFAULT_TERN_MODULES_VALUE,
+				lookupOrder);
+		modulesBlock.loadModules(repository, moduleNames.split(","));
+	}
+
+	public void setCheckedModules(String[] selectedModules) {
+		modulesBlock.loadModules(getCurrentRepository(), selectedModules);
 	}
 
 	@Override
@@ -343,8 +334,27 @@ public class TernRepositoryBlock extends AbstractTableBlock {
 	 * Save repositories.
 	 */
 	public void saveRepositories() {
+		// save repositories
 		TernCorePlugin.getTernRepositoryManager().setRepositories(
 				getRepositories());
+		saveDefaultModules();
+	}
+
+	public void saveDefaultModules() {
+		// save default modules
+		new InstanceScope().getNode(
+				TernCorePlugin.getDefault().getBundle().getSymbolicName()).put(
+				TernCorePreferenceConstants.DEFAULT_TERN_MODULES,
+				getDefaultModules());
+	}
+
+	private String getDefaultModules() {
+		Object[] checkedModules = modulesBlock.getCheckedModules();
+		ITernModule[] modules = new ITernModule[checkedModules.length];
+		for (int i = 0; i < checkedModules.length; i++) {
+			modules[i] = (ITernModule) checkedModules[i];
+		}
+		return TernModuleHelper.getModulesAsString(modules);
 	}
 
 	/**
@@ -370,92 +380,6 @@ public class TernRepositoryBlock extends AbstractTableBlock {
 	private void checkAndSelect(ITernRepository repository) {
 		repositoryViewer.setCheckedElements(new Object[] { repository });
 		repositoryViewer.setSelection(new StructuredSelection(repository));
-	}
-	
-	private class TernModuleVersions {
-		
-		private List<String> versions = new ArrayList<String>();
-		private String name;
-		private ITernModule baseModule;
-		
-		public TernModuleVersions(ITernModule baseModule) {
-			this.baseModule = baseModule;
-			addVersion(baseModule);
-		}
-		
-		public void addVersion(ITernModule module) {
-			if (module.getVersion() != null &&
-					!module.getVersion().isEmpty()) {
-				versions.add(module.getVersion());
-			}
-			if (versions.isEmpty()) {
-				name = baseModule.getType();
-			} else {
-				name = baseModule.getType() + " " + versions.toString(); //$NON-NLS-1$
-			}
-		}
-		
-		public String getName() {
-			return name;
-		}
-		
-	}
-	
-	private class TernModulesContentProvider implements IStructuredContentProvider {
-
-		TernModuleVersions[] elements;
-		
-		@Override
-		public void dispose() {
-		}
-
-		@Override
-		public void inputChanged(Viewer viewer, Object oldInput, Object newInput) {
-			Map<String, TernModuleVersions> map = new HashMap<String, TernRepositoryBlock.TernModuleVersions>();
-			if (newInput != null) {
-				for (ITernModule mod: (ITernModule[])newInput) {
-					String key = mod.getType()+"#"+mod.getModuleType().toString(); //$NON-NLS-1$
-					TernModuleVersions v = map.get(key);
-					if (v == null) {
-						v = new TernModuleVersions(mod);
-						map.put(key, v);
-					} else {
-						v.addVersion(mod);
-					}
-				}
-			}
-			elements = map.values().toArray(new TernModuleVersions[map.values().size()]);
-			Arrays.sort(elements, new Comparator<TernModuleVersions>() {
-
-				@Override
-				public int compare(TernModuleVersions o1, TernModuleVersions o2) {
-					return o1.getName().compareTo(o2.getName());
-				}
-			});
-			
-		}
-
-		@Override
-		public Object[] getElements(Object inputElement) {
-			return elements;
-		}
-		
-	}
-	
-	private class TernModulesLabelProvider extends BaseLabelProvider implements ILabelProvider {
-		
-		ITableLabelProvider base = TernModuleLabelProvider.getInstance();
-		
-		@Override
-		public Image getImage(Object element) {
-			return base.getColumnImage(((TernModuleVersions)element).baseModule, 0);
-		}
-
-		@Override
-		public String getText(Object element) {
-			return ((TernModuleVersions)element).getName();
-		}
-		
 	}
 
 }

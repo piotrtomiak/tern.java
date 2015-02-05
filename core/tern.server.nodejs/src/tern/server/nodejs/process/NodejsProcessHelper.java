@@ -14,6 +14,12 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
+import tern.OS;
+
+/**
+ * Node path helper.
+ *
+ */
 public class NodejsProcessHelper {
 
 	private static final String[] WINDOWS_NODE_PATHS = new String[] {
@@ -26,10 +32,6 @@ public class NodejsProcessHelper {
 
 	private static final String[] LINUX_NODE_PATHS = new String[] {
 			"/usr/local/bin/node", "node" };
-
-	public enum OS {
-		Windows, MacOS, Linux;
-	}
 
 	public static String getNodejsPath(OS os) {
 		String path = getDefaultNodejsPath(os);

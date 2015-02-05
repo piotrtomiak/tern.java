@@ -12,7 +12,6 @@ package tern.eclipse.ide.ui.contentassist;
 
 import java.util.List;
 
-import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.ProjectScope;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.preferences.DefaultScope;
@@ -21,61 +20,82 @@ import org.eclipse.core.runtime.preferences.IScopeContext;
 import org.eclipse.core.runtime.preferences.InstanceScope;
 import org.eclipse.jface.text.contentassist.ICompletionProposal;
 
+import tern.ITernFile;
+import tern.eclipse.ide.core.IIDETernProject;
 import tern.eclipse.ide.internal.ui.preferences.TernUIPreferenceConstants;
 import tern.eclipse.ide.ui.TernUIPlugin;
-import tern.server.ITernServer;
-import tern.server.protocol.completions.IMeTernCompletionCollector;
+import tern.server.protocol.IJSONObjectHelper;
 import tern.server.protocol.completions.ITernCompletionCollector;
+import tern.server.protocol.completions.TernCompletionProposalRec;
 
 /**
  * Tern collector which creates {@link JSTernCompletionProposal}.
  * 
  */
-public class JSTernCompletionCollector implements ITernCompletionCollector, 
-		IMeTernCompletionCollector {
+public class JSTernCompletionCollector implements ITernCompletionCollector {
 
 	protected final List<ICompletionProposal> proposals;
-	protected final int startOffset;
 	private boolean generateAnonymousFunction;
 	private boolean expandFunction;
+	private String indentChars;
+	private final ITernFile ternFile;
+	private final IIDETernProject ternProject;
 
 	public JSTernCompletionCollector(List<ICompletionProposal> proposals,
-			int startOffset, IProject project) {
+			int startOffset, ITernFile ternFile, IIDETernProject ternProject) {
 		this.proposals = proposals;
-		this.startOffset = startOffset;
+		this.ternFile = ternFile;
+		this.ternProject = ternProject;
 
 		IPreferencesService preferencesService = Platform
 				.getPreferencesService();
 		IScopeContext[] lookupOrder = new IScopeContext[] {
-				new ProjectScope(project), new InstanceScope(),
-				new DefaultScope() };
+				new ProjectScope(ternProject.getProject()),
+				new InstanceScope(), new DefaultScope() };
 
 		generateAnonymousFunction = preferencesService
 				.getBoolean(
 						TernUIPlugin.getDefault().getBundle().getSymbolicName(),
 						TernUIPreferenceConstants.GENERATE_ANONYMOUS_FUNCTION_CONTENT_ASSIST,
 						true, lookupOrder);
+
+		int indentSize = preferencesService.getInt(TernUIPlugin.getDefault()
+				.getBundle().getSymbolicName(),
+				TernUIPreferenceConstants.INDENT_SIZE_CONTENT_ASSIST,
+				TernUIPreferenceConstants.INDENT_SIZE_CONTENT_ASSIST_DEFAULT,
+				lookupOrder);
+		boolean indentWithTabs = preferencesService.getBoolean(TernUIPlugin
+				.getDefault().getBundle().getSymbolicName(),
+				TernUIPreferenceConstants.INDENT_TABS_CONTENT_ASSIST,
+				TernUIPreferenceConstants.INDENT_TABS_CONTENT_ASSIST_DEFAULT,
+				lookupOrder);
+		indentChars = getIndentChars(indentWithTabs, indentSize);
+
 		expandFunction = preferencesService.getBoolean(TernUIPlugin
 				.getDefault().getBundle().getSymbolicName(),
 				TernUIPreferenceConstants.EXPAND_FUNCTION_CONTENT_ASSIST, true,
 				lookupOrder);
 	}
 
-	@Override
-	public void addProposal(String name, String type, String doc, String url,
-			String origin, int start, int end, Object completion,
-			ITernServer ternServer) {
-		addProposal(name, type, doc, url, origin, false, 100000, start, end,
-				completion, ternServer);
+	private String getIndentChars(boolean indentWithTabs, int indentSize) {
+		StringBuilder indent = new StringBuilder();
+		for (int i = 0; i < indentSize; i++) {
+			indent.append(indentWithTabs ? JSTernCompletionProposal.TAB
+					: JSTernCompletionProposal.SPACE);
+		}
+		return indent.toString();
 	}
 
-	
 	@Override
-	public void addProposal(String name, String type, String doc, String url,
-			String origin, boolean keyword, int depth, int start, int end,
-			Object completion, ITernServer ternServer) {
-		JSTernCompletionProposal proposal = internalCreateProposal(name, type, 
-				doc, url, origin, keyword, depth, start, end);
+	public void addProposal(TernCompletionProposalRec proposalItem,
+			Object completion, IJSONObjectHelper jsonObjectHelper) {
+		JSTernCompletionProposal proposal = internalCreateProposal(proposalItem);
+		if (proposal.isFunction()) {
+			// Add the function reference
+			proposals
+					.add(internalCreateProposal(proposalItem.changeType("fn")));
+		}
+
 		proposals.add(proposal);
 
 		if (expandFunction) {
@@ -88,45 +108,35 @@ public class JSTernCompletionCollector implements ITernCompletionCollector,
 			String[] functions = proposal.expand();
 			if (functions != null) {
 				for (int i = 0; i < functions.length; i++) {
-					proposals.add(internalCreateProposal(name, functions[i],
-							doc, url, origin, false, depth, start, end));
+					proposals.add(internalCreateProposal(proposalItem
+							.changeType(functions[i])));
 				}
 			}
 		}
 	}
 
-	private JSTernCompletionProposal internalCreateProposal(String name,
-			String type, String doc, String url, String origin, 
-			boolean keyword, int depth, int start, int end) {
-		JSTernCompletionProposal proposal = createProposal(name, type, doc,
-				url, origin, keyword, depth, start, end);
+	private JSTernCompletionProposal internalCreateProposal(
+			TernCompletionProposalRec proposalItem) {
+		JSTernCompletionProposal proposal = createProposal(proposalItem);
 		proposal.setGenerateAnonymousFunction(generateAnonymousFunction);
-		return proposal;
-	}
+		proposal.setIndentChars(indentChars);
+		// TODO manage that with preferences
+		proposal.setGenerateObjectValue(true);
 
-	protected JSTernCompletionProposal createProposal(String name, String type,
-			String doc, String url, String origin, boolean keyword, int depth,
-			int start, int end) {
-		return new JSTernCompletionProposal(name, type, doc, url, origin, keyword,
-				start, end);
+		proposal.setTernFile(ternFile);
+		proposal.setTernProject(ternProject);
+		return proposal;
 	}
 
 	/**
 	 * Completion proposal factory.
 	 * 
-	 * @param name
-	 * @param type
-	 * @param doc
-	 * @param url
-	 * @param origin
-	 * @param pos
-	 * @param startOffset
+	 * @param proposalItem
+	 * 
 	 * @return
 	 */
-	@Deprecated
-	protected JSTernCompletionProposal createProposal(String name, String type,
-			String doc, String url, String origin, int start, int end) {
-		return createProposal(name, type, doc, url, origin, false, 
-				100000, start, end);
+	protected JSTernCompletionProposal createProposal(
+			TernCompletionProposalRec proposalItem) {
+		return new JSTernCompletionProposal(proposalItem);
 	}
 }

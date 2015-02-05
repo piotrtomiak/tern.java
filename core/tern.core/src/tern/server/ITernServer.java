@@ -1,5 +1,5 @@
 /**
- *  Copyright (c) 2013-2014 Angelo ZERR.
+ *  Copyright (c) 2013-2015 Angelo ZERR and Genuitec LLC.
  *  All rights reserved. This program and the accompanying materials
  *  are made available under the terms of the Eclipse Public License v1.0
  *  which accompanies this distribution, and is available at
@@ -7,6 +7,8 @@
  *
  *  Contributors:
  *  Angelo Zerr <angelo.zerr@gmail.com> - initial API and implementation
+ *  Piotr Tomiak <piotr@genutiec.com> - asynchronous request processing and 
+ *  									refactoring of collectors API 
  */
 package tern.server;
 
@@ -14,12 +16,10 @@ import java.io.IOException;
 
 import tern.ITernFileSynchronizer;
 import tern.TernException;
+import tern.server.protocol.IJSONObjectHelper;
+import tern.server.protocol.ITernResultsCollector;
 import tern.server.protocol.TernDoc;
-import tern.server.protocol.completions.ITernCompletionCollector;
-import tern.server.protocol.definition.ITernDefinitionCollector;
 import tern.server.protocol.html.ScriptTagRegion;
-import tern.server.protocol.lint.ITernLintCollector;
-import tern.server.protocol.type.ITernTypeCollector;
 
 /**
  * Tern server API.
@@ -69,20 +69,21 @@ public interface ITernServer {
 
 	void request(TernDoc doc, IResponseHandler handler);
 
-	void request(TernDoc doc, ITernCompletionCollector collector)
+	void request(TernDoc doc, ITernResultsCollector collector)
 			throws TernException;
 
-	void request(TernDoc doc, ITernDefinitionCollector collector)
-			throws TernException;
-
-	void request(TernDoc doc, ITernTypeCollector collector)
-			throws TernException;
-
-	void request(TernDoc doc, ITernLintCollector collector)
-			throws TernException;
-
+	/**
+	 * Add server listener.
+	 * 
+	 * @param listener
+	 */
 	void addServerListener(ITernServerListener listener);
 
+	/**
+	 * Remove server listener.
+	 * 
+	 * @param listener
+	 */
 	void removeServerListener(ITernServerListener listener);
 
 	/**
@@ -95,8 +96,6 @@ public interface ITernServer {
 	boolean isDataAsJsonString();
 
 	void setDataAsJsonString(boolean dataAsJsonString);
-
-	String getText(Object value, String name);
 
 	boolean isDisposed();
 
@@ -121,4 +120,11 @@ public interface ITernServer {
 	 *      b0587a64eea193d124005e03d80065ac310e2
 	 */
 	boolean isLoadingLocalPlugins();
+
+	ITernServerRequestProcessor getRequestProcessor();
+
+	void setRequestProcessor(ITernServerRequestProcessor asyncReqProcessor);
+
+	IJSONObjectHelper getJSONObjectHelper();
+
 }

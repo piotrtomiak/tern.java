@@ -13,7 +13,6 @@ package tern.eclipse.ide.internal.core.preferences;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.Preferences;
 
-import tern.eclipse.ide.core.ITernRepositoryManager;
 import tern.eclipse.ide.core.ITernServerType;
 import tern.eclipse.ide.core.TernCorePlugin;
 import tern.eclipse.ide.core.preferences.PreferencesSupport;
@@ -79,6 +78,20 @@ public class TernCorePreferencesSupport {
 	}
 
 	/**
+	 * Return false if Tern requests, like autocompletion should not be allowed
+	 * to run asynchronously and timeout.
+	 * 
+	 * @param project
+	 * @return true if asynchronous requests should not be allowed.
+	 */
+	public boolean isDisableAsynchronousReques(IProject project) {
+		String result = preferencesSupport.getPreferencesValue(
+				TernCorePreferenceConstants.DISABLE_ASYNC_REQUESTS, null,
+				project);
+		return StringUtils.asBoolean(result, false);
+	}
+
+	/**
 	 * Returns the used tern repository name for the given project.
 	 * 
 	 * @param project
@@ -91,4 +104,20 @@ public class TernCorePreferencesSupport {
 						project);
 
 	}
+
+	/**
+	 * Returns true if tern builder (used for validation) must be executed and
+	 * false otherwise.
+	 * 
+	 * @param project
+	 * @return true if tern builder (used for validation) must be executed and
+	 *         false otherwise.
+	 */
+	public boolean isAvailableTernBuilder(IProject project) {
+		String result = preferencesSupport.getPreferencesValue(
+				TernCorePreferenceConstants.AVAILABLE_TERN_BUILDER, null,
+				project);
+		return StringUtils.asBoolean(result, false);
+	}
+
 }

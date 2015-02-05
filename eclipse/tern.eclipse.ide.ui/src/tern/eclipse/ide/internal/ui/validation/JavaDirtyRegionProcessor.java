@@ -27,9 +27,9 @@ import tern.eclipse.ide.core.IIDETernProject;
 import tern.eclipse.ide.core.TernCorePlugin;
 import tern.eclipse.ide.core.resources.TernDocumentFile;
 import tern.eclipse.ide.internal.ui.Trace;
-import tern.server.TernPlugin;
+import tern.server.protocol.TernQuery;
 import tern.server.protocol.lint.ITernLintCollector;
-import tern.server.protocol.lint.TernLintQuery;
+import tern.server.protocol.lint.ITernLintPlugin;
 
 /**
  * As-You-Type validation Java files
@@ -58,8 +58,8 @@ final public class JavaDirtyRegionProcessor extends DirtyRegionProcessor {
 		IDocument document = getDocument();
 
 		if (document != null) {
-			if (ternProject.hasPlugin(TernPlugin.lint)) {
-				TernLintQuery query = new TernLintQuery();
+			ITernLintPlugin[] lintPlugins = ternProject.getLintPlugins();
+			if (lintPlugins.length > 0) {
 
 				// Clean old TernAnnotation
 				final List<TernAnnotation> annotationsToRemove = new ArrayList<TernAnnotation>();
@@ -79,8 +79,13 @@ final public class JavaDirtyRegionProcessor extends DirtyRegionProcessor {
 				ITernLintCollector collector = new ITernLintCollector() {
 
 					@Override
+					public void startLint(String file) {
+
+					}
+
+					@Override
 					public void addMessage(String message, Long start,
-							Long end, String severity) {
+							Long end, String severity, String file) {
 						TernAnnotation existingAnnotation = getExistingAnnotation(
 								message, start.intValue(), end.intValue(),
 								severity, annotationsToRemove);
@@ -96,6 +101,11 @@ final public class JavaDirtyRegionProcessor extends DirtyRegionProcessor {
 									annotation.getStart(), annotation.getEnd()
 											- annotation.getStart()));
 						}
+					}
+
+					@Override
+					public void endLint(String file) {
+
 					}
 
 					private TernAnnotation getExistingAnnotation(
@@ -114,7 +124,10 @@ final public class JavaDirtyRegionProcessor extends DirtyRegionProcessor {
 
 				try {
 					ITernFile tf = new TernDocumentFile(file, document);
-					ternProject.request(query, tf, collector);
+					for (ITernLintPlugin lintPlugin : lintPlugins) {
+						TernQuery query = lintPlugin.createQuery(false);
+						ternProject.request(query, tf, collector);
+					}
 				} catch (Exception e) {
 					Trace.trace(Trace.SEVERE, "Error while tern validation.", e);
 				}

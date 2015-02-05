@@ -35,6 +35,7 @@ import tern.eclipse.jface.text.HoverControlCreator;
 import tern.eclipse.jface.text.PresenterControlCreator;
 import tern.server.protocol.completions.Parameter;
 import tern.server.protocol.completions.TernCompletionItem;
+import tern.server.protocol.completions.TernCompletionProposalRec;
 
 public class TernCompletionProposal extends TernCompletionItem implements
 		ICompletionProposal, ICompletionProposalExtension,
@@ -55,25 +56,17 @@ public class TernCompletionProposal extends TernCompletionItem implements
 	private char[] fTriggers;
 	private IInformationControlCreator ternControlCreator;
 
-	@Deprecated
-	public TernCompletionProposal(String name, String type, String doc,
-			String url, String origin, int start, int end) {
-		this(name, type, doc, url, origin, false, start, end);
-	}
-
-	public TernCompletionProposal(String name, String type, String doc,
-			String url, String origin, boolean keyword, int start,
-			int end) {	
-		super(name, type, doc, url, origin, keyword);
+	public TernCompletionProposal(TernCompletionProposalRec proposal) {
+		super(proposal);
 
 		String text = super.getSignature();
 		this.fReplacementString = text;
-		this.fReplacementOffset = start;
-		this.fReplacementLength = end - start;
+		this.fReplacementOffset = proposal.start;
+		this.fReplacementLength = proposal.end - proposal.start;
 		this.fCursorPosition = text.length();
 
 		this.fDisplayString = super.getText();
-		this.fAdditionalProposalInfo = doc != null ? doc.toString() : null;
+		this.fAdditionalProposalInfo = proposal.doc != null ? proposal.doc.toString() : null;
 
 	}
 

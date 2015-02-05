@@ -12,6 +12,7 @@ package tern.eclipse.ide.ui.controls;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -24,6 +25,7 @@ import org.eclipse.jface.viewers.ArrayContentProvider;
 import org.eclipse.jface.viewers.CheckStateChangedEvent;
 import org.eclipse.jface.viewers.CheckboxTableViewer;
 import org.eclipse.jface.viewers.ICheckStateListener;
+import org.eclipse.jface.viewers.IElementComparer;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
@@ -56,7 +58,10 @@ import tern.eclipse.ide.internal.ui.viewers.TernModuleVersionEditingSupport;
 import tern.eclipse.ide.ui.TernUIPlugin;
 import tern.eclipse.ide.ui.viewers.TernModuleLabelProvider;
 import tern.metadata.TernModuleMetadata;
+import tern.repository.ITernRepository;
 import tern.server.ITernModule;
+import tern.server.ITernModuleConfigurable;
+import tern.utils.StringUtils;
 import tern.utils.TernModuleHelper;
 
 /**
@@ -64,6 +69,19 @@ import tern.utils.TernModuleHelper;
  * 
  */
 public class TernModulesBlock extends AbstractTableBlock {
+
+	private static final IElementComparer TERN_MODULES_COMPARER = new IElementComparer() {
+
+		@Override
+		public boolean equals(Object a, Object b) {
+			return a.equals(b);
+		}
+
+		@Override
+		public int hashCode(Object element) {
+			return element.hashCode();
+		}
+	};
 
 	private final String tableLabel;
 	private final IProject project;
@@ -146,7 +164,7 @@ public class TernModulesBlock extends AbstractTableBlock {
 
 		GridData data = new GridData(GridData.FILL_BOTH);
 		data.widthHint = 350;
-		data.heightHint = 300;
+		data.heightHint = 400;
 		table.setLayoutData(data);
 		table.setFont(parent.getFont());
 
@@ -176,9 +194,11 @@ public class TernModulesBlock extends AbstractTableBlock {
 		versionColumn.getColumn().setResizable(true);
 		versionColumn.getColumn().setText(
 				TernUIMessages.TernModulesBlock_moduleVersion);
-		versionColumn.setEditingSupport(new TernModuleVersionEditingSupport(
-				tableViewer));
+		final TernModuleVersionEditingSupport versionEditiongSupport = new TernModuleVersionEditingSupport(
+				tableViewer);
+		versionColumn.setEditingSupport(versionEditiongSupport);
 
+		tableViewer.setComparer(TERN_MODULES_COMPARER);
 		tableViewer.setLabelProvider(TernModuleLabelProvider.getInstance());
 		tableViewer.setContentProvider(ArrayContentProvider.getInstance());
 
@@ -201,13 +221,26 @@ public class TernModulesBlock extends AbstractTableBlock {
 						if (metadata != null) {
 							ITernModule dependencyModule = null;
 							// loop for each dependencies and check it if needed
-							for (String moduleName : metadata.getDependencies()) {
+							for (String moduleName : metadata
+									.getDependencies(module.getVersion())) {
 								dependencyModule = ternModules.get(moduleName);
 								if (dependencyModule != null) {
+									// update module selection
 									if (!tableViewer
 											.getChecked(dependencyModule)) {
 										tableViewer.setChecked(
 												dependencyModule, true);
+									}
+									if (dependencyModule instanceof ITernModuleConfigurable) {
+										ITernModuleConfigurable configurable = (ITernModuleConfigurable) dependencyModule;
+										if (configurable.hasVersion()) {
+											// update version
+											String version = configurable
+													.getModule(moduleName)
+													.getVersion();
+											versionEditiongSupport.setValue(
+													dependencyModule, version);
+										}
 									}
 								}
 							}
@@ -314,9 +347,19 @@ public class TernModulesBlock extends AbstractTableBlock {
 				if ((e1 instanceof ITernModule) && (e2 instanceof ITernModule)) {
 					ITernModule left = (ITernModule) e1;
 					ITernModule right = (ITernModule) e2;
-					return left.getName().compareToIgnoreCase(right.getName());
+					return getNameOrLabel(left).compareToIgnoreCase(
+							getNameOrLabel(right));
 				}
 				return super.compare(viewer, e1, e2);
+			}
+
+			private String getNameOrLabel(ITernModule module) {
+				TernModuleMetadata metadata = module.getMetadata();
+				if (metadata == null) {
+					return module.getName();
+				}
+				return StringUtils.isEmpty(metadata.getLabel()) ? module
+						.getName() : metadata.getLabel();
 			}
 
 			@Override
@@ -326,12 +369,24 @@ public class TernModulesBlock extends AbstractTableBlock {
 		});
 	}
 
-	protected void setTernModules(ITernModule[] vms) {
+	public void setTernModules(ITernModule[] modules) {
 		ternModules.clear();
-		for (ITernModule module : vms) {
-			ternModules.put(module.getType(), module);
+		for (ITernModule module : modules) {
+			if (module instanceof ITernModuleConfigurable) {
+				ITernModuleConfigurable configurable = (ITernModuleConfigurable) module;
+				if (!configurable.hasVersion()) {
+					ternModules.put(module.getName(), module);
+				} else {
+					Collection<ITernModule> mods = configurable.getModules();
+					for (ITernModule mod : mods) {
+						ternModules.put(mod.getName(), module);
+					}
+				}
+			} else {
+				ternModules.put(module.getName(), module);
+			}
 		}
-		tableViewer.setInput(ternModules.values());
+		tableViewer.setInput(modules);
 	}
 	
 	public boolean isModified() {
@@ -395,19 +450,33 @@ public class TernModulesBlock extends AbstractTableBlock {
 
 	/**
 	 * Load plugins from tern project.
+	 * 
+	 * @param moduleNames
+	 * @param repository
 	 */
 	public void loadModules() {
+		List<ITernModule> allModules = null;
+		List<ITernModule> checkedModules = null;
 		try {
-			List<ITernModule> checkedModules = project != null ? new ArrayList<ITernModule>()
-					: null;
+
+			// load modules from the given tern project
 			IIDETernProject ternProject = getTernProject();
-			// Load list of Tern Plugins + JSON Type Definitions.
-			ITernModule[] allModules = TernCorePlugin
-					.getTernServerTypeManager().getTernModules(ternProject,
-							checkedModules);
-			this.setTernModules(allModules);
-			if (checkedModules != null) {
-				this.setCheckedModules(checkedModules.toArray());
+			if (ternProject != null) {
+
+				// Add list of tern modules from the repository
+				allModules = new ArrayList<ITernModule>(
+						Arrays.asList(ternProject.getRepository().getModules()));
+				// Add local tern modules
+				List<ITernModule> projectModules = ternProject
+						.getProjectModules();
+				allModules.addAll(projectModules);
+				// Group by type
+				allModules = TernModuleHelper.groupByType(allModules);
+
+				// checked modules
+				checkedModules = TernCorePlugin.getTernRepositoryManager()
+						.getCheckedModules(ternProject, allModules);
+
 				/*
 				 * if (checkedModules.size() > 0) { ITernModule firstModule =
 				 * checkedModules.get(0); tableViewer.setSelection(new
@@ -415,6 +484,36 @@ public class TernModulesBlock extends AbstractTableBlock {
 				 */
 			}
 
+			if (allModules != null) {
+				this.setTernModules(allModules
+						.toArray(ITernModule.EMPTY_MODULE));
+			}
+			if (checkedModules != null) {
+				this.setCheckedModules(checkedModules.toArray());
+			}
+		} catch (Throwable e) {
+			Trace.trace(Trace.SEVERE, "Error while loading plugins.", e);
+		}
+	}
+
+	public void loadModules(ITernRepository repository, String[] moduleNames) {
+		try {
+			// load modules from the given repository
+			List<ITernModule> allModules = new ArrayList<ITernModule>(
+					Arrays.asList(repository.getModules()));
+			// Group by type
+			List<ITernModule> groupedModules = TernModuleHelper
+					.groupByType(allModules);
+			// checked modules
+			List<ITernModule> checkedModules = TernCorePlugin
+					.getTernRepositoryManager().getCheckedModules(moduleNames,
+							allModules, groupedModules);
+
+			this.setTernModules(groupedModules
+					.toArray(ITernModule.EMPTY_MODULE));
+			if (checkedModules != null) {
+				this.setCheckedModules(checkedModules.toArray());
+			}
 		} catch (Throwable e) {
 			Trace.trace(Trace.SEVERE, "Error while loading plugins.", e);
 		}
@@ -451,4 +550,9 @@ public class TernModulesBlock extends AbstractTableBlock {
 	public IProject getProject() {
 		return project;
 	}
+
+	public void setEnabled(boolean enabled) {
+		getTable().setEnabled(enabled);
+	}
+
 }

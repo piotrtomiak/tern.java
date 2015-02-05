@@ -13,6 +13,7 @@ package tern.eclipse.ide.jsdt.internal.contentassist;
 import org.eclipse.wst.jsdt.ui.text.java.IJavaCompletionProposal;
 
 import tern.eclipse.ide.ui.contentassist.JSTernCompletionProposal;
+import tern.server.protocol.completions.TernCompletionProposalRec;
 
 /**
  * Extends {@link JSTernCompletionProposal} to implements JSDT
@@ -34,17 +35,9 @@ public class JSDTTernCompletionProposal extends JSTernCompletionProposal
 	
 	private int relevance;
 	
-	@Deprecated
-	public JSDTTernCompletionProposal(String name, String type, String doc,
-			String url, String origin, int start, int end) {
-		super(name, type, doc, url, origin, start, end);
-	}
-	
-	public JSDTTernCompletionProposal(String name, String type, String doc,
-			String url, String origin, boolean keyword, int depth, 
-			int start, int end) {
-		super(name, type, doc, url, origin, keyword, start, end);
-		relevance = (10 - getCategory()) * CATEGORY_SEPARATION - depth;
+	public JSDTTernCompletionProposal(TernCompletionProposalRec proposal) {
+		super(proposal);
+		relevance = (10 - getCategory()) * CATEGORY_SEPARATION - proposal.depth;
 	}
 	
 	private int getCategory() {

@@ -5,6 +5,7 @@ import java.io.File;
 import org.junit.Assert;
 import org.junit.Test;
 
+import tern.repository.TernRepository;
 import tern.server.ITernModule;
 import tern.server.nodejs.process.PathHelper;
 
@@ -41,13 +42,15 @@ public class TernRepositoryTest {
 		assertHasModule(repository, "closure");
 		assertHasModule(repository, "cordovajs");
 		assertHasModule(repository, "gas");
+		assertHasModule(repository, "jasmine");
 		assertHasModule(repository, "liferay");
 		assertHasModule(repository, "lint");
 		assertHasModule(repository, "node-express");
 		assertHasModule(repository, "node-mongodb-native");
 		assertHasModule(repository, "node-mongoose");
-		//assertHasModule(repository, "yui_3", "yui", "3");
-		//assertHasModule(repository, "aui_2.0.x", "aui", "2.0.x");
+		assertHasModule(repository, "tabris");
+		assertHasModule(repository, "yui3", "yui", "3");
+		assertHasModule(repository, "aui2.0.x", "aui", "2.0.x");
 	}
 
 	private void assertHasModule(TernRepository repository, String name)

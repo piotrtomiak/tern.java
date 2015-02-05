@@ -17,40 +17,8 @@ package tern.server;
 public class BasicTernPlugin extends AbstractBasicTernModule implements
 		ITernPlugin {
 
-	private final String type;
-	private final String version;
-
 	public BasicTernPlugin(String name) {
 		super(name, ModuleType.Plugin);
-		int index = getVersionIndex(name);
-		if (index != -1) {
-			this.type = name.substring(0, index);
-			this.version = name.substring(index + 1, name.length());
-		} else {
-			this.type = name;
-			this.version = null;
-		}
-	}
-
-	private int getVersionIndex(String name) {
-		int index = name.lastIndexOf("_");
-		if (index != -1) {
-			if (index < name.length()
-					&& Character.isDigit(name.charAt(index + 1))) {
-				return index;
-			}
-		}
-		return -1;
-	}
-
-	@Override
-	public String getType() {
-		return type;
-	}
-
-	@Override
-	public String getVersion() {
-		return version;
 	}
 
 }

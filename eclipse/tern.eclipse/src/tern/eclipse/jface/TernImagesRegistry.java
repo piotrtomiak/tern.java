@@ -16,6 +16,7 @@ import org.eclipse.jface.resource.JFaceResources;
 import org.eclipse.swt.graphics.Image;
 
 import tern.server.protocol.completions.TernCompletionItem;
+import tern.server.protocol.completions.TernTypeHelper;
 
 public class TernImagesRegistry {
 
@@ -86,20 +87,19 @@ public class TernImagesRegistry {
 			return TernImagesRegistry.IMG_KEYWORD;
 		}
 		String jsType = item.getJsType();
-		if (jsType != null) {
-			if ("string".equals(jsType)) {
-				return TernImagesRegistry.IMG_STRING;
-			}
-			if ("number".equals(jsType)) {
-				return TernImagesRegistry.IMG_NUMBER;
-			}
-			if ("bool".equals(jsType)) {
-				return TernImagesRegistry.IMG_BOOLEAN;
-			}
-			if (!"undefined".equals(jsType) &&
-					!"?".equals(jsType)) {
-				return TernImagesRegistry.IMG_OBJECT;
-			}
+		if (TernTypeHelper.isStringType(jsType)) {
+			return TernImagesRegistry.IMG_STRING;
+		} else if (TernTypeHelper.isNumberType(jsType)) {
+			return TernImagesRegistry.IMG_NUMBER;
+		} else if (TernTypeHelper.isBoolType(jsType)) {
+			return TernImagesRegistry.IMG_BOOLEAN;
+		}
+		if (TernTypeHelper.isFunctionRefType(jsType)) {
+			return TernImagesRegistry.IMG_FN;
+		}
+		if (!"undefined".equals(jsType) &&
+				!"?".equals(jsType)) {
+			return TernImagesRegistry.IMG_OBJECT;
 		}
 		if (returnNullIfUnknown) {
 			return null;

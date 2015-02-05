@@ -13,6 +13,7 @@ package tern.eclipse.jface.fieldassist;
 import org.eclipse.jface.fieldassist.IContentProposal;
 
 import tern.server.protocol.completions.TernCompletionItem;
+import tern.server.protocol.completions.TernCompletionProposalRec;
 
 public class TernContentProposal extends TernCompletionItem implements
 		IContentProposal {
@@ -20,10 +21,9 @@ public class TernContentProposal extends TernCompletionItem implements
 	private final String content;
 	private final String description;
 
-	public TernContentProposal(String name, String type, String doc,
-			String url, String origin, int start, int end) {
-		super(name, type, doc, url, origin);
-		int pos = end -start;
+	public TernContentProposal(TernCompletionProposalRec proposal) {
+		super(proposal);
+		int pos = proposal.end - proposal.start;
 		this.content = getSignature().substring(pos, getSignature().length());
 		this.description = getDoc();
 

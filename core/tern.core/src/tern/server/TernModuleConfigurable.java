@@ -10,6 +10,7 @@
  */
 package tern.server;
 
+import java.util.Collection;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -144,5 +145,29 @@ public class TernModuleConfigurable implements ITernModuleConfigurable, Cloneabl
 		}
 		return result;
 	}
+
+	@Override
+	public ITernModule getModule(String name) {
+		for (ITernModule module : modules.values()) {
+			if (name.equals(module.getName())) {
+				return module;
+			}
+		}
+		return null;
+	}
+
+	@Override
+	public Collection<ITernModule> getModules() {
+		return modules.values();
+	}
 	
+	@Override
+	public boolean hasVersion() {
+		return !modules.isEmpty();
+	}
+	
+	@Override
+	public String toString() {		
+		return getType();
+	}
 }

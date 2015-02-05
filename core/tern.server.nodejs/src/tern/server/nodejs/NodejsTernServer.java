@@ -1,5 +1,5 @@
 /**
- *  Copyright (c) 2013-2014 Angelo ZERR.
+ *  Copyright (c) 2013-2015 Angelo ZERR and Genuitec LLC.
  *  All rights reserved. This program and the accompanying materials
  *  are made available under the terms of the Eclipse Public License v1.0
  *  which accompanies this distribution, and is available at
@@ -7,6 +7,8 @@
  *
  *  Contributors:
  *  Angelo Zerr <angelo.zerr@gmail.com> - initial API and implementation
+ *  Piotr Tomiak <piotr@genutiec.com> - asynchronous request processing and 
+ *  									refactoring of collectors API 
  */
 package tern.server.nodejs;
 
@@ -28,15 +30,11 @@ import tern.server.nodejs.process.NodejsProcess;
 import tern.server.nodejs.process.NodejsProcessAdapter;
 import tern.server.nodejs.process.NodejsProcessException;
 import tern.server.nodejs.process.NodejsProcessManager;
+import tern.server.protocol.IJSONObjectHelper;
 import tern.server.protocol.JsonHelper;
 import tern.server.protocol.TernDoc;
-import tern.server.protocol.completions.ITernCompletionCollector;
-import tern.server.protocol.definition.ITernDefinitionCollector;
 import tern.server.protocol.html.ScriptTagRegion;
-import tern.server.protocol.lint.ITernLintCollector;
-import tern.server.protocol.type.ITernTypeCollector;
 
-import com.eclipsesource.json.JsonArray;
 import com.eclipsesource.json.JsonObject;
 import com.eclipsesource.json.JsonValue;
 
@@ -45,7 +43,7 @@ import com.eclipsesource.json.JsonValue;
  * 
  */
 public class NodejsTernServer extends AbstractTernServer {
-	
+
 	private String baseURL;
 
 	private List<IInterceptor> interceptors;
@@ -67,6 +65,7 @@ public class NodejsTernServer extends AbstractTernServer {
 		@Override
 		public void onStop(NodejsProcess server) {
 			dispose();
+			fireEndServer();
 		}
 
 	};
@@ -171,9 +170,9 @@ public class NodejsTernServer extends AbstractTernServer {
 			dispose();
 			throw e;
 		}
-		
+
 		List<IInterceptor> interceptors;
-		
+
 		beginReadState();
 		try {
 			if (this.interceptors != null) {
@@ -184,56 +183,57 @@ public class NodejsTernServer extends AbstractTernServer {
 		} finally {
 			endReadState();
 		}
-		
+
 		JsonObject json = NodejsTernHelper.makeRequest(baseURL, doc, false,
 				interceptors, this);
 		return json;
 	}
 
 	public void addInterceptor(IInterceptor interceptor) {
-	  beginWriteState();
-	  try {
-		if (interceptors == null) {
-			interceptors = new ArrayList<IInterceptor>();
+		beginWriteState();
+		try {
+			if (interceptors == null) {
+				interceptors = new ArrayList<IInterceptor>();
+			}
+			interceptors.add(interceptor);
+		} finally {
+			endWriteState();
 		}
-		interceptors.add(interceptor);
-	  } finally {
-		  endWriteState();
-	  }
 	}
 
 	public void removeInterceptor(IInterceptor interceptor) {
-	  beginWriteState();
-	  try {
-		if (interceptors != null) {
-			interceptors.remove(interceptor);
+		beginWriteState();
+		try {
+			if (interceptors != null) {
+				interceptors.remove(interceptor);
+			}
+		} finally {
+			endWriteState();
 		}
-	  } finally {
-		  endWriteState();
-	  }
 	}
 
 	public String getBaseURL() throws InterruptedException, TernException {
-	  beginReadState();
-	  try {
-		if (baseURL == null) {
-			endReadState();
-			beginWriteState();
-			try {
-				if (baseURL != null || isDisposed()) {//already initialized or disposed
-					return baseURL;
+		beginReadState();
+		try {
+			if (baseURL == null) {
+				endReadState();
+				beginWriteState();
+				try {
+					if (baseURL != null || isDisposed()) {// already initialized
+															// or disposed
+						return baseURL;
+					}
+					int port = getProcess().start(timeout, testNumber);
+					this.baseURL = computeBaseURL(port);
+				} finally {
+					endWriteState();
+					beginReadState();
 				}
-				int port = getProcess().start(timeout, testNumber);
-				this.baseURL = computeBaseURL(port);
-			} finally {
-				endWriteState();
-				beginReadState();
 			}
+			return baseURL;
+		} finally {
+			endReadState();
 		}
-		return baseURL;
-	  } finally {
-		  endReadState();
-	  }
 	}
 
 	private NodejsProcess getProcess() throws TernException {
@@ -253,170 +253,51 @@ public class NodejsTernServer extends AbstractTernServer {
 	}
 
 	public void addProcessListener(INodejsProcessListener listener) {
-	  beginWriteState();
-	  try {
-		if (listeners == null) {
-			listeners = new ArrayList<INodejsProcessListener>();
+		beginWriteState();
+		try {
+			if (listeners == null) {
+				listeners = new ArrayList<INodejsProcessListener>();
+			}
+			listeners.add(listener);
+			if (process != null) {
+				process.addProcessListener(listener);
+			}
+		} finally {
+			endWriteState();
 		}
-		listeners.add(listener);
-		if (process != null) {
-			process.addProcessListener(listener);
-		}
-	  } finally {
-		  endWriteState();
-	  }
 	}
 
 	public void removeProcessListener(INodejsProcessListener listener) {
-	  beginWriteState();
-	  try {
-		if (listeners != null && listener != null) {
-			listeners.remove(listener);
-		}
-		if (process != null) {
-			process.removeProcessListener(listener);
-		}
-	  } finally {
-		  endWriteState();
-	  }
-	}
-
-	@Override
-	public void request(TernDoc doc, ITernCompletionCollector collector)
-			throws TernException {
+		beginWriteState();
 		try {
-			JsonObject jsonObject = makeRequest(doc);
-			if (jsonObject != null) {
-				Long startCh = getCh(jsonObject, "start");
-				Long endCh = getCh(jsonObject, "end");
-				int pos = 0;
-				if (startCh != null && endCh != null) {
-					pos = endCh.intValue() - startCh.intValue();
-				}
-				JsonArray completions = (JsonArray) jsonObject
-						.get("completions");
-				if (completions != null) {
-					for (JsonValue value : completions) {
-						if (value.isString()) {
-							collector.addProposal(value.asString(), null, null,
-									null, null,
-									startCh != null ? startCh.intValue() : 0,
-									endCh != null ? endCh.intValue() : 0,
-									value, this);
-						} else {
-							super.addProposal(value,
-									startCh != null ? startCh.intValue() : 0,
-									endCh != null ? endCh.intValue() : 0,
-									collector);
-						}
-					}
-				}
+			if (listeners != null && listener != null) {
+				listeners.remove(listener);
 			}
-		} catch (TernException e) {
-			throw e;
-		} catch (Throwable e) {
-			throw new TernException(e);
-		}
-	}
-
-	@Override
-	public String getText(Object value) {
-		return JsonHelper.getString((JsonValue) value);
-	}
-
-	@Override
-	public Object getValue(Object value, String name) {
-		return ((JsonObject) value).get(name);
-	}
-
-	private Long getCh(JsonObject data, String name) {
-		JsonValue loc = data.get(name);
-		if (loc == null) {
-			return null;
-		}
-		if (loc.isNumber()) {
-			return loc.asLong();
-		}
-		return loc != null ? JsonHelper.getLong((JsonObject) loc, "ch") : null;
-	}
-
-	@Override
-	public void request(TernDoc doc, ITernDefinitionCollector collector)
-			throws TernException {
-		try {
-			JsonObject jsonObject = makeRequest(doc);
-			if (jsonObject != null) {
-				Long startCh = getCh(jsonObject, "start");
-				Long endCh = getCh(jsonObject, "end");
-				String file = getText(jsonObject.get("file"));
-				collector.setDefinition(file, startCh, endCh);
+			if (process != null) {
+				process.removeProcessListener(listener);
 			}
-		} catch (Throwable e) {
-			throw new TernException(e);
+		} finally {
+			endWriteState();
 		}
 	}
 
 	@Override
-	public void request(TernDoc doc, ITernTypeCollector collector)
-			throws TernException {
-		try {
-			JsonObject jsonObject = makeRequest(doc);
-			if (jsonObject != null) {
-				String type = getText(jsonObject.get("type"));
-				boolean guess = JsonHelper.getBoolean(jsonObject, "guess",
-						false);
-				String name = getText(jsonObject.get("name"));
-				String exprName = getText(jsonObject.get("exprName"));
-				String documentation = getText(jsonObject.get("doc"));
-				String url = getText(jsonObject.get("url"));
-				String origin = getText(jsonObject.get("origin"));
-				collector.setType(type, guess, name, exprName, documentation,
-						url, origin, jsonObject, this);
-			}
-		} catch (Throwable e) {
-			throw new TernException(e);
-		}
-	}
-
-	@Override
-	public void request(TernDoc doc, ITernLintCollector collector)
-			throws TernException {
-		try {
-			JsonObject jsonObject = makeRequest(doc);
-			if (jsonObject != null) {
-				JsonArray messages = (JsonArray) jsonObject.get("messages");
-				if (messages != null) {
-					String message = null;
-					String severity = null;
-					JsonObject messageObject = null;
-					for (JsonValue value : messages) {
-						messageObject = (JsonObject) value;
-						message = getText(messageObject.get("message"));
-						severity = getText(messageObject.get("severity"));
-						Long startCh = getCh(messageObject, "from");
-						Long endCh = getCh(messageObject, "to");
-						collector.addMessage(message, startCh, endCh, severity);
-					}
-				}
-			}
-		} catch (Throwable e) {
-			throw new TernException(e);
-		}
-
+	public IJSONObjectHelper getJSONObjectHelper() {
+		return NodeJSJSONHelper.INSTANCE;
 	}
 
 	@Override
 	public void doDispose() {
-	  beginWriteState();
-	  try {
-		if (process != null) {
-			process.kill();
+		beginWriteState();
+		try {
+			if (process != null) {
+				process.kill();
+			}
+			this.baseURL = null;
+			this.process = null;
+		} finally {
+			endWriteState();
 		}
-		this.baseURL = null;
-		this.process = null;
-	  } finally{
-		  endWriteState();
-	  }
 	}
 
 	/**
@@ -463,6 +344,57 @@ public class NodejsTernServer extends AbstractTernServer {
 	 */
 	public boolean isPersistent() {
 		return persistent;
+	}
+
+	private static class NodeJSJSONHelper implements IJSONObjectHelper {
+
+		public static NodeJSJSONHelper INSTANCE = new NodeJSJSONHelper();
+
+		@SuppressWarnings("unchecked")
+		@Override
+		public Iterable<Object> getList(Object jsonObj, String name) {
+			JsonValue val = ((JsonObject) jsonObj).get(name);
+			if (val.isArray()) {
+				return (Iterable<Object>) val;
+			}
+			return null;
+		}
+
+		@Override
+		public Long getCh(Object jsonObj, String name) {
+			JsonValue loc = ((JsonObject) jsonObj).get(name);
+			if (loc == null) {
+				return null;
+			}
+			if (loc.isNumber()) {
+				return loc.asLong();
+			}
+			return loc != null ? JsonHelper.getLong((JsonObject) loc, "ch")
+					: null;
+		}
+
+		@Override
+		public String getText(Object jsonObj, String property) {
+			return JsonHelper.getString((JsonObject) jsonObj, property);
+		}
+
+		@Override
+		public boolean isString(Object value) {
+			return ((JsonValue) value).isString();
+		}
+
+		@Override
+		public String getText(Object value) {
+			return JsonHelper.getString((JsonValue) value);
+		}
+
+		@Override
+		public boolean getBoolean(Object jsonObject, String name,
+				boolean defaultValue) {
+			return JsonHelper.getBoolean((JsonObject) jsonObject, name,
+					defaultValue);
+		}
+
 	}
 
 }

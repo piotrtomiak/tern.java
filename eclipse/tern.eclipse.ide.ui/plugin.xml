@@ -100,7 +100,11 @@
 	          name="%TernPreferencePage.name"
               category="org.eclipse.wst.jsdt.ui.preferences.JavaBasePreferencePage"
 	          class="tern.eclipse.ide.internal.ui.preferences.TernGlobalPreferencesPage"
-	          id="tern.eclipse.ide.preferences" />	  
+	          id="tern.eclipse.ide.preferences" />
+	   <page  name="%TernContentAssistPropertyPage.name"
+              category="tern.eclipse.ide.preferences"
+	          class="tern.eclipse.ide.internal.ui.preferences.TernContentAssistPreferencesPage"
+	          id="tern.eclipse.ide.ui.preferences.TernContentAssistPropertyPage" />		          	  
        <page  name="%TernDevelopmentPropertyPage.name"
               category="tern.eclipse.ide.preferences"
 	          class="tern.eclipse.ide.internal.ui.preferences.TernDevelopmentPreferencesPage"
@@ -108,11 +112,11 @@
        <page  name="%TernRepositoryPropertyPage.name"
               category="tern.eclipse.ide.ui.preferences.TernDevelopmentPropertyPage"
 	          class="tern.eclipse.ide.internal.ui.preferences.TernRepositoryPreferencesPage"
-	          id="tern.eclipse.ide.ui.preferences.TernRepositoryPropertyPage" />	          
-	   <page  name="%TernContentAssistPropertyPage.name"
+	          id="tern.eclipse.ide.ui.preferences.TernRepositoryPropertyPage" />
+	   <page  name="%TernValidationPropertyPage.name"
               category="tern.eclipse.ide.preferences"
-	          class="tern.eclipse.ide.internal.ui.preferences.TernContentAssistPreferencesPage"
-	          id="tern.eclipse.ide.ui.preferences.TernContentAssistPropertyPage" />	          	          	          
+	          class="tern.eclipse.ide.internal.ui.preferences.TernValidationPreferencesPage"
+	          id="tern.eclipse.ide.ui.preferences.TernValidationPropertyPage" />
 	</extension>
 
 	<extension
@@ -127,7 +131,18 @@
                   <test property="tern.eclipse.ide.ui.isTernProject" />
 		     </adapt>         
          </enabledWhen>
-      </page>    
+      </page>
+	  <page
+            name="%TernContentAssistPropertyPage.name"
+            category="tern.eclipse.ide.ui.properties.TernMainPropertyPage"        
+            class="tern.eclipse.ide.internal.ui.preferences.TernContentAssistPreferencesPage"
+            id="tern.eclipse.ide.ui.properties.TernContentAssistPropertyPage">
+         <enabledWhen>
+		     <adapt type="org.eclipse.core.resources.IProject">
+                  <test property="tern.eclipse.ide.ui.isTernProject" />
+		     </adapt>         
+         </enabledWhen>
+      </page>          
       <!-- 
 	  <page
             name="%TernModulesPropertyPage.name"
@@ -176,16 +191,16 @@
          </enabledWhen>
       </page>      
 	  <page
-            name="%TernContentAssistPropertyPage.name"
+            name="%TernValidationPropertyPage.name"
             category="tern.eclipse.ide.ui.properties.TernMainPropertyPage"        
-            class="tern.eclipse.ide.internal.ui.preferences.TernContentAssistPreferencesPage"
-            id="tern.eclipse.ide.ui.properties.TernContentAssistPropertyPage">
+            class="tern.eclipse.ide.internal.ui.preferences.TernValidationPreferencesPage"
+            id="tern.eclipse.ide.ui.properties.TernValidationPropertyPage">
          <enabledWhen>
 		     <adapt type="org.eclipse.core.resources.IProject">
                   <test property="tern.eclipse.ide.ui.isTernProject" />
 		     </adapt>         
          </enabledWhen>
-      </page>                          		          		  	
+      </page>
 	</extension>
      
     <!-- Tern Console -->
@@ -251,8 +266,8 @@
       	 icon="/icons/full/obj16/browser.gif" >
       </image>
       <image
-         id="ecma5"
-         icon="/icons/full/obj16/ecma5.png" >
+         id="ecma"
+         icon="/icons/full/obj16/ecma.png" >
       </image>       
       <image
          id="jquery"
@@ -278,6 +293,10 @@
       <image
             id="closure"
             icon="/icons/full/obj16/closure.png" >
+      </image>
+      <image
+            id="complete_strings"
+            icon="/icons/full/obj16/completion.png" >
       </image>      
       <image
             id="cordovajs"
@@ -304,9 +323,21 @@
             icon="/icons/full/obj16/grunt.png" >
       </image>
       <image
+            id="guess-types"
+            icon="/icons/full/obj16/completion.png" >
+      </image>
+  	  <image
+            id="jasmine"
+            icon="/icons/full/obj16/jasmine.png" >
+      </image>      
+      <image
             id="liferay"
             icon="/icons/full/obj16/liferay.png" >
       </image>
+      <image
+            id="lint"
+            icon="/icons/full/obj16/lint.png" >
+      </image>      
   	  <image
             id="meteor"
             icon="/icons/full/obj16/meteor.png" >        
@@ -322,15 +353,23 @@
   	  <image
             id="node-mongoose"
             icon="/icons/full/obj16/node-mongoose.png" >
-      </image>                                      
+      </image>   
+ 	  <image
+            id="node-lint"
+            icon="/icons/full/obj16/node.png" >
+      </image>                                         
   	  <image
             id="node"
             icon="/icons/full/obj16/node.png" >
       </image>
   	  <image
+            id="protractor"
+            icon="/icons/full/obj16/protractor.png" >
+      </image>
+  	  <image
             id="qooxdoo"
             icon="/icons/full/obj16/qooxdoo.png" >
-      </image>
+      </image>      
   	  <image
             id="tabris"
             icon="/icons/full/obj16/tabris.png" >

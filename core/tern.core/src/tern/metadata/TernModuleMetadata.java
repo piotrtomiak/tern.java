@@ -13,10 +13,15 @@ package tern.metadata;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import tern.server.ITernModule;
+import tern.server.TernModuleInfo;
 import tern.server.protocol.JsonHelper;
+import tern.utils.StringUtils;
 
 import com.eclipsesource.json.JsonArray;
 import com.eclipsesource.json.JsonObject;
@@ -27,6 +32,8 @@ import com.eclipsesource.json.JsonValue;
  *
  */
 public class TernModuleMetadata {
+
+	public static String ANY_VERSION = "?";
 
 	private static final String NAME_FIELD = "name";
 	private static final String LABEL_FIELD = "label";
@@ -48,7 +55,8 @@ public class TernModuleMetadata {
 	private final String repositoryURL;
 	private final String bugsURL;
 	private final String helpURL;
-	private final Collection<String> dependencies;
+	private final Map<String, Collection<String>> dependencies;
+	private final Map<String, Collection<String>> requiredDependencies;
 	private final Collection<TernModuleMetadataOption> options;
 
 	/**
@@ -67,11 +75,13 @@ public class TernModuleMetadata {
 		this.helpURL = getURL(json, HELP_FIELD);
 		// dependencies
 		JsonValue dependencies = json.get(DEPENDENCIES_FIELD);
-		if (dependencies != null && dependencies instanceof JsonArray) {
-			this.dependencies = parseDependencies((JsonArray) dependencies);
+		if (dependencies != null) {
+			this.dependencies = parseDependencies((JsonValue) dependencies);
 		} else {
-			this.dependencies = Collections.emptyList();
+			this.dependencies = Collections.emptyMap();
 		}
+		// required dependencies
+		requiredDependencies = getRequiredDependencies();
 		// options
 		JsonValue options = json.get(OPTIONS_FIELD);
 		if (options != null && options instanceof JsonArray) {
@@ -79,6 +89,33 @@ public class TernModuleMetadata {
 		} else {
 			this.options = Collections.emptyList();
 		}
+	}
+
+	private Map<String, Collection<String>> getRequiredDependencies() {
+		Map<String, Collection<String>> requiredDependenciesMap = new HashMap<String, Collection<String>>();
+		Collection<String> requiredDependencies = null;
+		String version = null;
+		Collection<String> dependencies = null;
+		TernModuleInfo info = null;
+		for (Map.Entry<String, Collection<String>> entry : this.dependencies
+				.entrySet()) {
+			version = entry.getKey();
+			dependencies = entry.getValue();
+			for (String dependency : dependencies) {
+				info = new TernModuleInfo(dependency);
+				if (info.getType().equals(getName())) {
+					// same type, add it
+					requiredDependencies = requiredDependenciesMap.get(version);
+					if (requiredDependencies == null) {
+						requiredDependencies = new ArrayList<String>();
+						requiredDependenciesMap.put(version,
+								requiredDependencies);
+					}
+					requiredDependencies.add(dependency);
+				}
+			}
+		}
+		return requiredDependenciesMap;
 	}
 
 	public String getURL(JsonObject json, String name) {
@@ -89,12 +126,56 @@ public class TernModuleMetadata {
 		return null;
 	}
 
-	private Collection<String> parseDependencies(JsonArray jsonDependencies) {
+	private Map<String, Collection<String>> parseDependencies(
+			JsonValue jsonDependencies) {
+		if (jsonDependencies instanceof JsonArray) {
+			return parseDependencies((JsonArray) jsonDependencies);
+		} else if (jsonDependencies instanceof JsonObject) {
+			return parseDependencies((JsonObject) jsonDependencies);
+		}
+		return Collections.emptyMap();
+	}
+
+	private Map<String, Collection<String>> parseDependencies(
+			JsonArray jsonDependencies) {
 		List<String> dependencies = new ArrayList<String>();
 		for (JsonValue jsonDependency : jsonDependencies) {
 			dependencies.add(JsonHelper.getString(jsonDependency));
 		}
-		return dependencies;
+		Map<String, Collection<String>> dependenciesMap = new HashMap<String, Collection<String>>();
+		parseDependencies(jsonDependencies, ANY_VERSION, dependenciesMap);
+		return dependenciesMap;
+	}
+
+	private void parseDependencies(JsonArray jsonDependencies, String version,
+			Map<String, Collection<String>> dependenciesMap) {
+		List<String> dependencies = new ArrayList<String>();
+		for (JsonValue jsonDependency : jsonDependencies) {
+			dependencies.add(JsonHelper.getString(jsonDependency));
+		}
+		dependenciesMap.put(version, dependencies);
+	}
+
+	private Map<String, Collection<String>> parseDependencies(
+			JsonObject jsonDependencies) {
+		Map<String, Collection<String>> dependenciesMap = new HashMap<String, Collection<String>>();
+		Iterator<com.eclipsesource.json.JsonObject.Member> a = jsonDependencies
+				.iterator();
+		while (a.hasNext()) {
+			JsonObject.Member member = (JsonObject.Member) a.next();
+			String version = member.getName();
+			if (member.getValue() instanceof JsonArray) {
+				parseDependencies((JsonArray) member.getValue(), version,
+						dependenciesMap);
+			}
+			if (!StringUtils.isEmpty(version) && !ANY_VERSION.equals(version)) {
+				Collection<String> commons = dependenciesMap.get(ANY_VERSION);
+				if (commons != null) {
+					dependenciesMap.get(version).addAll(commons);
+				}
+			}
+		}
+		return dependenciesMap;
 	}
 
 	private Collection<TernModuleMetadataOption> parseOptions(
@@ -192,7 +273,30 @@ public class TernModuleMetadata {
 	 * 
 	 * @return list of {@link ITernModule} name dependencies.
 	 */
-	public Collection<String> getDependencies() {
-		return dependencies;
+	@SuppressWarnings("unchecked")
+	public Collection<String> getDependencies(String version) {
+		Collection<String> deps = dependencies
+				.get(StringUtils.isEmpty(version) ? ANY_VERSION : version);
+		if (deps == null) {
+			deps = dependencies.get(ANY_VERSION);
+		}
+		return (Collection<String>) (deps != null ? deps : Collections
+				.emptyList());
+	}
+
+	/**
+	 * Returns list of required {@link ITernModule} name dependencies.
+	 * 
+	 * @return list of required {@link ITernModule} name dependencies.
+	 */
+	@SuppressWarnings("unchecked")
+	public Collection<String> getRequiredDependencies(String version) {
+		Collection<String> deps = requiredDependencies.get(StringUtils
+				.isEmpty(version) ? ANY_VERSION : version);
+		if (deps == null) {
+			deps = requiredDependencies.get(ANY_VERSION);
+		}
+		return (Collection<String>) (deps != null ? deps : Collections
+				.emptyList());
 	}
 }

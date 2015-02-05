@@ -17,7 +17,6 @@ import tern.TernException;
 import tern.server.AbstractTernServerTest;
 import tern.server.TernDef;
 import tern.server.TernPlugin;
-import tern.server.protocol.MockTernLintCollector;
 import tern.server.protocol.TernDoc;
 
 public abstract class AbstractTernServerLintTest extends AbstractTernServerTest {
@@ -25,7 +24,7 @@ public abstract class AbstractTernServerLintTest extends AbstractTernServerTest 
 	@Override
 	protected ITernProject createProject() {
 		ITernProject project = super.createProject();
-		project.addPlugin(TernPlugin.lint);
+		project.addPlugin(TernLintPlugin.lint);
 		project.addLib(TernDef.browser);
 		return project;
 	}

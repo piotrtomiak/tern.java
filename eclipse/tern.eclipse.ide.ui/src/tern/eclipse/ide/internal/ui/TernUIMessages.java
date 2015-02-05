@@ -42,6 +42,8 @@ public final class TernUIMessages extends NLS {
 
 	// Preferences
 	public static String TernGlobalPreferencesPage_desc;
+
+	public static String TernGlobalPreferencesPage_disable_async_reqs;
 	public static String TernGlobalPreferencesPage_serverType;
 
 	// Commons Property preferences
@@ -71,6 +73,8 @@ public final class TernUIMessages extends NLS {
 	public static String LintRulesTernModuleOptionFactory_rules_ruleColumn;
 	public static String LintRulesTernModuleOptionFactory_rules_severityColumn;
 
+	// Repository block
+	public static String TernRepositoryBlock_modules_desc;
 	public static String TernRepositoryBlock_repositoryName;
 	public static String TernRepositoryBlock_filenameColumn;
 	public static String TernRepositoryBlock_removeRepository_title;
@@ -105,11 +109,24 @@ public final class TernUIMessages extends NLS {
 	public static String ConsoleTerminateAction_tooltipText;
 
 	// Content assist preferences
+	public static String TernContentAssistPreferencesPage_filteringGroup_label;
 	public static String TernContentAssistPreferencesPage_expandFunction_label;
-	public static String TernContentAssistPreferencesPage_generateAnonymousFunction_label;
 	public static String TernContentAssistPreferencesPage_omitObjectPrototype_label;
+	public static String TernContentAssistPreferencesPage_insertionGroup_label;
+	public static String TernContentAssistPreferencesPage_indentation_label;
+	public static String TernContentAssistPreferencesPage_functionInsertionGroup_label;
+	public static String TernContentAssistPreferencesPage_generateAnonymousFunction_label;
+	public static String TernContentAssistPreferencesPage_objLitInsertionGroup_label;
 
+	// Validation preferences
+	public static String TernValidationPreferencesPage_availableTernBuilder_label;
+
+	// Tern Hover
 	public static String TernHover_openDeclaration;
+
+	// Timeout proposal
+	public static String TimeoutProposal_longCalculate;
+	public static String TimeoutProposal_serverProcessing;
 
 	private TernUIMessages() {
 	}

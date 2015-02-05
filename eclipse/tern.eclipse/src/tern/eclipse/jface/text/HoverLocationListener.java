@@ -94,13 +94,6 @@ public class HoverLocationListener extends LocationAdapter {
 	private void handleTextSet() {
 
 	}
-	
-	protected IDocument getDocument() {
-		if (control.getInput() instanceof TernBrowserInformationControlInput) {
-			return ((TernBrowserInformationControlInput)control.getInput()).getDocument();
-		}
-		return null;
-	}
 
 	private void handleHttpLink(URL url, Display display) {
 		control.notifyDelayedInputChange(null);

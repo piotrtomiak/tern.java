@@ -1,5 +1,5 @@
 /**
- *  Copyright (c) 2013-2014 Angelo ZERR.
+ *  Copyright (c) 2013-2015 Angelo ZERR and Genuitec LLC.
  *  All rights reserved. This program and the accompanying materials
  *  are made available under the terms of the Eclipse Public License v1.0
  *  which accompanies this distribution, and is available at
@@ -7,12 +7,13 @@
  *
  *  Contributors:
  *  Angelo Zerr <angelo.zerr@gmail.com> - initial API and implementation
+ *  Piotr Tomiak <piotr@genutiec.com> - asynchronous request processing and 
+ *  									refactoring of collectors API 
  */
 package tern.eclipse.ide.jsdt.internal.contentassist;
 
 import java.util.List;
 
-import org.eclipse.core.resources.IProject;
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.resource.JFaceResources;
 import org.eclipse.jface.text.IDocument;
@@ -22,78 +23,36 @@ import org.eclipse.jface.text.contentassist.IContextInformation;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
 
-import tern.eclipse.ide.ui.contentassist.JSTernCompletionCollector;
+import tern.ITernFile;
+import tern.eclipse.ide.core.IIDETernProject;
+import tern.eclipse.ide.ui.contentassist.JSTernCompletionAsyncCollector;
 import tern.eclipse.ide.ui.contentassist.JSTernCompletionProposal;
+import tern.server.protocol.completions.TernCompletionProposalRec;
 
 /**
- * Extends {@link JSTernCompletionCollector} to create JSDT
- * {@link JSDTTernCompletionProposal}.
+ * Extends {@link JSTernCompletionAsyncCollector} to create JSDT completion
+ * proposal to set an high relevance for tern completion proposal to display on
+ * the top of the completion popup the tern result.
  * 
  */
-public class JSDTTernCompletionCollector extends JSTernCompletionCollector {
+public class JSDTTernCompletionCollector extends JSTernCompletionAsyncCollector {
+
+	public static final int TERN_RELEVANT = 10000;
 
 	public JSDTTernCompletionCollector(List<ICompletionProposal> proposals,
-			int startOffset, IProject project) {
-		super(proposals, startOffset, project);
+			int startOffset, ITernFile ternFile, IIDETernProject project) {
+		super(proposals, startOffset, ternFile, project);
 	}
 
 	@Override
-	protected JSTernCompletionProposal createProposal(String name, String type,
-			String doc, String url, String origin, boolean keyword, int depth,
-			int start, int end) {
-		return new JSDTTernCompletionProposal(name, type, doc, url, 
-				origin, keyword, depth, start, end);
+	protected JSTernCompletionProposal createProposal(
+			TernCompletionProposalRec proposal) {
+		return new JSDTTernCompletionProposal(proposal);
 	}
 
-	public void timedOut(final String message) {
-		proposals.add(new InfoProposal(startOffset, message));
+	protected ICompletionProposal createTimeoutProposal(int startOffset,
+			TimeoutReason reason) {
+		return new JSDTTimeoutProposal(startOffset, reason);
 	}
-	
-	private static final class InfoProposal implements ICompletionProposal, ICompletionProposalExtension4 {
 
-		private int startOffset;
-		private String message;
-		
-		public InfoProposal(int startOffset, String message) {
-			this.startOffset = startOffset;
-			this.message = message;
-		}
-		
-		@Override
-		public Point getSelection(IDocument document) {
-			return new Point(startOffset, 0);
-		}
-		
-		@Override
-		public Image getImage() {
-			return JFaceResources.getImage(Dialog.DLG_IMG_MESSAGE_INFO);
-		}
-		
-		@Override
-		public String getDisplayString() {
-			return message;
-		}
-		
-		@Override
-		public IContextInformation getContextInformation() {
-			return null;
-		}
-		
-		@Override
-		public String getAdditionalProposalInfo() {
-			return null;
-		}
-		
-		@Override
-		public void apply(IDocument document) {
-			//do nothing
-		}
-
-		@Override
-		public boolean isAutoInsertable() {
-			return false;
-		}
-		
-	}
-	
 }

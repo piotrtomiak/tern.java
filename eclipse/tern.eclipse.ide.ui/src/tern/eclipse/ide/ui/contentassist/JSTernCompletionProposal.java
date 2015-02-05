@@ -1,5 +1,5 @@
 /**
- *  Copyright (c) 2013-2014 Angelo ZERR.
+ *  Copyright (c) 2013-2015 Angelo ZERR.
  *  All rights reserved. This program and the accompanying materials
  *  are made available under the terms of the Eclipse Public License v1.0
  *  which accompanies this distribution, and is available at
@@ -10,21 +10,24 @@
  */
 package tern.eclipse.ide.ui.contentassist;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import org.eclipse.jface.text.BadLocationException;
+import org.eclipse.jface.text.BadPositionCategoryException;
 import org.eclipse.jface.text.IDocument;
+import org.eclipse.jface.text.IPositionUpdater;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.ITextViewer;
 import org.eclipse.jface.text.Region;
 import org.eclipse.jface.text.link.ILinkedModeListener;
+import org.eclipse.jface.text.link.InclusivePositionUpdater;
 import org.eclipse.jface.text.link.LinkedModeModel;
 import org.eclipse.jface.text.link.LinkedModeUI;
 import org.eclipse.jface.text.link.LinkedModeUI.ExitFlags;
 import org.eclipse.jface.text.link.LinkedModeUI.IExitPolicy;
 import org.eclipse.jface.text.link.LinkedPosition;
 import org.eclipse.jface.text.link.LinkedPositionGroup;
+import org.eclipse.jface.text.link.ProposalPosition;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.VerifyEvent;
 import org.eclipse.swt.graphics.Image;
@@ -32,37 +35,50 @@ import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.texteditor.link.EditorLinkedModeUI;
 
+import tern.ITernFile;
+import tern.eclipse.ide.core.IIDETernProject;
+import tern.eclipse.ide.internal.ui.Trace;
 import tern.eclipse.ide.ui.TernUIPlugin;
 import tern.eclipse.ide.ui.utils.HTMLTernPrinter;
 import tern.eclipse.jface.contentassist.TernCompletionProposal;
+import tern.server.TernPlugin;
 import tern.server.protocol.completions.FunctionInfo;
 import tern.server.protocol.completions.Parameter;
+import tern.server.protocol.completions.TernCompletionProposalRec;
+import tern.server.protocol.completions.TernTypeHelper;
+import tern.server.protocol.guesstypes.TernGuessTypesQuery;
+import tern.utils.StringUtils;
 
+/**
+ * JavaScript tern completion proposal.
+ * 
+ */
 public class JSTernCompletionProposal extends TernCompletionProposal {
+
+	public static final String TAB = "\t";
+	public static final String SPACE = " ";
 
 	private static final String RPAREN = ")";
 	private static final String LPAREN = "(";
 	private static final String COMMA = ",";
-	private static final String SPACE = " ";
 
 	private IRegion fSelectedRegion; // initialized by apply()
-	private List<Integer> fArgumentOffsets;
-	private List<Integer> fArgumentLengths;
+	private IPositionUpdater fUpdater;
+
+	private Arguments arguments;
 	private ITextViewer fTextViewer;
 
 	private boolean fToggleEating;
+	private boolean generateObjectValue;
 	private boolean generateAnonymousFunction;
+	private String indentChars;
 
-	@Deprecated
-	public JSTernCompletionProposal(String name, String type, String doc,
-			String url, String origin, int start, int end) {
-		this(name, type, doc, url, origin, false, start, end);
-	}
+	private ITernFile ternFile;
+	private IIDETernProject ternProject;
 
-	public JSTernCompletionProposal(String name, String type, String doc,
-			String url, String origin, boolean keyword, int start,
-			int end) {
-		super(name, type, doc, url, origin, keyword, start, end);
+	public JSTernCompletionProposal(TernCompletionProposalRec proposal) {
+		super(proposal);
+		this.indentChars = TAB;
 	}
 
 	@Override
@@ -95,18 +111,35 @@ public class JSTernCompletionProposal extends TernCompletionProposal {
 		String replacement = computeReplacementString(document, offset);
 		setReplacementString(replacement);
 
+		updateReplacementLengthForString(document, offset, replacement);
+
 		// apply the replacement.
 		super.apply(document, trigger, offset);
 		int baseOffset = getReplacementOffset();
 
-		if (fArgumentOffsets != null && getTextViewer() != null) {
+		if (arguments != null && getTextViewer() != null) {
 			try {
+				// adjust offset of the whole arguments
+				arguments.setBaseOffset(baseOffset);
+				// guess parameters if "guess-types" tern plugin is checked.
+				guessParameters(offset);
+				// Create group.
+				Arg arg = null;
 				LinkedModeModel model = new LinkedModeModel();
-				for (int i = 0; i != fArgumentOffsets.size(); i++) {
+				for (int i = 0; i != arguments.size(); i++) {
+					arg = arguments.get(i);
 					LinkedPositionGroup group = new LinkedPositionGroup();
-					group.addPosition(new LinkedPosition(document, baseOffset
-							+ fArgumentOffsets.get(i), fArgumentLengths.get(i),
-							LinkedPositionGroup.NO_STOP));
+					if (arg.getProposals() == null) {
+						group.addPosition(new LinkedPosition(document, arg
+								.getOffset(), arg.getLength(),
+								LinkedPositionGroup.NO_STOP));
+					} else {
+						ensurePositionCategoryInstalled(document, model);
+						document.addPosition(getCategory(), arg);
+						group.addPosition(new ProposalPosition(document, arg
+								.getOffset(), arg.getLength(),
+								LinkedPositionGroup.NO_STOP, arg.getProposals()));
+					}
 					model.addGroup(group);
 				}
 
@@ -128,11 +161,75 @@ public class JSTernCompletionProposal extends TernCompletionProposal {
 				fSelectedRegion = ui.getSelectedRegion();
 
 			} catch (BadLocationException e) {
+				ensurePositionCategoryRemoved(document);
+				// JavaScriptPlugin.log(e);
+				// openErrorDialog(e);
+			} catch (BadPositionCategoryException e) {
+				ensurePositionCategoryRemoved(document);
 				// JavaScriptPlugin.log(e);
 				// openErrorDialog(e);
 			}
 		} else {
-			fSelectedRegion = new Region(baseOffset + replacement.length(), 0);
+			int newOffset = baseOffset + replacement.length();
+			if (isObjectKey() && TernTypeHelper.isStringType(getType())) {
+				// select cursor inside quote of property value (ex : config:
+				// "")
+				newOffset--;
+			}
+			fSelectedRegion = new Region(newOffset, 0);
+		}
+	}
+
+	protected void guessParameters(int offset) {
+		if (ternProject != null
+				&& ternProject.hasPlugin(TernPlugin.guess_types)) {
+			String property = super.getName();
+			TernGuessTypesQuery query = new TernGuessTypesQuery(
+					ternFile.getFileName(), offset, property);
+
+			try {
+				ternProject.request(query, ternFile, arguments);
+			} catch (Exception e) {
+				Trace.trace(Trace.SEVERE, "Error while guessing type", e);
+			}
+		}
+	}
+
+	/**
+	 * Compute new replacement length for string replacement.
+	 * 
+	 * @param document
+	 * @param offset
+	 * @param replacement
+	 */
+	protected void updateReplacementLengthForString(IDocument document,
+			int offset, String replacement) {
+		boolean isString = replacement.startsWith("\"")
+				|| replacement.startsWith("'");
+		if (isString) {
+			int length = document.getLength();
+			int pos = offset;
+			char c;
+			while (pos < length) {
+				try {
+					c = document.getChar(pos);
+					switch (c) {
+					case '\r':
+					case '\n':
+					case '\t':
+					case ' ':
+						return;
+					case '"':
+					case '\'':
+						setReplacementLength(getReplacementLength() + pos
+								- offset + 1);
+						return;
+					}
+					++pos;
+				} catch (BadLocationException e) {
+					e.printStackTrace();
+				}
+			}
 		}
 	}
 
@@ -163,29 +260,51 @@ public class JSTernCompletionProposal extends TernCompletionProposal {
 
 	private String computeReplacementString(IDocument document, int offset) {
 
+		if (isObjectKey()) {
+			StringBuilder replacement = new StringBuilder(super.getName());
+			replacement.append(": ");
+			if (TernTypeHelper.isStringType(getType())) {
+				replacement.append("\"\"");
+			}
+			// else if ("number".equals(getType())) {
+			// replacement.append("0");
+			// }
+			else if (TernTypeHelper.isBoolType(getType())) {
+				replacement.append("false");
+			}
+			return replacement.toString();
+		}
 		List<Parameter> parameters = super.getParameters();
 		if (parameters == null) {
 			return super.getReplacementString();
 		}
 
 		String indentation = getIndentation(document, offset);
-		fArgumentOffsets = new ArrayList<Integer>();
-		fArgumentLengths = new ArrayList<Integer>();
+		arguments = new Arguments();
 
 		StringBuilder replacement = new StringBuilder(super.getName());
 		replacement.append(LPAREN);
 		setCursorPosition(replacement.length());
-		computeReplacementString(parameters, replacement, fArgumentOffsets,
-				fArgumentLengths, indentation, 1);
+		computeReplacementString(parameters, replacement, arguments,
+				indentation, 1, true);
 		replacement.append(RPAREN);
 		return replacement.toString();
 
 	}
 
+	/**
+	 * Compute replacement string for the given function.
+	 * 
+	 * @param parameters
+	 * @param replacement
+	 * @param arguments
+	 * @param indentation
+	 * @param nbIndentations
+	 * @param initialFunction
+	 */
 	private void computeReplacementString(List<Parameter> parameters,
-			StringBuilder replacement, List<Integer> argumentOffsets,
-			List<Integer> argumentLengths, String indentation,
-			int nbIndentations) {
+			StringBuilder replacement, Arguments arguments, String indentation,
+			int nbIndentations, boolean initialFunction) {
 		int count = parameters.size();
 		Parameter parameter = null;
 		String paramName = null;
@@ -199,39 +318,72 @@ public class JSTernCompletionProposal extends TernCompletionProposal {
 				replacement.append(SPACE);
 			}
 
-			if (parameter.isFunction() && isGenerateAnonymousFunction()) {
+			if (parameter.isFunction() && isGenerateAnonymousFunction()
+					&& initialFunction) {
 				FunctionInfo info = parameter.getInfo();
 				List<Parameter> parametersOfParam = info.getParameters();
 				replacement.append("function(");
 				if (parametersOfParam != null) {
 					computeReplacementString(parametersOfParam, replacement,
-							argumentOffsets, argumentLengths, indentation,
-							nbIndentations + 1);
+							arguments, indentation, nbIndentations + 1, false);
 				} else {
 					// to select focus inside the () of generated inline
 					// function
-					fArgumentOffsets.add(replacement.length());
-					fArgumentLengths.add(0);
+					arguments.addArg(replacement.length(), 0);
 				}
 				replacement.append(") {");
 				replacement.append("\n");
 				indent(replacement, indentation, nbIndentations);
-				replacement.append("\t");
-				// to select focus inside the {} of generated inline function
-				fArgumentOffsets.add(replacement.length());
-				fArgumentLengths.add(0);
+				indent(replacement);
+				if (!StringUtils.isEmpty(info.getReturnType())) {
+					if (TernTypeHelper.isStringType(info.getReturnType())) {
+						replacement.append("return \"\";");
+					} else if (TernTypeHelper.isBoolType(info.getReturnType())) {
+						replacement.append("return true;");
+					} else if ("{}".equals(info.getReturnType())) {
+						replacement.append("return {");
+						replacement.append("\n");
+						indent(replacement, indentation, nbIndentations);
+						indent(replacement);
+						indent(replacement);
+						// to select focus inside the {} of generated return
+						// statement of the function.
+						arguments.addArg(replacement.length(), 0);
+						replacement.append("\n");
+						indent(replacement, indentation, nbIndentations);
+						indent(replacement);
+						replacement.append("}");
+					}
+				} else {
+					// to select focus inside the {} of generated inline
+					// function
+					arguments.addArg(replacement.length(), 0);
+				}
 				replacement.append("\n");
 				indent(replacement, indentation, nbIndentations);
 				replacement.append("}");
 			} else {
-				paramName = parameter.getName();
-				// to select focus for parameter
-				fArgumentOffsets.add(replacement.length());
-				replacement.append(paramName);
-				fArgumentLengths.add(paramName.length());
+				if ("{}".equals(parameter.getType()) && isGenerateObjectValue()) {
+					replacement.append("{");
+					replacement.append("\n");
+					indent(replacement, indentation, nbIndentations);
+					replacement.append("}");
+				} else {
+					int offset = replacement.length();
+					paramName = parameter.getName();
+					// to select focus for parameter
+					replacement.append(paramName);
+					if (initialFunction) {
+						arguments.addParameter(offset, paramName.length(),
+								paramName, i);
+					} else {
+						arguments.addArg(offset, paramName.length());
+					}
+
+				}
 			}
 		}
-		
+
 		/*
 		 * if (!hasParameters() || !hasArgumentList()) return
 		 * super.computeReplacementString();
@@ -264,6 +416,10 @@ public class JSTernCompletionProposal extends TernCompletionProposal {
 		 * return buffer.toString();
 		 */
 
+	}
+
+	protected void indent(StringBuilder replacement) {
+		replacement.append(indentChars);
 	}
 
 	@Override
@@ -318,6 +474,14 @@ public class JSTernCompletionProposal extends TernCompletionProposal {
 	@Override
 	protected Shell getActiveWorkbenchShell() {
 		return TernUIPlugin.getActiveWorkbenchShell();
+	}
+
+	public boolean isGenerateObjectValue() {
+		return generateObjectValue;
+	}
+
+	public void setGenerateObjectValue(boolean generateObjectValue) {
+		this.generateObjectValue = generateObjectValue;
 	}
 
 	/**
@@ -393,6 +557,72 @@ public class JSTernCompletionProposal extends TernCompletionProposal {
 		} catch (BadLocationException e1) {
 		}
 		return "";
+	}
+
+	public void setIndentChars(String indentChars) {
+		this.indentChars = indentChars;
+	}
+
+	public String getIndentChars() {
+		return indentChars;
+	}
+
+	public void setTernFile(ITernFile ternFile) {
+		this.ternFile = ternFile;
+	}
+
+	public ITernFile getTernFile() {
+		return ternFile;
+	}
+
+	public void setTernProject(IIDETernProject ternProject) {
+		this.ternProject = ternProject;
+	}
+
+	public IIDETernProject getTernProject() {
+		return ternProject;
+	}
+
+	private void ensurePositionCategoryInstalled(final IDocument document,
+			LinkedModeModel model) {
+		if (!document.containsPositionCategory(getCategory())) {
+			document.addPositionCategory(getCategory());
+			fUpdater = new InclusivePositionUpdater(getCategory());
+			document.addPositionUpdater(fUpdater);
+
+			model.addLinkingListener(new ILinkedModeListener() {
+
+				/*
+				 * @see
+				 * org.eclipse.jface.text.link.ILinkedModeListener#left(org.
+				 * eclipse.jface.text.link.LinkedModeModel, int)
+				 */
+				public void left(LinkedModeModel environment, int flags) {
+					ensurePositionCategoryRemoved(document);
+				}
+
+				public void suspend(LinkedModeModel environment) {
+				}
+
+				public void resume(LinkedModeModel environment, int flags) {
+				}
+			});
+		}
+	}
+
+	private void ensurePositionCategoryRemoved(IDocument document) {
+		if (document.containsPositionCategory(getCategory())) {
+			try {
+				document.removePositionCategory(getCategory());
+			} catch (BadPositionCategoryException e) {
+				// ignore
+			}
+			document.removePositionUpdater(fUpdater);
+		}
+	}
+
+	private String getCategory() {
+		return "JSTernCompletionProposal_" + toString(); //$NON-NLS-1$
 	}
 
 }

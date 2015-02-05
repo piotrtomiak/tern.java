@@ -1,5 +1,5 @@
 /**
- *  Copyright (c) 2013-2014 Angelo ZERR and Genuitec LLC.
+ *  Copyright (c) 2013-2015 Angelo ZERR and Genuitec LLC.
  *  All rights reserved. This program and the accompanying materials
  *  are made available under the terms of the Eclipse Public License v1.0
  *  which accompanies this distribution, and is available at
@@ -8,6 +8,7 @@
  *  Contributors:
  *  Angelo Zerr <angelo.zerr@gmail.com> - initial API and implementation
  *  Piotr Tomiak <piotr@genuitec.com> - refactoring of file management API
+ *  								  - asynchronous file upload
  */
 package tern.resources;
 
@@ -16,6 +17,8 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Writer;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
@@ -25,9 +28,9 @@ import org.w3c.dom.Node;
 import tern.ITernFile;
 import tern.ITernFileSynchronizer;
 import tern.ITernProject;
-import tern.ITernRepository;
 import tern.TernException;
 import tern.internal.resources.InternalTernResourcesManager;
+import tern.repository.ITernRepository;
 import tern.scriptpath.ITernScriptPath;
 import tern.scriptpath.impl.dom.DOMElementsScriptPath;
 import tern.server.ITernDef;
@@ -38,7 +41,11 @@ import tern.server.protocol.TernDoc;
 import tern.server.protocol.TernQuery;
 import tern.server.protocol.completions.ITernCompletionCollector;
 import tern.server.protocol.definition.ITernDefinitionCollector;
+import tern.server.protocol.guesstypes.ITernGuessTypesCollector;
+import tern.server.protocol.guesstypes.TernGuessTypesQuery;
 import tern.server.protocol.lint.ITernLintCollector;
+import tern.server.protocol.lint.ITernLintPlugin;
+import tern.server.protocol.lint.TernLintPlugin;
 import tern.server.protocol.type.ITernTypeCollector;
 import tern.utils.IOUtils;
 
@@ -82,6 +89,8 @@ public class TernProject extends JsonObject implements ITernProject {
 
 	private final File projectDir;
 	private File ternProjectFile;
+	
+	private ITernLintPlugin[] lintPlugins;
 
 	/**
 	 * tern file synchronizer.
@@ -123,6 +132,15 @@ public class TernProject extends JsonObject implements ITernProject {
 	@Override
 	public File getTernProjectFile() {
 		return ternProjectFile;
+	}
+
+	/**
+	 * Returns true if lib or plugins exists and false otheriwse.
+	 * 
+	 * @return true if lib or plugins exists and false otheriwse.
+	 */
+	public boolean hasModules() {
+		return hasLibs() || hasPlugins();
 	}
 
 	/**
@@ -172,6 +190,15 @@ public class TernProject extends JsonObject implements ITernProject {
 	}
 
 	/**
+	 * Returns true if lib exist and false otherwise.
+	 * 
+	 * @return
+	 */
+	public boolean hasLibs() {
+		return super.get(LIBS_FIELD_NAME) != null;
+	}
+
+	/**
 	 * Returns true if the given lib exists and false otherwise.
 	 * 
 	 * @param lib
@@ -207,6 +234,15 @@ public class TernProject extends JsonObject implements ITernProject {
 	  synchronized(libLock) {
 		remove(LIBS_FIELD_NAME);
 	  }
+	}
+
+	/**
+	 * Returns true if plugins exist and false otherwise.
+	 * 
+	 * @return
+	 */
+	public boolean hasPlugins() {
+		return super.get(PLUGINS_FIELD_NAME) != null;
 	}
 
 	/**
@@ -288,6 +324,28 @@ public class TernProject extends JsonObject implements ITernProject {
 	@Override
 	public void clearPlugins() {
 		remove(PLUGINS_FIELD_NAME);
+		this.lintPlugins = null;
+	}
+	
+	@Override
+	public ITernLintPlugin[] getLintPlugins() {
+		if (lintPlugins == null) {
+			Collection<ITernLintPlugin> plugins = new ArrayList<ITernLintPlugin>();
+			ITernLintPlugin[] knownLintPlugins = getKnownLintPlugins();
+			ITernLintPlugin knownLintPlugin;
+			for (int i = 0; i < knownLintPlugins.length; i++) {
+				knownLintPlugin = knownLintPlugins[i];
+				if (hasPlugin(knownLintPlugin)) {
+					plugins.add(knownLintPlugin);
+				}
+			}
+			lintPlugins = plugins.toArray(ITernLintPlugin.EMPTY_PLUGIN);
+		}
+		return lintPlugins;
+	}
+	
+	private ITernLintPlugin[] getKnownLintPlugins() {
+		return TernLintPlugin.values();
 	}
 
 	public void addLoadEagerlyPattern(String pattern) {
@@ -423,6 +481,9 @@ public class TernProject extends JsonObject implements ITernProject {
 		ITernFileSynchronizer synchronizer = getFileSynchronizer();
 		synchronizer.ensureSynchronized();
 		if (file != null) {
+			if (doc.getQuery() != null) {
+				doc.getQuery().setFile(file.getFullName(this));
+			}
 			if (domNode != null) {
 				DOMElementsScriptPath domPath = createDOMElementsScriptPath(
 						domNode, file);
@@ -430,13 +491,10 @@ public class TernProject extends JsonObject implements ITernProject {
 						file.getFullName(this));
 			} else {
 				try {
-					synchronizer.synchronizeFile(file);
+					synchronizer.synchronizeFile(doc, file);
 				} catch (IOException e) {
 					handleException(e);
 				}
-			}
-			if (doc.getQuery() != null) {
-				doc.getQuery().setFile(file.getFullName(this));
 			}
 		}
 		if (names != null) {
@@ -510,6 +568,22 @@ public class TernProject extends JsonObject implements ITernProject {
 	@Override
 	public void request(TernQuery query, ITernFile file,
 			ITernLintCollector collector) throws IOException, TernException {
+		TernDoc doc = new TernDoc(query);
+		synchronize(doc, null, null, null, file);
+		ITernServer server = getTernServer();
+		server.request(doc, collector);
+	}
+
+	@Override
+	public void request(TernQuery query, ITernLintCollector collector)
+			throws IOException, TernException {
+		request(query, null, collector);
+	}
+
+	@Override
+	public void request(TernGuessTypesQuery query, ITernFile file,
+			ITernGuessTypesCollector collector) throws IOException,
+			TernException {
 		TernDoc doc = new TernDoc(query);
 		synchronize(doc, null, null, null, file);
 		ITernServer server = getTernServer();

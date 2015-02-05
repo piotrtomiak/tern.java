@@ -17,12 +17,14 @@ import static tern.utils.ExtensionUtils.TERN_SUFFIX;
 import java.io.File;
 import java.io.IOException;
 import java.util.Comparator;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import tern.ITernProject;
 import tern.TernException;
+import tern.metadata.ModuleDependenciesComparator;
 import tern.metadata.TernModuleMetadata;
 import tern.server.BasicTernDef;
 import tern.server.BasicTernPlugin;
@@ -34,6 +36,7 @@ import tern.server.ModuleType;
 import tern.server.TernDef;
 import tern.server.TernModuleConfigurable;
 import tern.server.TernPlugin;
+import tern.server.protocol.lint.TernLintPlugin;
 
 import com.eclipsesource.json.JsonObject;
 import com.eclipsesource.json.JsonValue;
@@ -77,13 +80,13 @@ public class TernModuleHelper {
 	};
 	
 	/**
-	 * Group the given list {@link ITernDef} by {@link ITernModule#getType()};
+	 * Group the given list tern modules by {@link ITernModule#getType()}.
 	 * 
 	 * @param modules
 	 * @param groupedModules
 	 */
-	public static void groupByType(ITernModule[] modules,
-			List<ITernModule> groupedModules) {
+	public static List<ITernModule> groupByType(List<ITernModule> modules) {
+		List<ITernModule> groupedModules = new ArrayList<ITernModule>();
 		Map<String, TernModuleConfigurable> wrappers = null;
 		for (ITernModule module : modules) {
 			if (!isConfigurableModule(module)) {
@@ -114,6 +117,7 @@ public class TernModuleHelper {
 				}
 			}
 		}
+		return groupedModules;
 	}
 	
 	public static ITernModule clone(ITernModule module) {
@@ -225,7 +229,8 @@ public class TernModuleHelper {
 	 * @throws TernException
 	 */
 	public static ITernModuleConfigurable findConfigurable(ITernModule module,
-			JsonValue options, ITernModule[] allModules) throws TernException {
+			JsonValue options, List<ITernModule> allModules)
+			throws TernException {
 		String version = module.getVersion();
 		for (ITernModule f : allModules) {
 			if (f.getModuleType() == ModuleType.Configurable
@@ -293,7 +298,13 @@ public class TernModuleHelper {
 	 * @return
 	 */
 	private static ITernPlugin getPlugin(String name) {
+		// classic plugin
 		ITernPlugin plugin = TernPlugin.getTernPlugin(name);
+		if (plugin != null) {
+			return plugin;
+		}
+		// lint plugin
+		plugin = TernLintPlugin.getTernPlugin(name);
 		if (plugin != null) {
 			return plugin;
 		}
@@ -339,4 +350,28 @@ public class TernModuleHelper {
 		return metadata.getLabel();
 	}
 
+	/**
+	 * Sort the given list of modules by dependencies.
+	 * 
+	 * @param modules
+	 */
+	public static void sort(List<ITernModule> modules) {
+		new ModuleDependenciesComparator(modules);
+	}
+
+	/**
+	 * Format list modules as string.
+	 * 
+	 * @return format list modules as string.
+	 */
+	public static String getModulesAsString(ITernModule... modules) {
+		StringBuilder s = new StringBuilder();
+		for (int i = 0; i < modules.length; i++) {
+			if (i > 0) {
+				s.append(",");
+			}
+			s.append(modules[i].getName());
+		}
+		return s.toString();
+	}
 }

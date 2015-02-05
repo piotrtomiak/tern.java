@@ -1,5 +1,5 @@
 /**
- *  Copyright (c) 2013-2014 Angelo ZERR.
+ *  Copyright (c) 2013-2015 Angelo ZERR and Genuitec LLC.
  *  All rights reserved. This program and the accompanying materials
  *  are made available under the terms of the Eclipse Public License v1.0
  *  which accompanies this distribution, and is available at
@@ -7,33 +7,31 @@
  *
  *  Contributors:
  *  Angelo Zerr <angelo.zerr@gmail.com> - initial API and implementation
+ *  Piotr Tomiak <piotr@genutiec.com> - asynchronous request processing and 
+ *  									refactoring of collectors API 
  */
 package tern.server.rhino;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.util.List;
 
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.Function;
 import org.mozilla.javascript.NativeObject;
 import org.mozilla.javascript.Scriptable;
+import org.mozilla.javascript.UniqueTag;
 
 import tern.ITernFileSynchronizer;
 import tern.ITernProject;
 import tern.TernException;
 import tern.server.AbstractTernServer;
-import tern.server.DefaultResponseHandler;
 import tern.server.IResponseHandler;
 import tern.server.ITernDef;
 import tern.server.ITernPlugin;
+import tern.server.protocol.IJSONObjectHelper;
 import tern.server.protocol.TernDoc;
-import tern.server.protocol.completions.ITernCompletionCollector;
-import tern.server.protocol.definition.ITernDefinitionCollector;
 import tern.server.protocol.html.ScriptTagRegion;
-import tern.server.protocol.lint.ITernLintCollector;
-import tern.server.protocol.type.ITernTypeCollector;
 import tern.server.rhino.loader.ClassPathScriptLoader;
 import tern.server.rhino.loader.IScriptLoader;
 import tern.utils.IOUtils;
@@ -208,14 +206,6 @@ public class RhinoTernServer extends AbstractTernServer {
 			Object fObj = ternScope.get("request2", ternScope);
 			Function f = (Function) fObj;
 			f.call(cx, ternScope, ternScope, functionArgs);
-
-			// Update file manager if needed.
-			ITernFileSynchronizer fileSynchronizer = super
-					.getFileSynchronizer();
-			if (fileSynchronizer != null) {
-				fileSynchronizer.filesUploaded(doc);
-			}
-
 		} finally {
 			// Exit from the context.
 			Context.exit();
@@ -224,65 +214,73 @@ public class RhinoTernServer extends AbstractTernServer {
 	}
 
 	@Override
-	public void request(TernDoc doc, ITernCompletionCollector collector)
-			throws TernException {
-		DefaultResponseHandler handler = new DefaultResponseHandler(true);
-		request(doc, handler);
-		Object data = handler.getData();
-		NativeObject rhinoObject = (NativeObject) data;
-		if (rhinoObject != null) {
-			Double startCh = getCh(rhinoObject, "start");
-			Double endCh = getCh(rhinoObject, "end");
-			int pos = endCh.intValue() - startCh.intValue();
-			List completions = (List) rhinoObject.get("completions",
-					rhinoObject);
-			for (Object object : completions) {
-
-				addProposal(object, startCh != null ? startCh.intValue() : 0, 
-						 endCh != null ? endCh.intValue() : 0, collector);
-			}
-		}
-	}
-
-	@Override
-	public String getText(Object value) {
-		if (value == null) {
-			return null;
-		}
-		return value.toString();
-	}
-
-	@Override
-	public Object getValue(Object value, String name) {
-		NativeObject rhinoObject = (NativeObject) value;
-		return rhinoObject.get(name, rhinoObject);
-	}
-
-	private Double getCh(NativeObject data, String pos) {
-		NativeObject loc = (NativeObject) data.get(pos, data);
-		return (Double) loc.get("ch", loc);
-	}
-
-	@Override
-	public void request(TernDoc doc, ITernDefinitionCollector collector)
-			throws TernException {
-
-	}
-
-	@Override
-	public void request(TernDoc doc, ITernTypeCollector collector)
-			throws TernException {
-
-	}
-
-	@Override
-	public void request(TernDoc doc, ITernLintCollector collector)
-			throws TernException {
-
+	public IJSONObjectHelper getJSONObjectHelper() {
+		return RhinoJSONHelper.INSTANCE;
 	}
 
 	@Override
 	public void doDispose() {
-		// do nothing
+		fireEndServer();
 	}
+
+	private static class RhinoJSONHelper implements IJSONObjectHelper {
+
+		public static RhinoJSONHelper INSTANCE = new RhinoJSONHelper();
+
+		@SuppressWarnings("unchecked")
+		@Override
+		public Iterable<Object> getList(Object jsonObj, String name) {
+			return (Iterable<Object>) ((NativeObject) jsonObj).get(
+					"completions", //$NON-NLS-1$
+					(NativeObject) jsonObj);
+		}
+
+		@Override
+		public Long getCh(Object data, String name) {
+			Double d;
+			if (data instanceof Double) {
+				d = (Double) data;
+			} else {
+				NativeObject loc = (NativeObject) ((NativeObject) data).get(
+						name, (NativeObject) data);
+				d = (Double) loc.get("ch", loc); //$NON-NLS-1$
+			}
+			if (d != null) {
+				return d.longValue();
+			}
+			return null;
+		}
+
+		@Override
+		public String getText(Object jsonObj, String property) {
+			Object text = ((Scriptable) jsonObj).get(property,
+					(Scriptable) jsonObj);
+			if (text == null || (text instanceof UniqueTag)) {
+				return null;
+			}
+			return text.toString();
+		}
+
+		@Override
+		public boolean isString(Object value) {
+			return value instanceof String;
+		}
+
+		@Override
+		public String getText(Object value) {
+			if (value == null) {
+				return null;
+			}
+			return value.toString();
+		}
+
+		@Override
+		public boolean getBoolean(Object jsonObject, String name,
+				boolean defaultValue) {
+			String val = getText(jsonObject, name);
+			return val != null ? Boolean.valueOf(val) : defaultValue;
+		}
+
+	}
+
 }

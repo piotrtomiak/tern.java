@@ -21,51 +21,39 @@ import tern.utils.StringUtils;
  */
 public class TernCompletionItem {
 
-	private final String name;
-	private final String type;
-	private final String doc;
-	private final String url;
-	private final String origin;
-
+	private final TernCompletionProposalRec proposal;
+	private final String displayName;
+	
 	private final String signature;
 	private final boolean function;
-	private final boolean keyword;
 	private boolean array;
 	private String jsType;
 	private List<Parameter> parameters;
 	private String[] allTypes;
+	private boolean hasDisplayName;
 
-	@Deprecated
-	public TernCompletionItem(String name, String type, String doc, String url,
-			String origin) {
-		this(name, type, doc, url, origin, false);
-	}
-	
-	public TernCompletionItem(String name, String type, String doc, String url,
-			String origin, boolean keyword) {	
-		this.name = name;
-		this.type = type;
-		this.doc = doc;
-		this.url = url;
-		this.origin = origin;
+	public TernCompletionItem(TernCompletionProposalRec proposal) {
+		this.proposal = proposal;
+		// we consider that we are inside string when display name is defined.
+		this.hasDisplayName = !StringUtils.isEmpty(proposal.displayName);
+		this.displayName = hasDisplayName ? proposal.displayName : proposal.name;
 		this.parameters = null;
-		this.keyword = keyword;
-		String signature = name;
-		if (keyword) {
+		String signature = proposal.name;
+		if (proposal.keyword) {
 			this.jsType = "keyword"; //$NON-NLS-1$
 		} else {
-			this.jsType = type;
+			this.jsType = proposal.type;
 		}
-		if (!StringUtils.isEmpty(type)) {
-			this.function = TernTypeHelper.isFunction(type);
+		if (!hasDisplayName && !StringUtils.isEmpty(proposal.type)) {
+			this.function = TernTypeHelper.isFunction(proposal.type);
 			if (function) {
-				FunctionInfo functionInfo = TernTypeHelper.parseFunction(name,
-						type);
+				FunctionInfo functionInfo = TernTypeHelper.parseFunction(proposal.name,
+						proposal.type);
 				this.parameters = functionInfo.getParameters();
 				signature = functionInfo.getSignature();
 				this.jsType = functionInfo.getReturnType();
 			} else {
-				this.array = type.indexOf("[") != -1;
+				this.array = proposal.type.indexOf("[") != -1;
 			}
 		} else {
 			this.function = false;
@@ -257,18 +245,19 @@ public class TernCompletionItem {
 	}
 
 	public String getText() {
-		if (StringUtils.isEmpty(origin) && StringUtils.isEmpty(jsType)) {
-			return signature;
+		if (StringUtils.isEmpty(proposal.origin) && StringUtils.isEmpty(jsType)) {
+			return hasDisplayName ? displayName : signature;
 		}
-		StringBuilder text = new StringBuilder(signature);
+		StringBuilder text = new StringBuilder(hasDisplayName ? displayName
+				: signature);
 
 		if (!StringUtils.isEmpty(jsType)) {
 			text.append(" : ");
 			text.append(jsType);
 		}
-		if (!StringUtils.isEmpty(origin)) {
+		if (!StringUtils.isEmpty(proposal.origin)) {
 			text.append(" - ");
-			text.append(origin);
+			text.append(proposal.origin);
 		}
 		return text.toString();
 	}
@@ -278,7 +267,7 @@ public class TernCompletionItem {
 	}
 	
 	public boolean isKeyword() {
-		return keyword;
+		return proposal.keyword;
 	}
 
 	public boolean isFunction() {
@@ -290,19 +279,19 @@ public class TernCompletionItem {
 	}
 
 	public String getName() {
-		return name;
+		return proposal.name;
 	}
 
 	public String getDoc() {
-		return doc;
+		return proposal.doc;
 	}
 
 	public String getURL() {
-		return url;
+		return proposal.url;
 	}
 
 	public String getOrigin() {
-		return origin;
+		return proposal.origin;
 	}
 
 	public String getSignature() {
@@ -310,11 +299,38 @@ public class TernCompletionItem {
 	}
 
 	public String getType() {
-		return type;
+		return proposal.type;
+	}
+	
+	public TernCompletionProposalRec getProposal() {
+		return proposal;
 	}
 
 	public String getJsType() {
 		return jsType;
 	}
 
+	public boolean isProperty() {
+		return proposal.isProperty;
+	}
+
+	public boolean isObjectKey() {
+		return proposal.isObjectKey;
+	}
+
+	public boolean hasDisplayName() {
+		return hasDisplayName;
+	}
+
+	public String getDisplayName() {
+		return displayName;
+	}
+
+	public boolean isStringType() {
+		return "string".equals(getType());
+	}
+
+	public boolean isStringReturnType() {
+		return "string".equals(getJsType());
+	}
 }

@@ -17,31 +17,60 @@ tern.java
 As  Tern is *very* CPU and memory intensive, the implementation with Rhino is very slow when JavaScript document is big. So it's better to use
 node.js or javv8.
 
-## Features
+## Core Features
 
-Once that Tern Server is created with Java you can use it in any Java context (Eclipse, Netbeans, etc). tern.java provides the capability to use
-Tern Server with Eclipse : 
+Once that Tern Server is created with Java using `core` module, 
+you can use it in any Java context (Eclipse, Netbeans, etc). 
+tern.java provides the capability to use Tern Server with SWT : 
 
  * contentassist which uses tern.java. If you start the SWT [TernEditor](https://github.com/angelozerr/tern.java/blob/master/tern.eclipse.swt.samples/src/tern/eclipse/swt/samples/rhino/RhinoTernEditor.java) demo, 
 you will see contentassist available for JavaScript : 
 
 ![SWT Tern Editor](https://github.com/angelozerr/tern.java/wiki/images/SWTTernEditor.png)
 
-# Eclipse IDE
+## Eclipse IDE
 
+On top of `core` module
 Tern.java provides an Eclipse IDE integration with Tern. For more information please read [Tern Eclipse IDE](https://github.com/angelozerr/tern.java/wiki/Tern-Eclipse-IDE).
 
 You can see [AngularJS Eclipse](https://github.com/angelozerr/angularjs-eclipse) which is based on tern.java.
 
-
 To install Tern IDE, please read [Installation - Update site](https://github.com/angelozerr/tern.java/wiki/Installation-Update-Site) section.
 
+## Tern Tooling
+
+There are also advanced tools for creators of tern plugins,
+see wiki pages [Tern-Toolings](https://github.com/angelozerr/tern.java/wiki/Tern-Toolings),
+[Tern-Console](https://github.com/angelozerr/tern.java/wiki/Tern-Console) and 
+[Debugging](https://github.com/angelozerr/tern.java/wiki/Debugging-tern.js-with-Nodeclipse).
+
+# Who is using tern.java?
+
+ * [JBoss Studio](http://www.jboss.org/products/devstudio/overview/) for : 
+  * Cordova Support 
+  * Angular Support
+ 
+See http://tools.jboss.org/blog/2014-06-19-beta2-for-luna.html#better-javascript for more informations.
+
+ * Liferay IDE 2.2 for : 
+  *  YUI, AUI support
+  *  Liferay support
+
+See http://www.liferay.com/fr/web/gregory.amerson/blog/-/blogs/liferay-ide-2-2-release for more informations.
+
+ * [Nodeclipse](http://www.nodeclipse.org/) for :
+  * node, express, support
+  * mongodb native, mongoose support
+  
+ * [MyEclipse](https://www.genuitec.com/products/myeclipse/) :
+
+See https://www.genuitec.com/tag/tern/ for more informations.
 
 # Developing
 
 Warning: When checking out on Windows , you can run into #35 [check out on Windows - Filename too long](https://github.com/angelozerr/tern.java/issues/35)
 
-# Build
+## Build
 
 See cloudbees job: https://opensagres.ci.cloudbees.com/job/tern.java/
 

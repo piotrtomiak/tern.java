@@ -17,23 +17,16 @@ import tern.utils.TernModuleHelper;
 /**
  * Abstract class for basic tern moduleµ.
  * 
- * @author azerr
- *
  */
-public abstract class AbstractBasicTernModule implements ITernModule {
+public abstract class AbstractBasicTernModule extends TernModuleInfo implements
+		ITernModule {
 
-	private final String name;
 	private final ModuleType moduleType;
 	private TernModuleMetadata metadata;
 
 	public AbstractBasicTernModule(String name, ModuleType moduleType) {
-		this.name = name;
+		super(name);
 		this.moduleType = moduleType;
-	}
-
-	@Override
-	public String getName() {
-		return name;
 	}
 
 	@Override
@@ -58,5 +51,10 @@ public abstract class AbstractBasicTernModule implements ITernModule {
 					getType());
 		}
 		return metadata;
+	}
+
+	@Override
+	public String toString() {
+		return getType();
 	}
 }

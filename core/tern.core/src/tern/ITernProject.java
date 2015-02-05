@@ -17,6 +17,7 @@ import java.util.List;
 
 import org.w3c.dom.Node;
 
+import tern.repository.ITernRepository;
 import tern.scriptpath.ITernScriptPath;
 import tern.server.ITernDef;
 import tern.server.ITernPlugin;
@@ -24,7 +25,10 @@ import tern.server.ITernServer;
 import tern.server.protocol.TernQuery;
 import tern.server.protocol.completions.ITernCompletionCollector;
 import tern.server.protocol.definition.ITernDefinitionCollector;
+import tern.server.protocol.guesstypes.ITernGuessTypesCollector;
+import tern.server.protocol.guesstypes.TernGuessTypesQuery;
 import tern.server.protocol.lint.ITernLintCollector;
+import tern.server.protocol.lint.ITernLintPlugin;
 import tern.server.protocol.type.ITernTypeCollector;
 
 import com.eclipsesource.json.JsonArray;
@@ -157,6 +161,13 @@ public interface ITernProject extends ITernAdaptable {
 	 */
 	void clearPlugins();
 
+	/**
+	 * Returns list of tern lint plugins.
+	 * 
+	 * @return list of tern lint plugins.
+	 */
+	ITernLintPlugin[] getLintPlugins();
+	
 	// ---------------- Tern save
 
 	/**
@@ -255,6 +266,15 @@ public interface ITernProject extends ITernAdaptable {
 	// ---------- Lint
 	void request(TernQuery query, ITernFile file, ITernLintCollector collector)
 			throws IOException, TernException;
+
+	void request(TernQuery query, ITernLintCollector collector)
+			throws IOException, TernException;
+
+	// ---------- Guess types
+
+	void request(TernGuessTypesQuery query, ITernFile file,
+			ITernGuessTypesCollector collector) throws IOException,
+			TernException;
 
 	/**
 	 * Returns the tern repository used by the tern project.

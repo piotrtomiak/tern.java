@@ -10,6 +10,7 @@
  */
 package tern.server;
 
+import java.util.Collection;
 import java.util.Set;
 
 import tern.TernException;
@@ -56,4 +57,25 @@ public interface ITernModuleConfigurable extends ITernModule {
 	 */
 	JsonObject getOptions();
 
+	/**
+	 * Returns the module by name and null otherwise.
+	 * 
+	 * @param name
+	 * @return the module by name and null otherwise.
+	 */
+	ITernModule getModule(String name);
+
+	/**
+	 * Return list of modules
+	 * 
+	 * @return list of modules
+	 */
+	Collection<ITernModule> getModules();
+
+	/**
+	 * Returns true if configurable module has version and false otherwise.
+	 * 
+	 * @return true if configurable module has version and false otherwise.
+	 */
+	boolean hasVersion();
 }

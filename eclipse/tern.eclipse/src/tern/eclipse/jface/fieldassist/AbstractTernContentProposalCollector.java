@@ -12,18 +12,17 @@ package tern.eclipse.jface.fieldassist;
 
 import org.eclipse.jface.fieldassist.IContentProposal;
 
-import tern.server.ITernServer;
+import tern.server.protocol.IJSONObjectHelper;
 import tern.server.protocol.completions.ITernCompletionCollector;
+import tern.server.protocol.completions.TernCompletionProposalRec;
 
 public abstract class AbstractTernContentProposalCollector implements
 		ITernCompletionCollector {
 
 	@Override
-	public void addProposal(String name, String type, String doc, String url,
-			String origin, int start, int end, Object completion,
-			ITernServer ternServer) {
-		addProposal(new TernContentProposal(name, type, doc, url, origin,
-				start, end));
+	public void addProposal(TernCompletionProposalRec proposal,
+			Object completion, IJSONObjectHelper jsonObjectHelper) {
+		addProposal(new TernContentProposal(proposal));
 	}
 
 	protected abstract void addProposal(IContentProposal proposal);

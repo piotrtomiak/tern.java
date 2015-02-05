@@ -10,18 +10,26 @@
  */
 package tern.server.protocol.lint;
 
+import tern.server.protocol.JsonHelper;
 import tern.server.protocol.TernQuery;
 
 /**
  * Tern lint query used to validate JS files.
  *
+ * @see https://github.com/angelozerr/tern-lint
  */
-public class TernLintQuery extends TernQuery {
+public class TernLintQuery extends BaseTernLintQuery {
 
 	private static final String LINT_TYPE_QUERY = "lint";
+	private static final String LINT_FULL_TYPE_QUERY = "lint-full";
 
 	public TernLintQuery() {
-		super(LINT_TYPE_QUERY);
+		this(false);
+	}
+
+	public TernLintQuery(boolean full) {
+		super(!full ? LINT_TYPE_QUERY : null, full ? LINT_FULL_TYPE_QUERY
+				: null);
 	}
 
 }
