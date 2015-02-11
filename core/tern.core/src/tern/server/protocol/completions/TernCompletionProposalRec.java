@@ -63,7 +63,7 @@ public class TernCompletionProposalRec {
 
 	public TernCompletionProposalRec changeType(String newType) {
 		return new TernCompletionProposalRec(name, displayName, newType, doc,
-				url, origin, start, end, isProperty, isObjectKey);
+				url, origin, depth, keyword, start, end, isProperty, isObjectKey);
 	}
 
 }

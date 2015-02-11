@@ -55,7 +55,7 @@ public class TernCompletionsResultProcessor implements
 					collector.addProposal(
 							new TernCompletionProposalRec(objectHelper
 									.getText(value), objectHelper
-									.getText(value), null, null, null, null,
+									.getText(value), null, null, null, null, 0, false,
 									startCh != null ? startCh.intValue() : 0,
 									endCh != null ? endCh.intValue() : 0,
 									isProperty, isObjectKey), value,
@@ -81,8 +81,15 @@ public class TernCompletionsResultProcessor implements
 		String doc = objectHelper.getText(completion, DOC_PROPERTY);
 		String url = objectHelper.getText(completion, URL_PROPERTY);
 		String origin = objectHelper.getText(completion, ORIGIN_PROPERTY);
+		int depth = 0;
+		try {
+			depth = Integer.parseInt(objectHelper.getText(completion, "depth")); //$NON-NLS-1$
+		} catch (NumberFormatException ex) {
+			//ignore
+		}
+		boolean keyword = objectHelper.getBoolean(completion, "isKeyword", false); //$NON-NLS-1$
 		collector.addProposal(new TernCompletionProposalRec(name, displayName,
-				type, doc, url, origin, start, end, isProperty, isObjectKey),
+				type, doc, url, origin, depth, keyword, start, end, isProperty, isObjectKey),
 				completion, objectHelper);
 	}
 
