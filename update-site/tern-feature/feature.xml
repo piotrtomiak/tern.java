@@ -19,9 +19,12 @@
       %license
    </license>
 
-   <requires>
-      <import plugin="minimal-json"/>
-   </requires>
+   <plugin
+         id="minimal-json"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
 
    <plugin
          id="ternjs"
