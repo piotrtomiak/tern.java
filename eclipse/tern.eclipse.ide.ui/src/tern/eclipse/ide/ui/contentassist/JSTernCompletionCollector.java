@@ -27,6 +27,7 @@ import tern.eclipse.ide.ui.TernUIPlugin;
 import tern.server.protocol.IJSONObjectHelper;
 import tern.server.protocol.completions.ITernCompletionCollector;
 import tern.server.protocol.completions.TernCompletionProposalRec;
+import tern.server.protocol.completions.TernTypeHelper;
 
 /**
  * Tern collector which creates {@link JSTernCompletionProposal}.
@@ -93,7 +94,7 @@ public class JSTernCompletionCollector implements ITernCompletionCollector {
 		if (proposal.isFunction()) {
 			// Add the function reference
 			proposals
-					.add(internalCreateProposal(proposalItem.changeType("fn")));
+					.add(internalCreateProposal(proposalItem.changeType(TernTypeHelper.FUNCTION_REF)));
 		}
 
 		proposals.add(proposal);

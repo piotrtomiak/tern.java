@@ -25,7 +25,7 @@ public class TernTypeHelper {
 	public static final String NUMBER_TYPE = "number";
 	public static final String BOOL_TYPE = "bool";
 
-	private static final String FUNCTION_REF = "fn";
+	public static final String FUNCTION_REF = "Function";
 	private static final String FUNCTION_START = "fn(";
 	private static final String FUNCTION_ARRAY_START = "[fn(";
 

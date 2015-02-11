@@ -14,6 +14,7 @@ import org.eclipse.wst.jsdt.ui.text.java.IJavaCompletionProposal;
 
 import tern.eclipse.ide.ui.contentassist.JSTernCompletionProposal;
 import tern.server.protocol.completions.TernCompletionProposalRec;
+import tern.server.protocol.completions.TernTypeHelper;
 
 /**
  * Extends {@link JSTernCompletionProposal} to implements JSDT
@@ -31,7 +32,8 @@ public class JSDTTernCompletionProposal extends JSTernCompletionProposal
 	private static int CAT_ORDER_FUNCTION = 3;
 	private static int CAT_ORDER_PRIMITIVE_STATIC = 4;
 	private static int CAT_ORDER_OBJECT_STATIC = 5;
-	private static int CAT_ORDER_KEYWORD = 6;
+	private static int CAT_ORDER_FUNCTION_OBJECT = 6;
+	private static int CAT_ORDER_KEYWORD = 7;
 	
 	private int relevance;
 	
@@ -47,7 +49,9 @@ public class JSDTTernCompletionProposal extends JSTernCompletionProposal
 		if (isFunction()) {
 			return CAT_ORDER_FUNCTION;
 		}
-
+		if (TernTypeHelper.isFunctionRefType(getType())) {
+			return CAT_ORDER_FUNCTION_OBJECT;
+		}
 		
 		boolean allUpperCase = true;
 		String name = getName();

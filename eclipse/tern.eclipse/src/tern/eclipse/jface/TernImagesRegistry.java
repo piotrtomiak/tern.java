@@ -21,6 +21,7 @@ import tern.server.protocol.completions.TernTypeHelper;
 public class TernImagesRegistry {
 
 	public static final String IMG_FN = "tern.eclipse.jface.IMG_FN";
+	public static final String IMG_FN_OBJECT = "tern.eclipse.jface.IMG_FN_OBJECT";
 	public static final String IMG_ARRAY = "tern.eclipse.jface.IMG_ARRAY";
 	public static final String IMG_NUMBER = "tern.eclipse.jface.IMG_NUMBER";
 	public static final String IMG_STRING = "tern.eclipse.jface.IMG_STRING";
@@ -34,6 +35,8 @@ public class TernImagesRegistry {
 
 		imageRegistry.put(IMG_FN, ImageDescriptor.createFromFile(
 				TernImagesRegistry.class, "images/fn.gif"));
+		imageRegistry.put(IMG_FN_OBJECT, ImageDescriptor.createFromFile(
+				TernImagesRegistry.class, "images/fn_object.gif"));
 		imageRegistry.put(IMG_ARRAY, ImageDescriptor.createFromFile(
 				TernImagesRegistry.class, "images/array.gif"));
 		imageRegistry.put(IMG_NUMBER, ImageDescriptor.createFromFile(
@@ -95,7 +98,7 @@ public class TernImagesRegistry {
 			return TernImagesRegistry.IMG_BOOLEAN;
 		}
 		if (TernTypeHelper.isFunctionRefType(jsType)) {
-			return TernImagesRegistry.IMG_FN;
+			return TernImagesRegistry.IMG_FN_OBJECT;
 		}
 		if (!"undefined".equals(jsType) &&
 				!"?".equals(jsType)) {
