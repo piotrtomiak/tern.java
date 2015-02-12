@@ -61,6 +61,7 @@ import tern.metadata.TernModuleMetadata;
 import tern.repository.ITernRepository;
 import tern.server.ITernModule;
 import tern.server.ITernModuleConfigurable;
+import tern.server.TernDef;
 import tern.utils.StringUtils;
 import tern.utils.TernModuleHelper;
 
@@ -482,6 +483,19 @@ public class TernModulesBlock extends AbstractTableBlock {
 				 * checkedModules.get(0); tableViewer.setSelection(new
 				 * StructuredSelection( firstModule)); }
 				 */
+			} else {
+				allModules = Arrays.asList(
+						TernCorePlugin.getTernRepositoryManager().getRepository((IProject)null).getModules());
+				
+				// Group by type
+				List<ITernModule> groupedModules = TernModuleHelper
+						.groupByType(allModules);
+				
+				checkedModules = TernCorePlugin.getTernRepositoryManager()
+						.getCheckedModules(new String[] { TernDef.ecma5.getName(), TernDef.browser.getName()}, 
+								allModules, groupedModules);
+				
+				allModules = groupedModules;
 			}
 
 			if (allModules != null) {
