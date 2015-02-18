@@ -25,7 +25,7 @@ import tern.utils.IOUtils;
  */
 public class FilesystemTernFile extends AbstractTernFile implements ITernFile {
 
-	private File file;
+	protected final File file;
 	private File canonical;
 	
 	public FilesystemTernFile(File file) {

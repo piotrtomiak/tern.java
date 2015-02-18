@@ -36,7 +36,7 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.texteditor.link.EditorLinkedModeUI;
 
 import tern.ITernFile;
-import tern.eclipse.ide.core.IIDETernProject;
+import tern.ITernProject;
 import tern.eclipse.ide.internal.ui.Trace;
 import tern.eclipse.ide.ui.TernUIPlugin;
 import tern.eclipse.ide.ui.utils.HTMLTernPrinter;
@@ -74,7 +74,7 @@ public class JSTernCompletionProposal extends TernCompletionProposal {
 	private String indentChars;
 
 	private ITernFile ternFile;
-	private IIDETernProject ternProject;
+	private ITernProject ternProject;
 
 	public JSTernCompletionProposal(TernCompletionProposalRec proposal) {
 		super(proposal);
@@ -575,11 +575,11 @@ public class JSTernCompletionProposal extends TernCompletionProposal {
 		return ternFile;
 	}
 
-	public void setTernProject(IIDETernProject ternProject) {
+	public void setTernProject(ITernProject ternProject) {
 		this.ternProject = ternProject;
 	}
 
-	public IIDETernProject getTernProject() {
+	public ITernProject getTernProject() {
 		return ternProject;
 	}
 

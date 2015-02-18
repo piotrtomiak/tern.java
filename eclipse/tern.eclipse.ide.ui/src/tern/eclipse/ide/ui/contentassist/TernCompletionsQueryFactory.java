@@ -32,9 +32,20 @@ public class TernCompletionsQueryFactory {
 
 		IPreferencesService preferencesService = Platform
 				.getPreferencesService();
-		IScopeContext[] lookupOrder = new IScopeContext[] {
-				new ProjectScope(project), InstanceScope.INSTANCE,
-				DefaultScope.INSTANCE };
+		IScopeContext[] lookupOrder;
+		
+		if (project != null) {
+			lookupOrder = new IScopeContext[] {
+					new ProjectScope(project), 
+					InstanceScope.INSTANCE,
+					DefaultScope.INSTANCE
+			};
+		} else {
+			lookupOrder = new IScopeContext[] {
+					InstanceScope.INSTANCE,
+					DefaultScope.INSTANCE
+			};
+		}
 
 		boolean omitObjectPrototype = getBoolean(
 				TernUIPreferenceConstants.OMIT_OBJECT_PROTOTYPE_CONTENT_ASSIST,

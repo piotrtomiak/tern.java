@@ -15,24 +15,18 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
-import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.contentassist.ICompletionProposal;
 import org.eclipse.wst.jsdt.ui.text.java.ContentAssistInvocationContext;
 import org.eclipse.wst.jsdt.ui.text.java.IJavaCompletionProposalComputer;
 import org.eclipse.wst.jsdt.ui.text.java.JavaContentAssistInvocationContext;
 
 import tern.ITernFile;
-/**
- * JSDT completion extension with Tern.
- */
-import tern.eclipse.ide.core.IIDETernProject;
-import tern.eclipse.ide.core.TernCorePlugin;
-import tern.eclipse.ide.core.resources.TernDocumentFile;
+import tern.ITernProject;
+import tern.eclipse.ide.jsdt.internal.JSDTTernPlugin;
 import tern.eclipse.ide.jsdt.internal.Trace;
+import tern.eclipse.ide.jsdt.internal.contentassist.ITernContextProvider.TernContext;
 import tern.eclipse.ide.ui.contentassist.TernCompletionsQueryFactory;
 import tern.server.protocol.completions.TernCompletionsQuery;
 
@@ -48,24 +42,17 @@ public class TernCompletionProposalComputer implements
 			ContentAssistInvocationContext context, IProgressMonitor monitor) {
 		if (context instanceof JavaContentAssistInvocationContext) {
 			JavaContentAssistInvocationContext javaContext = (JavaContentAssistInvocationContext) context;
-			IProject project = javaContext.getProject().getProject();
-			if (TernCorePlugin.hasTernNature(project)) {
 
-				IDocument document = javaContext.getDocument();
-				IResource resource = javaContext.getCompilationUnit()
-						.getResource();
-				if (resource.getType() == IResource.FILE) {
-					IFile scriptFile = (IFile) resource;
-
+			TernContext ternContext = JSDTTernPlugin.getContextProvider().getTernContext(javaContext);
+			if (ternContext != null) {
 					try {
 
 						final List<ICompletionProposal> proposals = new ArrayList<ICompletionProposal>();
 
-						IIDETernProject ternProject = TernCorePlugin
-								.getTernProject(project);
-						ITernFile tf = new TernDocumentFile(scriptFile,
-								document);
-
+						ITernFile tf = ternContext.file;
+						ITernProject ternProject = ternContext.project;
+						IProject project = (IProject)ternProject.getAdapter(IProject.class);
+						
 						int startOffset = context.getInvocationOffset();
 						String filename = tf.getFullName(ternProject);
 						TernCompletionsQuery query = TernCompletionsQueryFactory
@@ -81,7 +68,6 @@ public class TernCompletionProposalComputer implements
 						Trace.trace(Trace.SEVERE,
 								"Error while JSDT Tern completion.", e);
 					}
-				}
 			}
 		}
 		return Collections.EMPTY_LIST;

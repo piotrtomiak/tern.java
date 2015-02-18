@@ -14,17 +14,10 @@ package tern.eclipse.ide.jsdt.internal.contentassist;
 
 import java.util.List;
 
-import org.eclipse.jface.dialogs.Dialog;
-import org.eclipse.jface.resource.JFaceResources;
-import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.contentassist.ICompletionProposal;
-import org.eclipse.jface.text.contentassist.ICompletionProposalExtension4;
-import org.eclipse.jface.text.contentassist.IContextInformation;
-import org.eclipse.swt.graphics.Image;
-import org.eclipse.swt.graphics.Point;
 
 import tern.ITernFile;
-import tern.eclipse.ide.core.IIDETernProject;
+import tern.ITernProject;
 import tern.eclipse.ide.ui.contentassist.JSTernCompletionAsyncCollector;
 import tern.eclipse.ide.ui.contentassist.JSTernCompletionProposal;
 import tern.server.protocol.completions.TernCompletionProposalRec;
@@ -40,7 +33,7 @@ public class JSDTTernCompletionCollector extends JSTernCompletionAsyncCollector 
 	public static final int TERN_RELEVANT = 10000;
 
 	public JSDTTernCompletionCollector(List<ICompletionProposal> proposals,
-			int startOffset, ITernFile ternFile, IIDETernProject project) {
+			int startOffset, ITernFile ternFile, ITernProject project) {
 		super(proposals, startOffset, ternFile, project);
 	}
 

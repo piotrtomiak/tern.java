@@ -13,6 +13,8 @@ package tern.eclipse.ide.jsdt.internal;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.osgi.framework.BundleContext;
 
+import tern.eclipse.ide.jsdt.internal.contentassist.ITernContextProvider;
+import tern.eclipse.ide.jsdt.internal.contentassist.JSDTTernContextProvider;
 import tern.internal.resources.InternalTernResourcesManager;
 
 /**
@@ -27,6 +29,8 @@ public class JSDTTernPlugin extends AbstractUIPlugin {
 	// The shared instance
 	private static JSDTTernPlugin plugin;
 
+	private static ITernContextProvider contextProvider = new JSDTTernContextProvider();
+	
 	/**
 	 * The constructor
 	 */
@@ -66,6 +70,14 @@ public class JSDTTernPlugin extends AbstractUIPlugin {
 	 */
 	public static JSDTTernPlugin getDefault() {
 		return plugin;
+	}
+	
+	public static ITernContextProvider getContextProvider() {
+		return contextProvider;
+	}
+	
+	public static void setContextProvider(ITernContextProvider projectProvider) {
+		JSDTTernPlugin.contextProvider = projectProvider;
 	}
 
 }
