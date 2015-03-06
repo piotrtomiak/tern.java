@@ -32,6 +32,7 @@ public class TernCorePreferenceConstants {
 	public static final String DEVELOPMENT_USE_PROJECT_SETTINGS = "development-use-project-settings";//$NON-NLS-1$
 	public static final String TRACE_ON_CONSOLE = "traceOnConsole"; //$NON-NLS-1$
 	public static final String LOADING_LOCAL_PLUGINS = "loadingLocalPlugin"; //$NON-NLS-1$
+	public static final String QUALITY_LEVEL = "qualityLevel"; //$NON-NLS-1$
 
 	/**
 	 * Tern repository preferences constants.
@@ -53,6 +54,8 @@ public class TernCorePreferenceConstants {
 	public static final String DEFAULT_TERN_MODULES = "defaultTernModules"; //$NON-NLS-1$
 	public static final String DEFAULT_TERN_MODULES_VALUE = getDefaultModules(); //$NON-NLS-1$
 
+	public static final int DEFAULT_QUALITY_LEVEL = 4;
+	
 	/**
 	 * Returns the tern modules to add to .tern-project when project is
 	 * converted to tern project.

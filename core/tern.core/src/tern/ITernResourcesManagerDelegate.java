@@ -71,4 +71,6 @@ public interface ITernResourcesManagerDelegate {
 	 */
 	boolean isJSFile(Object fileObject);
 
+	void disposeAllServers();
+
 }

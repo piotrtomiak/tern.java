@@ -10,23 +10,32 @@
  */
 package tern.eclipse.ide.internal.ui.properties;
 
-import org.eclipse.swt.SWT;
-import org.eclipse.swt.layout.GridData;
-import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Control;
+import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.ProjectScope;
+import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IAdaptable;
+import org.eclipse.core.runtime.preferences.IScopeContext;
+import org.eclipse.jface.preference.FieldEditorPreferencePage;
+import org.eclipse.jface.preference.IPreferenceStore;
+import org.eclipse.jface.preference.ScaleFieldEditor;
 import org.eclipse.ui.IWorkbenchPropertyPage;
-import org.eclipse.ui.dialogs.PropertyPage;
+import org.eclipse.ui.preferences.ScopedPreferenceStore;
 
+import tern.eclipse.ide.core.TernCorePlugin;
+import tern.eclipse.ide.internal.ui.preferences.QualityLevelFieldEditor;
 import tern.eclipse.ide.ui.ImageResource;
+import tern.eclipse.ide.ui.TernUIPlugin;
 
 /**
  * Tern Main page for project properties.
  * 
  */
-public class TernMainPropertyPage extends PropertyPage implements
+public class TernMainPropertyPage extends FieldEditorPreferencePage implements
 		IWorkbenchPropertyPage {
 
+	private IAdaptable element;
+	
 	public static final String PROP_ID = "tern.eclipse.ide.internal.ui.properties.TernMainPropertyPage";
 
 	public TernMainPropertyPage() {
@@ -34,11 +43,50 @@ public class TernMainPropertyPage extends PropertyPage implements
 				.getImageDescriptor(ImageResource.IMG_LOGO));
 	}
 
-	protected Control createContents(Composite parent) {
-		Composite composite = new Composite(parent, SWT.NONE);
-		composite.setLayoutData(new GridData(4, 4, true, true));
-		composite.setLayout(new GridLayout());
-		return composite;
+	@Override
+	protected IPreferenceStore doGetPreferenceStore() {
+		IScopeContext context = new ProjectScope(getProject());
+		return new ScopedPreferenceStore(context, 
+				TernCorePlugin.getDefault().getBundle().getSymbolicName());
+	}
+	
+	protected IProject getProject() {
+		if (getElement() != null) {
+			if (getElement() instanceof IProject) {
+				return (IProject) getElement();
+			}
+			Object adapter = getElement().getAdapter(IProject.class);
+			if (adapter instanceof IProject) {
+				return (IProject) adapter;
+			}
+			adapter = getElement().getAdapter(IResource.class);
+			if (adapter instanceof IProject) {
+				return (IProject) adapter;
+			}
+		}
+		return null;
+	}
+
+	@Override
+	public IAdaptable getElement() {
+		return element;
+	}
+
+	@Override
+	public void setElement(IAdaptable element) {
+		this.element = element;
+	}
+
+	@Override
+	protected void createFieldEditors() {
+		ScaleFieldEditor qualityLevelEditor;
+		try {
+			qualityLevelEditor = new QualityLevelFieldEditor(getFieldEditorParent(), 
+					TernCorePlugin.getTernProject(getProject()));
+			addField(qualityLevelEditor);
+		} catch (CoreException e) {
+			TernUIPlugin.getDefault().getLog().log(e.getStatus());
+		}
 	}
 
 }

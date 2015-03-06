@@ -113,4 +113,13 @@ public class StringUtils {
 				|| YES.equals(value.toLowerCase());
 	}
 
+	public static int asInteger(String result, int defaultValue) {
+		try {
+			return Integer.parseInt(result);
+		} catch (Exception e) {
+			//ignore
+		}
+		return defaultValue;
+	}
+
 }

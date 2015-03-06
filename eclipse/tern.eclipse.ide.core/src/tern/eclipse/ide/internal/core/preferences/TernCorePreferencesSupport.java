@@ -77,6 +77,13 @@ public class TernCorePreferencesSupport {
 		return StringUtils.asBoolean(result, false);
 	}
 
+	public int getQualityLevel(IProject project) {
+		String result = preferencesSupport.getPreferencesValue(
+				TernCorePreferenceConstants.QUALITY_LEVEL, null,
+				project);
+		return StringUtils.asInteger(result, TernCorePreferenceConstants.DEFAULT_QUALITY_LEVEL);
+	}
+
 	/**
 	 * Return false if Tern requests, like autocompletion should not be allowed
 	 * to run asynchronously and timeout.

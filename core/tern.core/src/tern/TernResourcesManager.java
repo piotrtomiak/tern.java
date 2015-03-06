@@ -65,5 +65,9 @@ public class TernResourcesManager {
 	public static boolean isJSFile(Object fileObject) {
 		return INSTANCE.isJSFile(fileObject);
 	}
+	
+	public static void disposeAllServers() {
+		INSTANCE.disposeAllServers();
+	}
 
 }

@@ -105,4 +105,9 @@ public class DefaultTernResourcesManager implements
 				&& ExtensionUtils.JS_EXTENSION.equals(ext.toLowerCase());
 	}
 
+	@Override
+	public void disposeAllServers() {
+		//nothing to do
+	}
+
 }

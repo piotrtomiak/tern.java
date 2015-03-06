@@ -44,6 +44,8 @@ import com.eclipsesource.json.JsonValue;
  */
 public class NodejsTernServer extends AbstractTernServer {
 
+	private static final int REQUEST_TIMEOUT = 30*1000; //30 secs
+	
 	private static final String BASE_URL = "http://127.0.0.1:";
 
 	private String baseURL;
@@ -64,6 +66,12 @@ public class NodejsTernServer extends AbstractTernServer {
 			NodejsTernServer.this.fireStartServer();
 		}
 
+		public void onError(NodejsProcess process, String line) {
+			if (line.contains("throw new exports.TimedOut()")) {
+				fireTimedOutServer();
+			}
+		};
+		
 		@Override
 		public void onStop(NodejsProcess server) {
 			dispose();
@@ -185,6 +193,9 @@ public class NodejsTernServer extends AbstractTernServer {
 		} finally {
 			endReadState();
 		}
+		
+		//set a timeout for the request
+		doc.set("timeout", REQUEST_TIMEOUT); //$NON-NLS-1$
 
 		JsonObject json = NodejsTernHelper.makeRequest(baseURL, doc, false,
 				interceptors, this);
@@ -252,6 +263,7 @@ public class NodejsTernServer extends AbstractTernServer {
 	private void initProcess(NodejsProcess process) {
 		process.setPersistent(persistent);
 		process.setLoadingLocalPlugins(isLoadingLocalPlugins());
+		process.setQualityLevel(getQualityLevel());
 	}
 
 	public void addProcessListener(INodejsProcessListener listener) {
