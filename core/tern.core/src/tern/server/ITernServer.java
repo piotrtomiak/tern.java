@@ -125,6 +125,10 @@ public interface ITernServer {
 	
 	void setQualityLevel(int level);
 	
+	int getRequestTimeout();
+	
+	void setRequestTimeout(int timeout);
+	
 	ITernServerRequestProcessor getRequestProcessor();
 
 	void setRequestProcessor(ITernServerRequestProcessor asyncReqProcessor);

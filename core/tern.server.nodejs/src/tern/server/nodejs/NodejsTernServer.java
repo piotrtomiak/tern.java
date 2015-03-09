@@ -43,8 +43,6 @@ import com.eclipsesource.json.JsonValue;
  * 
  */
 public class NodejsTernServer extends AbstractTernServer {
-
-	private static final int REQUEST_TIMEOUT = 30*1000; //30 secs
 	
 	private static final String BASE_URL = "http://127.0.0.1:";
 
@@ -195,7 +193,9 @@ public class NodejsTernServer extends AbstractTernServer {
 		}
 		
 		//set a timeout for the request
-		doc.set("timeout", REQUEST_TIMEOUT); //$NON-NLS-1$
+		if (getRequestTimeout() > 0) {
+			doc.set("timeout", getRequestTimeout()); //$NON-NLS-1$
+		}
 
 		JsonObject json = NodejsTernHelper.makeRequest(baseURL, doc, false,
 				interceptors, this);

@@ -36,6 +36,7 @@ public abstract class AbstractTernServer implements ITernServer {
 	private boolean dispose;
 	private boolean loadingLocalPlugins;
 	private int qualityLevel;
+	private int requestTimeout;
 
 	private ITernServerRequestProcessor reqProcessor;
 
@@ -175,6 +176,16 @@ public abstract class AbstractTernServer implements ITernServer {
 	@Override
 	public int getQualityLevel() {
 		return qualityLevel;
+	}
+	
+	@Override
+	public int getRequestTimeout() {
+		return requestTimeout;
+	}
+	
+	@Override
+	public void setRequestTimeout(int requestTimeout) {
+		this.requestTimeout = requestTimeout;
 	}
 
 	@Override

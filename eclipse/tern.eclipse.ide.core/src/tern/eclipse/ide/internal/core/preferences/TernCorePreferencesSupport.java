@@ -84,6 +84,13 @@ public class TernCorePreferencesSupport {
 		return StringUtils.asInteger(result, TernCorePreferenceConstants.DEFAULT_QUALITY_LEVEL);
 	}
 
+	public int getRequestTimeout(IProject project) {
+		String result = preferencesSupport.getPreferencesValue(
+				TernCorePreferenceConstants.REQUEST_TIMEOUT, null,
+				project);
+		return StringUtils.asInteger(result, TernCorePreferenceConstants.DEFAULT_REQUEST_TIMEOUT);
+	}
+
 	/**
 	 * Return false if Tern requests, like autocompletion should not be allowed
 	 * to run asynchronously and timeout.

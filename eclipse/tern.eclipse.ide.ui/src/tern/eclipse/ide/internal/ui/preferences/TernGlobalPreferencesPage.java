@@ -16,6 +16,7 @@ import org.eclipse.jface.preference.BooleanFieldEditor;
 import org.eclipse.jface.preference.ComboFieldEditor;
 import org.eclipse.jface.preference.FieldEditorPreferencePage;
 import org.eclipse.jface.preference.IPreferenceStore;
+import org.eclipse.jface.preference.IntegerFieldEditor;
 import org.eclipse.jface.preference.ScaleFieldEditor;
 import org.eclipse.jface.util.PropertyChangeEvent;
 import org.eclipse.ui.IWorkbench;
@@ -71,6 +72,15 @@ public class TernGlobalPreferencesPage extends FieldEditorPreferencePage
 		
 		ScaleFieldEditor qualityLevelEditor = new QualityLevelFieldEditor(getFieldEditorParent(), null);
 		addField(qualityLevelEditor);
+		
+
+		getPreferenceStore().setDefault(TernCorePreferenceConstants.REQUEST_TIMEOUT, 
+				TernCorePreferenceConstants.DEFAULT_REQUEST_TIMEOUT);
+		
+		IntegerFieldEditor requestTimeoutEditor = new IntegerFieldEditor(TernCorePreferenceConstants.REQUEST_TIMEOUT, 
+				"Request timeout (seconds):", getFieldEditorParent());
+		
+		addField(requestTimeoutEditor);
 		
 	}
 
