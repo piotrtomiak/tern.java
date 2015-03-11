@@ -16,8 +16,6 @@ import org.eclipse.jface.preference.BooleanFieldEditor;
 import org.eclipse.jface.preference.ComboFieldEditor;
 import org.eclipse.jface.preference.FieldEditorPreferencePage;
 import org.eclipse.jface.preference.IPreferenceStore;
-import org.eclipse.jface.preference.IntegerFieldEditor;
-import org.eclipse.jface.preference.ScaleFieldEditor;
 import org.eclipse.jface.util.PropertyChangeEvent;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPreferencePage;
@@ -69,19 +67,6 @@ public class TernGlobalPreferencesPage extends FieldEditorPreferencePage
 				TernUIMessages.TernGlobalPreferencesPage_disable_async_reqs,
 				getFieldEditorParent());
 		addField(asyncRequestsEditor);
-		
-		ScaleFieldEditor qualityLevelEditor = new QualityLevelFieldEditor(getFieldEditorParent(), null);
-		addField(qualityLevelEditor);
-		
-
-		getPreferenceStore().setDefault(TernCorePreferenceConstants.REQUEST_TIMEOUT, 
-				TernCorePreferenceConstants.DEFAULT_REQUEST_TIMEOUT);
-		
-		IntegerFieldEditor requestTimeoutEditor = new IntegerFieldEditor(TernCorePreferenceConstants.REQUEST_TIMEOUT, 
-				"Request timeout (seconds):", getFieldEditorParent());
-		
-		addField(requestTimeoutEditor);
-		
 	}
 
 	@Override
@@ -105,7 +90,7 @@ public class TernGlobalPreferencesPage extends FieldEditorPreferencePage
 		// TernCorePlugin.PLUGIN_ID);
 		// }
 		// return store;
-		IScopeContext scope = InstanceScope.INSTANCE;
+		IScopeContext scope = new InstanceScope();
 		return new ScopedPreferenceStore(scope, TernCorePlugin.PLUGIN_ID);
 
 	}
