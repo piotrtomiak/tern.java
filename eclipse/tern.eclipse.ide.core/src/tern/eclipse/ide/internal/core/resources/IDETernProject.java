@@ -127,9 +127,8 @@ public class IDETernProject extends TernProject implements IIDETernProject,
 											project));
 					this.ternServer.setQualityLevel(TernCorePreferencesSupport.
 							getInstance().getQualityLevel(project));
-					int timeout = TernCorePreferencesSupport.getInstance().isRequestTimeoutEnabled(project) ? TernCorePreferencesSupport
-							.getInstance().getRequestTimeout(project) * 1000 : 0;
-					this.ternServer.setRequestTimeout(timeout);
+					this.ternServer.setRequestTimeout(TernCorePreferencesSupport.
+							getInstance().getRequestTimeout(project) * 1000);
 					this.ternServer.addServerListener(new TernServerAdapter() {
 						@Override
 						public void onStop(ITernServer server) {

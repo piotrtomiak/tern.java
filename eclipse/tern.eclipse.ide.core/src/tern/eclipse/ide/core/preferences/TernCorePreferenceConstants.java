@@ -33,7 +33,6 @@ public class TernCorePreferenceConstants {
 	public static final String TRACE_ON_CONSOLE = "traceOnConsole"; //$NON-NLS-1$
 	public static final String LOADING_LOCAL_PLUGINS = "loadingLocalPlugin"; //$NON-NLS-1$
 	public static final String QUALITY_LEVEL = "qualityLevel"; //$NON-NLS-1$
-	public static final String ENABLE_TIMEOUT = "enableTimeout"; //$NON-NLS-1$
 	public static final String REQUEST_TIMEOUT = "requestTimeout"; //$NON-NLS-1$
 
 	/**
@@ -58,7 +57,6 @@ public class TernCorePreferenceConstants {
 
 	public static final int DEFAULT_QUALITY_LEVEL = 4;
 	public static final int DEFAULT_REQUEST_TIMEOUT = 30;
-	public static final boolean DEFAULT_ENABLE_TIMEOUT = true;
 	
 	/**
 	 * Returns the tern modules to add to .tern-project when project is
