@@ -88,7 +88,7 @@ public class TernProject extends JsonObject implements ITernProject {
 	private static final String LOAD_EAGERLY_FIELD_NAME = "loadEagerly"; //$NON-NLS-1$
 
 	private final File projectDir;
-	private File ternProjectFile;
+	protected final File ternProjectFile;
 	
 	private ITernLintPlugin[] lintPlugins;
 

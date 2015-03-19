@@ -12,6 +12,7 @@ package tern.eclipse.ide.ui.contentassist;
 
 import java.util.List;
 
+import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.ProjectScope;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.preferences.DefaultScope;
@@ -21,6 +22,7 @@ import org.eclipse.core.runtime.preferences.InstanceScope;
 import org.eclipse.jface.text.contentassist.ICompletionProposal;
 
 import tern.ITernFile;
+import tern.ITernProject;
 import tern.eclipse.ide.core.IIDETernProject;
 import tern.eclipse.ide.internal.ui.preferences.TernUIPreferenceConstants;
 import tern.eclipse.ide.ui.TernUIPlugin;
@@ -40,19 +42,33 @@ public class JSTernCompletionCollector implements ITernCompletionCollector {
 	private boolean expandFunction;
 	private String indentChars;
 	private final ITernFile ternFile;
-	private final IIDETernProject ternProject;
+	private final ITernProject ternProject;
 
 	public JSTernCompletionCollector(List<ICompletionProposal> proposals,
-			int startOffset, ITernFile ternFile, IIDETernProject ternProject) {
+			int startOffset, ITernFile ternFile, ITernProject ternProject) {
 		this.proposals = proposals;
 		this.ternFile = ternFile;
 		this.ternProject = ternProject;
 
 		IPreferencesService preferencesService = Platform
 				.getPreferencesService();
-		IScopeContext[] lookupOrder = new IScopeContext[] {
-				new ProjectScope(ternProject.getProject()),
-				new InstanceScope(), new DefaultScope() };
+		
+		IProject project = (IProject) ternProject.getAdapter(IProject.class);
+		
+		IScopeContext[] lookupOrder;
+		
+		if (project != null) {
+			lookupOrder = new IScopeContext[] {
+					new ProjectScope(project),
+					InstanceScope.INSTANCE, 
+					DefaultScope.INSTANCE
+			};
+		} else {
+			lookupOrder = new IScopeContext[] {
+					InstanceScope.INSTANCE, 
+					DefaultScope.INSTANCE
+			};
+		}
 
 		generateAnonymousFunction = preferencesService
 				.getBoolean(

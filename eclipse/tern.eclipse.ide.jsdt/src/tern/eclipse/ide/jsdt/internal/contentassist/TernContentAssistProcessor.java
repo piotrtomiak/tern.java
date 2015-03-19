@@ -17,10 +17,8 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
-import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.contentassist.ICompletionProposal;
 import org.eclipse.jface.text.contentassist.IContextInformationValidator;
 import org.eclipse.wst.jsdt.internal.ui.text.java.JavaParameterListValidator;
@@ -30,11 +28,10 @@ import org.eclipse.wst.sse.ui.contentassist.ICompletionProposalComputer;
 import org.eclipse.wst.xml.ui.internal.contentassist.AbstractContentAssistProcessor;
 
 import tern.ITernFile;
-import tern.eclipse.ide.core.IIDETernProject;
-import tern.eclipse.ide.core.TernCorePlugin;
-import tern.eclipse.ide.core.resources.TernDocumentFile;
+import tern.ITernProject;
+import tern.eclipse.ide.jsdt.internal.JSDTTernPlugin;
 import tern.eclipse.ide.jsdt.internal.Trace;
-import tern.eclipse.ide.jsdt.internal.utils.DOMUtils;
+import tern.eclipse.ide.jsdt.internal.contentassist.ITernContextProvider.TernContext;
 import tern.eclipse.ide.ui.contentassist.TernCompletionsQueryFactory;
 import tern.server.protocol.completions.TernCompletionsQuery;
 
@@ -74,19 +71,13 @@ public class TernContentAssistProcessor extends AbstractContentAssistProcessor
 			IProgressMonitor monitor) {
 		final List<ICompletionProposal> proposals = new ArrayList<ICompletionProposal>();
 
-		IFile file = DOMUtils.getFile(context.getDocument());
-		if (file != null) {
-			IProject project = file.getProject();
-			if (TernCorePlugin.hasTernNature(project)) {
-
-				IDocument document = context.getDocument();
-
+		TernContext ternContext = JSDTTernPlugin.getContextProvider().getTernContext(context);
+		
+		if (ternContext != null) {
 				try {
-
-					IIDETernProject ternProject = TernCorePlugin
-							.getTernProject(project);
-
-					ITernFile tf = new TernDocumentFile(file, document);
+					ITernProject ternProject = ternContext.project;
+					ITernFile tf = ternContext.file;
+					IProject project = (IProject) ternProject.getAdapter(IProject.class);
 
 					int startOffset = context.getInvocationOffset();
 					String filename = tf.getFullName(ternProject);
@@ -101,7 +92,6 @@ public class TernContentAssistProcessor extends AbstractContentAssistProcessor
 					Trace.trace(Trace.SEVERE,
 							"Error while JSDT Tern completion.", e);
 				}
-			}
 		}
 		//proposals have to be sorted
 		Collections.sort(proposals, COMPARATOR);

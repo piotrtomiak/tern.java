@@ -17,7 +17,7 @@ import java.util.List;
 import org.eclipse.jface.text.contentassist.ICompletionProposal;
 
 import tern.ITernFile;
-import tern.eclipse.ide.core.IIDETernProject;
+import tern.ITernProject;
 import tern.server.protocol.IJSONObjectHelper;
 import tern.server.protocol.ITernResultsAsyncCollector;
 import tern.server.protocol.completions.TernCompletionProposalRec;
@@ -31,7 +31,7 @@ public class JSTernCompletionAsyncCollector extends JSTernCompletionCollector
 	private int startOffset;
 
 	public JSTernCompletionAsyncCollector(List<ICompletionProposal> proposals,
-			int startOffset, ITernFile ternFile, IIDETernProject project) {
+			int startOffset, ITernFile ternFile, ITernProject project) {
 		super(proposals, startOffset, ternFile, project);
 		this.startOffset = startOffset;
 	}
