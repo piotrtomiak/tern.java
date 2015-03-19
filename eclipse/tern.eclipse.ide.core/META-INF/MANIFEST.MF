@@ -20,7 +20,7 @@ Export-Package: tern.eclipse.ide.core,
  tern.eclipse.ide.core.utils,
  tern.eclipse.ide.internal.core;x-internal:=true,
  tern.eclipse.ide.internal.core.preferences;x-internal:=true,
- tern.eclipse.ide.internal.core.resources;x-internal:=true,
+ tern.eclipse.ide.internal.core.resources,
  tern.eclipse.ide.internal.core.scriptpath;x-internal:=true
 Bundle-ActivationPolicy: lazy
 Bundle-Activator: tern.eclipse.ide.core.TernCorePlugin

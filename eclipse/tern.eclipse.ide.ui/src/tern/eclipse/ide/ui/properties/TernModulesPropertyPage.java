@@ -24,6 +24,7 @@ import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPreferencePage;
 
 import tern.eclipse.ide.core.IIDETernProject;
+import tern.eclipse.ide.internal.core.resources.IDETernProject.TernModuleModifyBroadCastMonitor;
 import tern.eclipse.ide.internal.ui.TernUIMessages;
 import tern.eclipse.ide.internal.ui.Trace;
 import tern.eclipse.ide.internal.ui.properties.AbstractTernPropertyPage;
@@ -140,6 +141,10 @@ public class TernModulesPropertyPage extends AbstractTernPropertyPage implements
 				TernModuleHelper.update(m, ternProject);
 			}
 			ternProject.save();
+			
+			// Broadcast fire event
+			TernModuleModifyBroadCastMonitor.fireEvent();
+			
 			if (Thread.currentThread() == Display.getDefault().getThread()) {
 				modulesBlock.setCheckedModules(checkedModules);
 				modulesBlock.loadModules();

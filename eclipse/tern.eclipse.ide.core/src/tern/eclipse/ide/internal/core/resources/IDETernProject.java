@@ -81,6 +81,31 @@ public class IDETernProject extends TernProject implements IIDETernProject,
 
 	private final List<ITernServerListener> listeners;
 
+	// Broadcast monitor written for usage in Metrics code.
+	public static class TernModuleModifyBroadCastMonitor {
+		static List<IBroadCastListener> broadcastListeners = new ArrayList<IBroadCastListener>();
+
+		public static void addListener(IBroadCastListener listener) {
+			if (!broadcastListeners.contains(listener))
+				broadcastListeners.add(listener);
+		}
+
+		public static void fireEvent() {
+			notifyListeners();
+		}
+
+		private static void notifyListeners() {
+			for (IBroadCastListener listener : broadcastListeners) {
+				listener.handleEvent();
+			}
+		}
+
+		public static void removeListener(
+				IBroadCastListener listener) {
+			broadcastListeners.remove(listener);
+		}
+	}
+
 	protected IDETernProject(IProject project) throws CoreException {
 		super(project.getLocation().toFile());
 		this.project = project;
