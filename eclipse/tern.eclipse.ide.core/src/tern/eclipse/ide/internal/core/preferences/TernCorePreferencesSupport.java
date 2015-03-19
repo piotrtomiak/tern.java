@@ -13,6 +13,7 @@ package tern.eclipse.ide.internal.core.preferences;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.Preferences;
 
+import tern.ContentScope;
 import tern.eclipse.ide.core.ITernServerType;
 import tern.eclipse.ide.core.TernCorePlugin;
 import tern.eclipse.ide.core.preferences.PreferencesSupport;
@@ -89,6 +90,17 @@ public class TernCorePreferencesSupport {
 				TernCorePreferenceConstants.REQUEST_TIMEOUT, null,
 				project);
 		return StringUtils.asInteger(result, TernCorePreferenceConstants.DEFAULT_REQUEST_TIMEOUT);
+	}
+	
+	public ContentScope getContentScope(IProject project) {
+		String result = preferencesSupport.getPreferencesValue(
+				TernCorePreferenceConstants.CONTENT_SCOPE, null, 
+				project);
+		try {
+			return ContentScope.valueOf(result);
+		} catch (Exception e) {
+			return TernCorePreferenceConstants.DEFAULT_CONTENT_SCOPE;
+		}
 	}
 
 	/**

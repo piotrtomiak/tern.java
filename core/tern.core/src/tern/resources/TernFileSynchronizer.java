@@ -13,7 +13,6 @@
 package tern.resources;
 
 import java.io.IOException;
-import java.text.MessageFormat;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -26,6 +25,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock.WriteLock;
 import tern.ITernFileSynchronizer;
 import tern.ITernFile;
 import tern.ITernProject;
+import tern.ContentScope;
 import tern.TernResourcesManager;
 import tern.scriptpath.ITernScriptResource;
 import tern.scriptpath.ITernScriptPath;
@@ -48,9 +48,6 @@ public class TernFileSynchronizer implements ITernFileSynchronizer {
 	// wait 200ms for uploader to finish
 	private static final int TIMEOUT = 200;
 
-	// allow to upload maximum 12MB
-	private static final int MAX_ALLOWED_SIZE = 12 * 1024 * 1024;
-
 	private final ITernProject project;
 
 	protected final ITernFileUploader uploader;
@@ -72,7 +69,6 @@ public class TernFileSynchronizer implements ITernFileSynchronizer {
 	public TernFileSynchronizer(ITernProject project) {
 		this.project = project;
 		this.uploader = createTernFileUploader();
-
 	}
 
 	public ITernFileUploader getTernFileUploader() {
@@ -143,13 +139,6 @@ public class TernFileSynchronizer implements ITernFileSynchronizer {
 		}
 	}
 
-	protected void sizeExceeded() {
-		System.out
-				.println(MessageFormat
-						.format("Size of scripts on {0} script path exceeds 12MB. Content assist might be incomplete.",
-								getProject().getName()));
-	}
-
 	@Override
 	public void ensureSynchronized() {
 		TernDoc doc = new TernDoc();
@@ -169,20 +158,11 @@ public class TernFileSynchronizer implements ITernFileSynchronizer {
 			}
 			synced.removeAll(toRefreshLocal);
 
-			long totalSize = 0;
-			for (String file : synced) {
-				totalSize += sentFiles.get(file).length();
-			}
-
-			for (ITernScriptPath path : getProject().getScriptPaths()) {
+			if (project.getScope() == ContentScope.WHOLE_PROJECT) {
+			  for (ITernScriptPath path : getProject().getScriptPaths()) {
 				Set<String> perPath = new HashSet<String>();
 				syncedFilesPerPath.put(path, perPath);
 				for (ITernScriptResource resource : path.getScriptResources()) {
-					// limit the size of content being sent to the Tern server
-					if (totalSize >= MAX_ALLOWED_SIZE) {
-						sizeExceeded();
-						break;
-					}
 					ITernFile file = resource.getFile();
 					if (file == null) {
 						continue;
@@ -194,12 +174,12 @@ public class TernFileSynchronizer implements ITernFileSynchronizer {
 							TernFile tf = file.toTernServerFile(getProject());
 							doc.addFile(tf);
 							synced.add(name);
-							totalSize += tf.getText().length();
 						} catch (IOException e) {
 							getProject().handleException(e);
 						}
 					}
 				}
+			  }
 			}
 
 			toRefreshLocal.removeAll(synced);
@@ -261,6 +241,14 @@ public class TernFileSynchronizer implements ITernFileSynchronizer {
 				}
 				doc.addFile(tf);
 			} finally {
+				if (project.getScope() == ContentScope.CURRENT_FILE) {
+					String curFile = file.getFullName(project);
+					for (String name: sentFiles.keySet()) {
+						if (!name.equals(curFile)) {
+							doc.addFile(name, "", null, null);
+						}
+					}
+				}
 				updateSentFiles(doc);
 				// as this is
 				// wait a bit for the sync to finish
@@ -298,17 +286,7 @@ public class TernFileSynchronizer implements ITernFileSynchronizer {
 
 			requestedFiles.remove(Arrays.asList(forced));
 
-			long totalSize = 0;
-			for (String file : requestedFiles) {
-				totalSize += sentFiles.get(file).length();
-			}
-
 			for (ITernScriptResource resource : path.getScriptResources()) {
-				// limit the number of files being sent to the Tern server
-				if (totalSize >= MAX_ALLOWED_SIZE) {
-					sizeExceeded();
-					break;
-				}
 				ITernFile file = resource.getFile();
 				if (file == null) {
 					continue;
@@ -319,7 +297,6 @@ public class TernFileSynchronizer implements ITernFileSynchronizer {
 					try {
 						TernFile tf = file.toTernServerFile(getProject());
 						doc.addFile(tf);
-						totalSize += tf.getText().length();
 						requestedFiles.add(name);
 					} catch (IOException e) {
 						getProject().handleException(e);

@@ -282,4 +282,6 @@ public interface ITernProject extends ITernAdaptable {
 	 * @return the tern repository used by the tern project.
 	 */
 	ITernRepository getRepository();
+
+	ContentScope getScope();
 }
