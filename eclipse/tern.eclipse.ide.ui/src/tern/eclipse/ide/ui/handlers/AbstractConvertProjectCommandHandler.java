@@ -134,10 +134,13 @@ public abstract class AbstractConvertProjectCommandHandler extends
 		if (finalShell != null) {
 			finalShell.getDisplay().asyncExec(new Runnable() {
 				public void run() {
-					if (PreferencesUtils.openPropertiesDialog(
-							project, finalShell, 
-							"myeclipse.root/org.eclipse.wst.jsdt.ui.propertyPages.BuildPathsPropertyPage",  //$NON-NLS-1$
-							"myeclipse.root/org.eclipse.wst.jsdt.internal.ui.preferences.JavaScriptMainPage") == Window.CANCEL) { //$NON-NLS-1$
+					if (PreferencesUtils
+							.openPropertiesDialog(
+									project,
+									finalShell,
+									"myeclipse.root/org.eclipse.wst.jsdt.ui.propertyPages.BuildPathsPropertyPage", //$NON-NLS-1$
+									null,
+									"myeclipse.root/org.eclipse.wst.jsdt.internal.ui.preferences.JavaScriptMainPage") == Window.CANCEL) { //$NON-NLS-1$
 						doUninstall(project, monitor);
 					}
 				}
