@@ -121,6 +121,14 @@ public interface ITernServer {
 	 */
 	boolean isLoadingLocalPlugins();
 
+	int getQualityLevel();
+	
+	void setQualityLevel(int level);
+	
+	int getRequestTimeout();
+	
+	void setRequestTimeout(int timeout);
+	
 	ITernServerRequestProcessor getRequestProcessor();
 
 	void setRequestProcessor(ITernServerRequestProcessor asyncReqProcessor);

@@ -49,6 +49,15 @@ public class TernCorePreferenceInitializer extends
 		// default modules
 		node.put(TernCorePreferenceConstants.DEFAULT_TERN_MODULES,
 				TernCorePreferenceConstants.DEFAULT_TERN_MODULES_VALUE);
+		//quality level
+		node.putInt(TernCorePreferenceConstants.QUALITY_LEVEL, 
+				TernCorePreferenceConstants.DEFAULT_QUALITY_LEVEL);
+		//timeout
+		node.putInt(TernCorePreferenceConstants.REQUEST_TIMEOUT, 
+				TernCorePreferenceConstants.DEFAULT_REQUEST_TIMEOUT);
+		//scope
+		node.put(TernCorePreferenceConstants.CONTENT_SCOPE, 
+				TernCorePreferenceConstants.DEFAULT_CONTENT_SCOPE.name());
 	}
 
 }

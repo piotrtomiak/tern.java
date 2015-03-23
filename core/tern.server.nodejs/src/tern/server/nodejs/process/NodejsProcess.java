@@ -74,6 +74,11 @@ public class NodejsProcess {
 	 * otherwise
 	 */
 	private boolean loadingLocalPlugins;
+	
+	/**
+	 * value in range 0-5 specifying level of proposals quality vs performance
+	 */
+	private Integer qualityLevel;
 
 	/**
 	 * node.js process.
@@ -282,6 +287,10 @@ public class NodejsProcess {
 		if (!isLoadingLocalPlugins()) {
 			commands.add("--disable-loading-local");
 		}
+		if (qualityLevel != null) {
+			commands.add("--quality");
+			commands.add(qualityLevel.toString());
+		}
 		return commands;
 	}
 
@@ -440,6 +449,15 @@ public class NodejsProcess {
 	 */
 	public boolean isVerbose() {
 		return verbose;
+	}
+	
+	public void setQualityLevel(int qualityLevel) {
+		assert qualityLevel >= 0 && qualityLevel <= 5;
+		this.qualityLevel = qualityLevel;
+	}
+	
+	public int getQualityLevel() {
+		return qualityLevel == null ? 4 : qualityLevel;
 	}
 
 	/**

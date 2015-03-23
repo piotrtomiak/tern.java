@@ -35,6 +35,8 @@ public abstract class AbstractTernServer implements ITernServer {
 	private boolean dataAsJsonString;
 	private boolean dispose;
 	private boolean loadingLocalPlugins;
+	private int qualityLevel;
+	private int requestTimeout;
 
 	private ITernServerRequestProcessor reqProcessor;
 
@@ -108,6 +110,16 @@ public abstract class AbstractTernServer implements ITernServer {
 		}
 	}
 
+	protected void fireTimedOutServer() {
+		synchronized (listeners) {
+			for (ITernServerListener listener : listeners) {
+				if (listener instanceof ITernServerListenerExt) {
+					((ITernServerListenerExt) listener).onTimeout(this);
+				}
+			}
+		}
+	}
+
 	@Override
 	public final void dispose() {
 		beginWriteState();
@@ -154,6 +166,26 @@ public abstract class AbstractTernServer implements ITernServer {
 	@Override
 	public boolean isLoadingLocalPlugins() {
 		return loadingLocalPlugins;
+	}
+	
+	@Override
+	public void setQualityLevel(int level) {
+		this.qualityLevel = level;
+	}
+	
+	@Override
+	public int getQualityLevel() {
+		return qualityLevel;
+	}
+	
+	@Override
+	public int getRequestTimeout() {
+		return requestTimeout;
+	}
+	
+	@Override
+	public void setRequestTimeout(int requestTimeout) {
+		this.requestTimeout = requestTimeout;
 	}
 
 	@Override

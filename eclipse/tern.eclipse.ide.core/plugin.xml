@@ -22,6 +22,8 @@
 		schema="schema/ternNatureAdapters.exsd" />
 	<extension-point id="ternServerTypes" name="%ternServerTypes.name"
 		schema="schema/ternServerTypes.exsd" />
+	<extension-point id="ternServerListeners" name="Tern Serve Listeners" 
+		schema="schema/ternServerListeners.exsd"/>
 			
 	<!-- =================================================================================== -->
 	<!-- Tern Builder                                                                        -->

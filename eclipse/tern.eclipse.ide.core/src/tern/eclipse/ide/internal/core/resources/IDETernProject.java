@@ -29,8 +29,6 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.QualifiedName;
 
 import tern.ITernFile;
-import tern.ITernProject;
-import tern.TernResourcesManager;
 import tern.eclipse.ide.core.IIDETernProject;
 import tern.eclipse.ide.core.ITernConsoleConnector;
 import tern.eclipse.ide.core.ITernProjectLifecycleListener.LifecycleEventType;
@@ -41,8 +39,8 @@ import tern.eclipse.ide.internal.core.TernConsoleConnectorManager;
 import tern.eclipse.ide.internal.core.TernNatureAdaptersManager;
 import tern.eclipse.ide.internal.core.TernProjectLifecycleManager;
 import tern.eclipse.ide.internal.core.TernRepositoryManager;
+import tern.eclipse.ide.internal.core.TernServerListenersManager;
 import tern.eclipse.ide.internal.core.Trace;
-import tern.eclipse.ide.internal.core.builder.TernBuilder;
 import tern.eclipse.ide.internal.core.preferences.TernCorePreferencesSupport;
 import tern.repository.ITernRepository;
 import tern.resources.TernFileSynchronizer;
@@ -152,6 +150,10 @@ public class IDETernProject extends TernProject implements IIDETernProject,
 							.setLoadingLocalPlugins(TernCorePreferencesSupport
 									.getInstance().isLoadingLocalPlugins(
 											project));
+					this.ternServer.setQualityLevel(TernCorePreferencesSupport.
+							getInstance().getQualityLevel(project));
+					this.ternServer.setRequestTimeout(TernCorePreferencesSupport.
+							getInstance().getRequestTimeout(project) * 1000);
 					this.ternServer.addServerListener(new TernServerAdapter() {
 						@Override
 						public void onStop(ITernServer server) {
@@ -515,6 +517,10 @@ public class IDETernProject extends TernProject implements IIDETernProject,
 		synchronized (serverLock) {
 			if (ternServer != null) {
 				for (ITernServerListener listener : listeners) {
+					this.ternServer.addServerListener(listener);
+				}
+				for (ITernServerListener listener : 
+					TernServerListenersManager.getGlobalTernServerListeners()) {
 					this.ternServer.addServerListener(listener);
 				}
 			}

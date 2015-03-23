@@ -28,6 +28,7 @@ import org.w3c.dom.Node;
 import tern.ITernFile;
 import tern.ITernFileSynchronizer;
 import tern.ITernProject;
+import tern.ContentScope;
 import tern.TernException;
 import tern.internal.resources.InternalTernResourcesManager;
 import tern.repository.ITernRepository;
@@ -525,6 +526,9 @@ public class TernProject extends JsonObject implements ITernProject {
 			ITernScriptPath scriptPath, Node domNode, ITernFile file,
 			ITernCompletionCollector collector) throws IOException,
 			TernException {
+		if (getScope() == ContentScope.TURN_OFF) {
+			return;
+		}
 		TernDoc doc = new TernDoc(query);
 		synchronize(doc, names, scriptPath, domNode, file);
 		ITernServer server = getTernServer();
@@ -543,6 +547,9 @@ public class TernProject extends JsonObject implements ITernProject {
 			ITernScriptPath scriptPath, Node domNode, ITernFile file,
 			ITernDefinitionCollector collector) throws IOException,
 			TernException {
+		if (getScope() == ContentScope.TURN_OFF) {
+			return;
+		}
 		TernDoc doc = new TernDoc(query);
 		synchronize(doc, names, scriptPath, domNode, file);
 		ITernServer server = getTernServer();
@@ -559,6 +566,9 @@ public class TernProject extends JsonObject implements ITernProject {
 	public void request(TernQuery query, JsonArray names,
 			ITernScriptPath scriptPath, Node domNode, ITernFile file,
 			ITernTypeCollector collector) throws IOException, TernException {
+		if (getScope() == ContentScope.TURN_OFF) {
+			return;
+		}
 		TernDoc doc = new TernDoc(query);
 		synchronize(doc, names, scriptPath, domNode, file);
 		ITernServer server = getTernServer();
@@ -568,6 +578,9 @@ public class TernProject extends JsonObject implements ITernProject {
 	@Override
 	public void request(TernQuery query, ITernFile file,
 			ITernLintCollector collector) throws IOException, TernException {
+		if (getScope() == ContentScope.TURN_OFF) {
+			return;
+		}
 		TernDoc doc = new TernDoc(query);
 		synchronize(doc, null, null, null, file);
 		ITernServer server = getTernServer();
@@ -584,6 +597,9 @@ public class TernProject extends JsonObject implements ITernProject {
 	public void request(TernGuessTypesQuery query, ITernFile file,
 			ITernGuessTypesCollector collector) throws IOException,
 			TernException {
+		if (getScope() == ContentScope.TURN_OFF) {
+			return;
+		}
 		TernDoc doc = new TernDoc(query);
 		synchronize(doc, null, null, null, file);
 		ITernServer server = getTernServer();
@@ -597,5 +613,10 @@ public class TernProject extends JsonObject implements ITernProject {
 
 	public boolean isDirty() {
 		return !toString().equals(lastTernProjectFileContent);
+	}
+
+	@Override
+	public ContentScope getScope() {
+		return ContentScope.WHOLE_PROJECT;
 	}
 }

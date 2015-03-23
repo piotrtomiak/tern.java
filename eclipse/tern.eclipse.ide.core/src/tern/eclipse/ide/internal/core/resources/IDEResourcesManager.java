@@ -75,6 +75,24 @@ public class IDEResourcesManager implements ITernResourcesManagerDelegate {
 		}
 		return null;
 	}
+	
+	@Override
+	public void disposeAllServers() {
+		for (IProject project: ResourcesPlugin.getWorkspace().getRoot().getProjects()) {
+			if (IDETernProject.hasTernNature(project)) {
+				try {
+					IDETernProject ternProject = IDETernProject
+							.getTernProject(project);
+					if (ternProject != null) {
+						ternProject.disposeServer();
+					}
+				} catch (CoreException e) {
+					//ignore
+				}
+				
+			}
+		}
+	}
 
 	@Override
 	public ITernFile getTernFile(ITernProject project, String name) {

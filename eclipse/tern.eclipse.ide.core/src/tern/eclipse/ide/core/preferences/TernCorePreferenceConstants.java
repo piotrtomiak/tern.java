@@ -10,6 +10,7 @@
  */
 package tern.eclipse.ide.core.preferences;
 
+import tern.ContentScope;
 import tern.server.TernDef;
 import tern.server.TernPlugin;
 import tern.utils.TernModuleHelper;
@@ -32,6 +33,9 @@ public class TernCorePreferenceConstants {
 	public static final String DEVELOPMENT_USE_PROJECT_SETTINGS = "development-use-project-settings";//$NON-NLS-1$
 	public static final String TRACE_ON_CONSOLE = "traceOnConsole"; //$NON-NLS-1$
 	public static final String LOADING_LOCAL_PLUGINS = "loadingLocalPlugin"; //$NON-NLS-1$
+	public static final String QUALITY_LEVEL = "qualityLevel"; //$NON-NLS-1$
+	public static final String REQUEST_TIMEOUT = "requestTimeout"; //$NON-NLS-1$
+	public static final String CONTENT_SCOPE = "contentScope"; //$NON-NLS-1$
 
 	/**
 	 * Tern repository preferences constants.
@@ -53,6 +57,10 @@ public class TernCorePreferenceConstants {
 	public static final String DEFAULT_TERN_MODULES = "defaultTernModules"; //$NON-NLS-1$
 	public static final String DEFAULT_TERN_MODULES_VALUE = getDefaultModules(); //$NON-NLS-1$
 
+	public static final int DEFAULT_QUALITY_LEVEL = 4;
+	public static final int DEFAULT_REQUEST_TIMEOUT = 30;
+	public static final ContentScope DEFAULT_CONTENT_SCOPE = ContentScope.WHOLE_PROJECT;
+	
 	/**
 	 * Returns the tern modules to add to .tern-project when project is
 	 * converted to tern project.

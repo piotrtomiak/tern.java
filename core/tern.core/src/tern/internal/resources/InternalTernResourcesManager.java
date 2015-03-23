@@ -87,4 +87,8 @@ public class InternalTernResourcesManager {
 		return null;
 	}
 
+	public void disposeAllServers() {
+		ternResourcesManagerDelegate.disposeAllServers();
+	}
+
 }
