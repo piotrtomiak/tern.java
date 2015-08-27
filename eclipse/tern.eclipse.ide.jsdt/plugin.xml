@@ -97,5 +97,14 @@
 	       point="org.eclipse.ui.startup">	
 	       <startup class="tern.eclipse.ide.jsdt.internal.JSDTTernStartup" />       
 	 </extension>
-	 
+
+   <extension
+         point="org.eclipse.ui.workbench.texteditor.hyperlinkDetectors">
+      <hyperlinkDetector
+            class="tern.eclipse.ide.jsdt.internal.hyperlink.TernHyperLinkDetector"
+            id="tern.eclipse.ide.internal.ui.hyperlink.TernHyperLinkDetector"
+            name="%TernHyperLinkDetector"
+            activate="true"
+            targetId="org.eclipse.wst.jsdt.ui.javaCode"/>
+   </extension>	 
 </plugin>        

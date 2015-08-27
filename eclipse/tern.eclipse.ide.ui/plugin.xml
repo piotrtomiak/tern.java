@@ -215,7 +215,7 @@
 	          </instanceof></enablement>
 	    </consolePageParticipant>
 	 </extension>
-
+<!-- Moved to tern.eclipse.ide.jsdt
    <extension
          point="org.eclipse.ui.workbench.texteditor.hyperlinkDetectors">
       <hyperlinkDetector
@@ -225,7 +225,7 @@
             activate="true"
             targetId="org.eclipse.wst.jsdt.ui.javaCode">
       </hyperlinkDetector>
-   </extension>
+   </extension> -->
       
    <!-- Tern Defs + Plugins descriptor -->
    <extension
