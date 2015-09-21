@@ -10,11 +10,10 @@
  */
 package tern.eclipse.ide.ui.properties;
 
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
 
 import org.eclipse.core.resources.IResource;
+import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
@@ -23,15 +22,14 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPreferencePage;
 
-import tern.eclipse.ide.core.IIDETernProject;
+import tern.eclipse.ide.core.IWorkingCopy;
+import tern.eclipse.ide.core.IWorkingCopyListener;
 import tern.eclipse.ide.internal.core.resources.IDETernProject.TernModuleModifyBroadCastMonitor;
 import tern.eclipse.ide.internal.ui.TernUIMessages;
 import tern.eclipse.ide.internal.ui.Trace;
-import tern.eclipse.ide.internal.ui.properties.AbstractTernPropertyPage;
 import tern.eclipse.ide.ui.ImageResource;
 import tern.eclipse.ide.ui.TernUIPlugin;
 import tern.eclipse.ide.ui.controls.TernModulesBlock;
-import tern.metadata.TernModuleMetadata;
 import tern.repository.ITernRepository;
 import tern.server.ITernModule;
 import tern.utils.TernModuleHelper;
@@ -41,7 +39,7 @@ import tern.utils.TernModuleHelper;
  * 
  */
 public class TernModulesPropertyPage extends AbstractTernPropertyPage implements
-		IWorkbenchPreferencePage {
+		IWorkbenchPreferencePage, IWorkingCopyListener {
 
 	private TernModulesBlock modulesBlock;
 
@@ -57,7 +55,10 @@ public class TernModulesPropertyPage extends AbstractTernPropertyPage implements
 	}
 
 	@Override
-	public Control createContents(Composite parent) {
+	public Control createContents(Composite ancestor) {
+		Composite parent = new Composite(ancestor, SWT.NONE);
+		parent.setLayoutData(new GridData(GridData.FILL_BOTH));
+		
 		initializeDialogUnits(parent);
 
 		noDefaultAndApplyButton();
@@ -79,10 +80,21 @@ public class TernModulesPropertyPage extends AbstractTernPropertyPage implements
 		control.setLayoutData(data);
 
 		// load modules
-		modulesBlock.loadModules();
+		refreshModules();
 
 		applyDialogFont(parent);
 		return parent;
+	}
+
+	public void refreshModules() {
+		try {
+			IWorkingCopy workingCopy = getWorkingCopy();
+			workingCopy.addWorkingCopyListener(this);
+			modulesBlock.refresh(workingCopy.getAllModules(),
+					workingCopy.getCheckedModules());
+		} catch (Throwable e) {
+			Trace.trace(Trace.SEVERE, "Error while loading tern project", e);
+		}
 	}
 
 	@Override
@@ -102,45 +114,9 @@ public class TernModulesPropertyPage extends AbstractTernPropertyPage implements
 			});
 		}
 		// save the checked plugins in the tern project
-		final Object[] checkedModules = modulesBlock.getCheckedModules();
+		final Collection<ITernModule> checkedModules = modulesBlock.getCheckedModules();
 		try {
-			IIDETernProject ternProject = getTernProject();
-			ITernRepository repository = ternProject.getRepository();
-			// clear Plugin + JSON Type Definition
-			ternProject.clearPlugins();
-			ternProject.clearLibs();
-			// Add Plugin + JSON Type Definition
-			ITernModule module = null;
-			Collection<String> requiredDependencies = null;
-			ITernModule dependencyModule = null;
-			List<ITernModule> sortedModules = new ArrayList<ITernModule>();
-			for (Object m : checkedModules) {
-				module = (ITernModule) m;
-				TernModuleMetadata metadata = module.getMetadata();
-				if (metadata != null) {
-					// add required dependencies (ex : if ecma6 is checked,
-					// ecma5 must
-					// be added too).
-					requiredDependencies = metadata
-							.getRequiredDependencies(module.getVersion());
-					for (String dependency : requiredDependencies) {
-						dependencyModule = repository.getModule(dependency);
-						if (dependencyModule != null
-								&& !sortedModules.contains(dependencyModule)) {
-							sortedModules.add(dependencyModule);
-						}
-					}
-				}
-				if (module != null && !sortedModules.contains(module)) {
-					sortedModules.add(module);
-				}
-
-			}
-			TernModuleHelper.sort(sortedModules);
-			for (ITernModule m : sortedModules) {
-				TernModuleHelper.update(m, ternProject);
-			}
-			ternProject.save();
+			saveWorkingCopy();
 			
 			// Broadcast fire event
 			TernModuleModifyBroadCastMonitor.fireEvent();
@@ -182,4 +158,20 @@ public class TernModulesPropertyPage extends AbstractTernPropertyPage implements
 		}
 	}
 
+
+	@Override
+	public void moduleSelectionChanged(ITernModule module, boolean selected) {
+		if (!modulesBlock.isCheckUpdating()) {
+			modulesBlock.setCheckedModule(module, selected);
+		}
+	}
+
+	@Override
+	public void dispose() {
+		super.dispose();
+		try {
+			getWorkingCopy().removeWorkingCopyListener(this);
+		} catch (Throwable e) {
+		}
+	}
 }

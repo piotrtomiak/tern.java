@@ -36,7 +36,6 @@ import tern.server.ModuleType;
 import tern.server.TernDef;
 import tern.server.TernModuleConfigurable;
 import tern.server.TernPlugin;
-import tern.server.protocol.lint.TernLintPlugin;
 
 import com.eclipsesource.json.JsonObject;
 import com.eclipsesource.json.JsonValue;
@@ -136,7 +135,7 @@ public class TernModuleHelper {
 	public static boolean isConfigurableModule(ITernModule module) {
 		TernModuleMetadata metadata = module.getMetadata();
 		return !StringUtils.isEmpty(module.getVersion())
-				|| (metadata != null && metadata.getOptions().size() > 0);
+				|| (metadata != null && metadata.hasOptions());
 	}
 
 	/**
@@ -259,7 +258,7 @@ public class TernModuleHelper {
 		if (module == null || module.getMetadata() == null) {
 			return false;
 		}
-		return module.getMetadata().getOptions().size() > 0;
+		return module.getMetadata().hasOptions();
 	}
 
 	public static ITernModule getModule(String filename) {
@@ -298,13 +297,8 @@ public class TernModuleHelper {
 	 * @return
 	 */
 	private static ITernPlugin getPlugin(String name) {
-		// classic plugin
+		// tern plugin
 		ITernPlugin plugin = TernPlugin.getTernPlugin(name);
-		if (plugin != null) {
-			return plugin;
-		}
-		// lint plugin
-		plugin = TernLintPlugin.getTernPlugin(name);
 		if (plugin != null) {
 			return plugin;
 		}
@@ -373,5 +367,19 @@ public class TernModuleHelper {
 			s.append(modules[i].getName());
 		}
 		return s.toString();
+	}
+
+	/**
+	 * Returns the label of the given module.
+	 * 
+	 * @param module
+	 * @return the label of the given module.
+	 */
+	public static String getLabel(ITernModule module) {
+		TernModuleMetadata metadata = module.getMetadata();
+		if (metadata != null && !StringUtils.isEmpty(metadata.getLabel())) {
+			return metadata.getLabel();
+		}
+		return module.getName();
 	}
 }

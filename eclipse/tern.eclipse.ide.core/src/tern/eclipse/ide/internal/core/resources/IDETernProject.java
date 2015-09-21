@@ -15,6 +15,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -29,11 +30,15 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.QualifiedName;
 
 import tern.ITernFile;
+import tern.ITernProject;
+import tern.TernException;
+import tern.TernResourcesManager;
 import tern.eclipse.ide.core.IIDETernProject;
 import tern.eclipse.ide.core.ITernConsoleConnector;
 import tern.eclipse.ide.core.ITernProjectLifecycleListener.LifecycleEventType;
 import tern.eclipse.ide.core.ITernServerPreferencesListener;
 import tern.eclipse.ide.core.ITernServerType;
+import tern.eclipse.ide.core.IWorkingCopy;
 import tern.eclipse.ide.core.TernCorePlugin;
 import tern.eclipse.ide.internal.core.TernConsoleConnectorManager;
 import tern.eclipse.ide.internal.core.TernNatureAdaptersManager;
@@ -41,6 +46,8 @@ import tern.eclipse.ide.internal.core.TernProjectLifecycleManager;
 import tern.eclipse.ide.internal.core.TernRepositoryManager;
 import tern.eclipse.ide.internal.core.TernServerListenersManager;
 import tern.eclipse.ide.internal.core.Trace;
+import tern.eclipse.ide.internal.core.WorkingCopy;
+import tern.eclipse.ide.internal.core.WorkingCopyModuleList;
 import tern.eclipse.ide.internal.core.preferences.TernCorePreferencesSupport;
 import tern.repository.ITernRepository;
 import tern.resources.TernFileSynchronizer;
@@ -52,6 +59,7 @@ import tern.server.ITernServer;
 import tern.server.ITernServerListener;
 import tern.server.TernServerAdapter;
 import tern.utils.IOUtils;
+import tern.utils.StringUtils;
 import tern.utils.TernModuleHelper;
 
 import com.eclipsesource.json.JsonObject;
@@ -78,6 +86,8 @@ public class IDETernProject extends TernProject implements IIDETernProject,
 	private final Map<String, Object> data;
 
 	private final List<ITernServerListener> listeners;
+
+	private final IWorkingCopy workingCopy;
 
 	// Broadcast monitor written for usage in Metrics code.
 	public static class TernModuleModifyBroadCastMonitor {
@@ -109,6 +119,7 @@ public class IDETernProject extends TernProject implements IIDETernProject,
 		this.project = project;
 		this.data = new HashMap<String, Object>();
 		this.listeners = new ArrayList<ITernServerListener>();
+		this.workingCopy = new WorkingCopy(this);
 		TernCorePlugin.getTernServerTypeManager().addServerPreferencesListener(
 				this);
 		project.setSessionProperty(TERN_PROJECT, this);
@@ -303,8 +314,8 @@ public class IDETernProject extends TernProject implements IIDETernProject,
 				IFile file = project.getFile(TERN_PROJECT_FILE);
 				InputStream content = null;
 				try {
-					content = IOUtils.toInputStream(super.toString(),
-							file.exists() ? file.getCharset() : "UTF-8");
+					content = IOUtils.toInputStream(super.toString(), file
+							.exists() ? file.getCharset() : StringUtils.UTF_8);
 					if (!file.exists()) {
 						file.create(content, IResource.NONE, null);
 					} else {
@@ -589,6 +600,26 @@ public class IDETernProject extends TernProject implements IIDETernProject,
 	public static IDETernProject getTernProject(IProject project)
 			throws CoreException {
 		return (IDETernProject) project.getSessionProperty(TERN_PROJECT);
+	}
+
+	@Override
+	public List<ITernModule> getAllModules() throws TernException {
+		// Add global tern module from the repository
+		List<ITernModule> allModules = new ArrayList<ITernModule>(
+				Arrays.asList(getRepository().getModules()));
+		// Add local tern modules
+		List<ITernModule> projectModules = getProjectModules();
+		allModules.addAll(projectModules);
+		return allModules;
+	}
+
+	@Override
+	public IWorkingCopy getWorkingCopy(Object caller) throws TernException {
+		if (workingCopy.isDirty()) {
+			workingCopy.initialize();
+		}
+		workingCopy.call(caller);
+		return workingCopy;
 	}
 
 }

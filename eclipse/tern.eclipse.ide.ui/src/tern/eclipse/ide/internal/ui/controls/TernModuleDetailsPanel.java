@@ -10,9 +10,6 @@
  */
 package tern.eclipse.ide.internal.ui.controls;
 
-import java.net.MalformedURLException;
-import java.net.URL;
-
 import org.eclipse.core.resources.IProject;
 import org.eclipse.jface.resource.JFaceResources;
 import org.eclipse.swt.SWT;
@@ -22,15 +19,12 @@ import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Link;
-import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Text;
 
 import tern.eclipse.ide.internal.ui.TernUIMessages;
-import tern.eclipse.ide.internal.ui.Trace;
-import tern.eclipse.ide.ui.utils.OpenBrowserUtil;
+import tern.eclipse.ide.ui.utils.BrowserSupport;
 import tern.eclipse.ide.ui.viewers.TernModuleLabelProvider;
 import tern.metadata.TernModuleMetadata;
 import tern.server.ITernModule;
@@ -50,27 +44,41 @@ public class TernModuleDetailsPanel extends AbstractTernModulePanel {
 	@Override
 	protected void createUI(Composite parent, ITernModule module,
 			IProject project) {
-
 		GridLayout layout = new GridLayout(1, false);
 		super.setLayout(layout);
-
 		// Create title header of the module with icon.
 		createHeader(parent, module);
-
 		// Create separator
 		createSeparator();
-
 		// Create body of the module.
 		createBody(module);
 
 	}
 
-	public void createSeparator() {
+	private void createHeader(final Composite parent, ITernModule module) {
+		Composite header = new Composite(this, SWT.NONE);
+		GridLayout layout = new GridLayout(2, false);
+		header.setLayout(layout);
+
+		String version = module.getVersion();
+		if (version == null) {
+			version = ""; //$NON-NLS-1$
+		} else {
+			version = " " + version; //$NON-NLS-1$
+		}
+		
+		addInfo(header, null, TernModuleLabelProvider.getImageModule(module),
+				module.getDisplayName() + version,
+				JFaceResources.getFontRegistry().get(DetailsPanel.HEADER_FONT),
+				false);
+	}
+
+	private void createSeparator() {
 		final Label separator = new Label(this, SWT.SEPARATOR | SWT.HORIZONTAL);
 		separator.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 	}
 
-	public void createBody(ITernModule module) {
+	private void createBody(ITernModule module) {
 
 		GridLayout layout;
 		final ScrolledComposite details = new ScrolledComposite(this,
@@ -130,26 +138,8 @@ public class TernModuleDetailsPanel extends AbstractTernModulePanel {
 
 	}
 
-	public void createHeader(final Composite parent, ITernModule module) {
-		Composite header = new Composite(this, SWT.NONE);
-		GridLayout layout = new GridLayout(2, false);
-		header.setLayout(layout);
-
-		String version = module.getVersion();
-		if (version == null) {
-			version = ""; //$NON-NLS-1$
-		} else {
-			version = " " + version; //$NON-NLS-1$
-		}
-		
-		addInfo(header, null, TernModuleLabelProvider.getImageModule(module),
-				module.getDisplayName() + version,
-				JFaceResources.getFontRegistry().get(DetailsPanel.HEADER_FONT),
-				false);
-	}
-
-	public void addInfo(final Composite parent, String valueLabel, Image image,
-			String valueInfo, Font font, boolean hyperlink) {
+	private void addInfo(final Composite parent, String valueLabel,
+			Image image, String valueInfo, Font font, boolean hyperlink) {
 
 		Label label = new Label(parent, SWT.NONE);
 		label.setLayoutData(new GridData(GridData.VERTICAL_ALIGN_BEGINNING));
@@ -165,7 +155,7 @@ public class TernModuleDetailsPanel extends AbstractTernModulePanel {
 				link.setFont(font);
 			}
 			if (!StringUtils.isEmpty(valueInfo)) {
-				setLinkTarget(link, valueInfo);
+				BrowserSupport.setLinkTarget(link, valueInfo, valueInfo);
 			}
 		} else {
 			Text textField = new Text(parent, SWT.WRAP | SWT.READ_ONLY);
@@ -179,17 +169,4 @@ public class TernModuleDetailsPanel extends AbstractTernModulePanel {
 		}
 	}
 
-	private static void setLinkTarget(Link link, final String target) {
-		link.setText(new StringBuilder("<a>").append(target).append("</a>")
-				.toString());
-		link.addListener(SWT.Selection, new Listener() {
-			public void handleEvent(Event event) {
-				try {
-					OpenBrowserUtil.open(new URL(target), event.display);
-				} catch (MalformedURLException e) {
-					Trace.trace(Trace.SEVERE, "Error while opening browser", e);
-				}
-			}
-		});
-	}
 }

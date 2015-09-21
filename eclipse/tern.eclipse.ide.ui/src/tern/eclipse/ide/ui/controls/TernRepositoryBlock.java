@@ -44,7 +44,6 @@ import tern.eclipse.ide.core.TernCorePlugin;
 import tern.eclipse.ide.core.preferences.TernCorePreferenceConstants;
 import tern.eclipse.ide.internal.ui.TernUIMessages;
 import tern.eclipse.ide.internal.ui.dialogs.EditRepositoryDialog;
-import tern.eclipse.ide.internal.ui.properties.AbstractTableBlock;
 import tern.eclipse.ide.ui.TernUIPlugin;
 import tern.eclipse.ide.ui.viewers.TernRepositoryLabelProvider;
 import tern.repository.ITernRepository;
@@ -349,11 +348,8 @@ public class TernRepositoryBlock extends AbstractTableBlock {
 	}
 
 	private String getDefaultModules() {
-		Object[] checkedModules = modulesBlock.getCheckedModules();
-		ITernModule[] modules = new ITernModule[checkedModules.length];
-		for (int i = 0; i < checkedModules.length; i++) {
-			modules[i] = (ITernModule) checkedModules[i];
-		}
+		ITernModule[] modules = modulesBlock.getCheckedModules().toArray(
+				ITernModule.EMPTY_MODULE);
 		return TernModuleHelper.getModulesAsString(modules);
 	}
 
