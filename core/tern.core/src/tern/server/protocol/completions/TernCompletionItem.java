@@ -23,7 +23,7 @@ public class TernCompletionItem {
 
 	private final TernCompletionProposalRec proposal;
 	private final String displayName;
-	
+
 	private final String signature;
 	private final boolean function;
 	private boolean array;
@@ -36,7 +36,8 @@ public class TernCompletionItem {
 		this.proposal = proposal;
 		// we consider that we are inside string when display name is defined.
 		this.hasDisplayName = !StringUtils.isEmpty(proposal.displayName);
-		this.displayName = hasDisplayName ? proposal.displayName : proposal.name;
+		this.displayName = hasDisplayName ? proposal.displayName
+				: proposal.name;
 		this.parameters = null;
 		String signature = proposal.name;
 		if (proposal.keyword) {
@@ -47,8 +48,8 @@ public class TernCompletionItem {
 		if (!hasDisplayName && !StringUtils.isEmpty(proposal.type)) {
 			this.function = TernTypeHelper.isFunction(proposal.type);
 			if (function) {
-				FunctionInfo functionInfo = TernTypeHelper.parseFunction(proposal.name,
-						proposal.type);
+				FunctionInfo functionInfo = TernTypeHelper.parseFunction(
+						proposal.name, proposal.type);
 				this.parameters = functionInfo.getParameters();
 				signature = functionInfo.getSignature();
 				this.jsType = functionInfo.getReturnType();
@@ -301,7 +302,7 @@ public class TernCompletionItem {
 	public String getType() {
 		return proposal.type;
 	}
-	
+
 	public TernCompletionProposalRec getProposal() {
 		return proposal;
 	}
@@ -332,5 +333,14 @@ public class TernCompletionItem {
 
 	public boolean isStringReturnType() {
 		return "string".equals(getJsType());
+	}
+
+	/**
+	 * Returns the origin type.
+	 * 
+	 * @return the origin type.
+	 */
+	public String getOriginType() {
+		return getOrigin();
 	}
 }

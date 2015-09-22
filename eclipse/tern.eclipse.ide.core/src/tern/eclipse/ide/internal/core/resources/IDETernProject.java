@@ -47,7 +47,6 @@ import tern.eclipse.ide.internal.core.TernRepositoryManager;
 import tern.eclipse.ide.internal.core.TernServerListenersManager;
 import tern.eclipse.ide.internal.core.Trace;
 import tern.eclipse.ide.internal.core.WorkingCopy;
-import tern.eclipse.ide.internal.core.WorkingCopyModuleList;
 import tern.eclipse.ide.internal.core.preferences.TernCorePreferencesSupport;
 import tern.repository.ITernRepository;
 import tern.resources.TernFileSynchronizer;
@@ -217,13 +216,6 @@ public class IDETernProject extends TernProject implements IIDETernProject,
 					.fireTernProjectLifeCycleListenerChanged(this,
 							LifecycleEventType.onLoadBefore);
 			super.doLoad();
-			// add tern builder if needed
-			/* ME: do not add TernBuilder
-			try {
-				TernBuilder.addTernBuilder(project);
-			} catch (CoreException e) {
-				Trace.trace(Trace.SEVERE, "Error while adding tern builder", e);
-			}*/
 			// Load IDE informations of the tern project.
 			loadIDEInfos();
 
@@ -620,6 +612,23 @@ public class IDETernProject extends TernProject implements IIDETernProject,
 		}
 		workingCopy.call(caller);
 		return workingCopy;
+	}
+
+	@Override
+	public boolean isInScope(IResource resource) {
+		if (resource == null) {
+			return false;
+		}
+		// TODO : use tern script paths
+		do {
+			if (resource.isDerived() || resource.isTeamPrivateMember()
+					|| !resource.isAccessible()
+					|| resource.getName().charAt(0) == '.') {
+				return false;
+			}
+			resource = resource.getParent();
+		} while ((resource.getType() & IResource.PROJECT) == 0);
+		return true;
 	}
 
 }

@@ -29,7 +29,6 @@ public class TernLinterOption implements ITernLinterOption {
 	private final String type;
 	private final String url;
 	private String doc;
-	private boolean enabled;
 	private Object value;
 	private final Map<String, ITernLinterOption> options;
 
@@ -88,22 +87,17 @@ public class TernLinterOption implements ITernLinterOption {
 	}
 
 	@Override
+	public boolean isStringType() {
+		return "string".equals(getType());
+	}
+
+	@Override
 	public boolean isCategoryType() {
 		return "category".equals(getType());
 	}
 
 	public boolean hasType() {
 		return !StringUtils.isEmpty(getType());
-	}
-
-	@Override
-	public boolean isEnabled() {
-		return enabled;
-	}
-
-	@Override
-	public void setEnabled(boolean enabled) {
-		this.enabled = enabled;
 	}
 
 	@Override
@@ -118,17 +112,27 @@ public class TernLinterOption implements ITernLinterOption {
 
 	@Override
 	public boolean getBooleanValue() {
-		return (value != null) ? (Boolean) value : false;
+		return hasValue() ? (Boolean) value : false;
 	}
 
 	@Override
-	public Integer getNumberValue() {
-		return (value != null) ? (Integer) value : null;
+	public boolean hasValue() {
+		return value != null;
+	}
+
+	@Override
+	public Long getNumberValue() {
+		return hasValue() ? (Long) value : null;
 	}
 
 	@Override
 	public String getStringValue() {
-		return (value != null) ? (String) value : null;
+		return hasValue() ? (String) value : null;
+	}
+
+	@Override
+	public String toString() {
+		return hasValue() ? value.toString() : "";
 	}
 
 }

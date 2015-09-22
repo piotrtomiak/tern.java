@@ -16,28 +16,14 @@ import java.util.ResourceBundle;
 import org.eclipse.osgi.util.NLS;
 
 /**
- * Tern Nodejs UI messages.
+ * Tern JSHint UI messages.
  * 
  */
 public final class TernJSHintUIMessages extends NLS {
 
-	private static final String BUNDLE_NAME = "tern.eclipse.ide.server.nodejs.internal.ui.TernNodejsUIMessages"; //$NON-NLS-1$
+	private static final String BUNDLE_NAME = "tern.eclipse.ide.linter.jshint.internal.ui.TernJSHintUIMessages"; //$NON-NLS-1$
 
 	private static ResourceBundle fResourceBundle;
-
-	// Preferences
-	public static String TernNodejsPreferencesPage_desc;
-	public static String TernNodejsPreferencesPage_nodeJSRemoteAccess;
-	public static String TernNodejsPreferencesPage_nodeJSRemotePort;
-	
-	public static String TernNodejsPreferencesPage_nodeJSDirectAccess;
-	public static String TernNodejsPreferencesPage_nodeJSTimeout;
-	public static String TernNodejsPreferencesPage_nodeJSTestNumber;
-	public static String TernNodejsPreferencesPage_nodeJSPersistent;
-	public static String TernNodejsPreferencesPage_nodeJSInstall;
-	public static String TernNodejsPreferencesPage_nodeJSInstall_emptyValue;
-	public static String TernNodejsPreferencesPage_nativeNodeJSPath;
-	public static String TernNodejsPreferencesPage_nodeJSPath;
 
 	private TernJSHintUIMessages() {
 	}
