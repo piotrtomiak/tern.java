@@ -1,5 +1,5 @@
 /**
- *  Copyright (c) 2013-2014 Angelo ZERR.
+ *  Copyright (c) 2013-2015 Angelo ZERR.
  *  All rights reserved. This program and the accompanying materials
  *  are made available under the terms of the Eclipse Public License v1.0
  *  which accompanies this distribution, and is available at
@@ -31,10 +31,10 @@ public class ModuleDependenciesComparator implements Comparator<ITernModule> {
 
 	private final Map<ITernModule, Integer> modulesMap;
 
-	public ModuleDependenciesComparator(List<ITernModule> modules) {
+	public ModuleDependenciesComparator(List<ITernModule> modules, TernModuleMetadataManager manager) {
 		modulesMap = new HashMap<ITernModule, Integer>();
 		for (ITernModule module : modules) {
-			getRelevant(module, modules, modulesMap);
+			updateRelevant(module, modules, modulesMap, manager);
 		}
 		Collections.sort(modules, this);
 	}
@@ -46,18 +46,19 @@ public class ModuleDependenciesComparator implements Comparator<ITernModule> {
 	 * @param module
 	 * @param modules
 	 * @param modulesMap
+	 * @param manager 
 	 * @return the relevant of the given module computed with dependencies
 	 *         modules.
 	 */
-	private int getRelevant(ITernModule module, List<ITernModule> modules,
-			Map<ITernModule, Integer> modulesMap) {
+	private int updateRelevant(ITernModule module, List<ITernModule> modules,
+			Map<ITernModule, Integer> modulesMap, TernModuleMetadataManager manager) {
 		if (modulesMap.containsKey(module)) {
 			// relevant already computed, return it.
 			return modulesMap.get(module);
 		}
 		// Compute relevant by using dependencies
 		int relevant = 1;
-		TernModuleMetadata metadata = module.getMetadata();
+		TernModuleMetadata metadata = manager != null ? manager.getMetadata(module.getType()) : module.getMetadata();
 		if (metadata != null) {
 			Collection<String> dependencies = metadata.getDependencies(module
 					.getVersion());
@@ -66,8 +67,8 @@ public class ModuleDependenciesComparator implements Comparator<ITernModule> {
 					ITernModule dependencyModule = getModule(dependency,
 							modules);
 					if (dependencyModule != null) {
-						relevant += getRelevant(dependencyModule, modules,
-								modulesMap);
+						relevant += updateRelevant(dependencyModule, modules,
+								modulesMap, manager);
 					}
 				}
 			}

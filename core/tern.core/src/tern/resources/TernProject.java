@@ -1,5 +1,5 @@
 /**
- *  Copyright (c) 2013-2014 Angelo ZERR.
+ *  Copyright (c) 2013-2015 Angelo ZERR and Genuitec LLC.
  *  All rights reserved. This program and the accompanying materials
  *  are made available under the terms of the Eclipse Public License v1.0
  *  which accompanies this distribution, and is available at
@@ -7,6 +7,8 @@
  *
  *  Contributors:
  *  Angelo Zerr <angelo.zerr@gmail.com> - initial API and implementation
+ *  Piotr Tomiak <piotr@genuitec.com> - refactoring of file management API
+- *  								  - asynchronous file upload
  */
 package tern.resources;
 
@@ -27,7 +29,6 @@ import com.eclipsesource.json.JsonArray;
 import com.eclipsesource.json.JsonObject;
 import com.eclipsesource.json.JsonValue;
 import com.eclipsesource.json.ParseException;
-import com.eclipsesource.json.PrettyPrint;
 import com.eclipsesource.json.WriterConfig;
 
 import tern.EcmaVersion;
@@ -44,7 +45,6 @@ import tern.server.ITernDef;
 import tern.server.ITernPlugin;
 import tern.server.ITernServer;
 import tern.server.TernDef;
-import tern.server.TernPlugin;
 import tern.server.protocol.JsonHelper;
 import tern.server.protocol.TernDoc;
 import tern.server.protocol.TernQuery;
@@ -93,7 +93,7 @@ public class TernProject extends JsonObject implements ITernProject {
 	private static final String PLUGINS_FIELD_NAME = "plugins"; //$NON-NLS-1$
 	private static final String LIBS_FIELD_NAME = "libs"; //$NON-NLS-1$
 	private static final String LOAD_EAGERLY_FIELD_NAME = "loadEagerly"; //$NON-NLS-1$
-			
+
 	private final File projectDir;
 	protected final File ternProjectFile;
 	private ITernRepository repository;
@@ -143,7 +143,6 @@ public class TernProject extends JsonObject implements ITernProject {
 		return ternProjectFile;
 	}
 
-	
 	@Override
 	public void setEcmaVersion(EcmaVersion ecmaVersion) {
 		super.set(ECMA_VERSION_FIELD_NAME, ecmaVersion.getVersion());
@@ -154,9 +153,6 @@ public class TernProject extends JsonObject implements ITernProject {
 		int version = super.getInt(ECMA_VERSION_FIELD_NAME, -1);
 		if (version == -1) {
 			// Search if .tern-project contains ecma5.json, etc
-			if (hasLib(TernDef.ecma7)) {
-				return EcmaVersion.ES7;
-			}
 			if (hasLib(TernDef.ecma6)) {
 				return EcmaVersion.ES6;
 			}
@@ -166,7 +162,7 @@ public class TernProject extends JsonObject implements ITernProject {
 		}
 		return EcmaVersion.get(version);
 	}
-	
+
 	/**
 	 * Returns true if lib or plugins exists and false otheriwse.
 	 * 
@@ -200,6 +196,10 @@ public class TernProject extends JsonObject implements ITernProject {
 				getLibs().add(lib);
 			}
 		}
+	}
+
+	public boolean hasLib(TernDef lib) {
+		return hasLib(lib.getName());
 	}
 
 	/**
@@ -375,9 +375,6 @@ public class TernProject extends JsonObject implements ITernProject {
 		ITernRepository repository = getRepository();
 		if (repository != null) {
 			addLinter(plugins, repository.getLinters());
-		} else {
-			// known linters
-			addLinter(plugins, TernPlugin.getLinters());
 		}
 	}
 
@@ -697,7 +694,7 @@ public class TernProject extends JsonObject implements ITernProject {
 		ITernServer server = getTernServer();
 		server.request(doc, collector);
 	}
-	
+
 	@Override
 	public ITernRepository getRepository() {
 		return repository;

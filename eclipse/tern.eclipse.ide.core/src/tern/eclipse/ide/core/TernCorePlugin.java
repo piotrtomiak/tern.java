@@ -1,5 +1,5 @@
 /**
- *  Copyright (c) 2013-2014 Angelo ZERR.
+ *  Copyright (c) 2013-2015 Angelo ZERR and Genuitec LLC.
  *  All rights reserved. This program and the accompanying materials
  *  are made available under the terms of the Eclipse Public License v1.0
  *  which accompanies this distribution, and is available at
@@ -7,6 +7,7 @@
  *
  *  Contributors:
  *  Angelo Zerr <angelo.zerr@gmail.com> - initial API and implementation
+ *  Piotr Tomiak <piotr@genuitec.com> - refactoring of file management API
  */
 package tern.eclipse.ide.core;
 
@@ -34,7 +35,6 @@ import tern.eclipse.ide.internal.core.TernServerTypeManager;
 import tern.eclipse.ide.internal.core.resources.IDETernProject;
 import tern.eclipse.ide.internal.core.resources.IDETernProjectSynchronizer;
 import tern.internal.resources.InternalTernResourcesManager;
-import tern.metadata.TernModuleMetadataManager;
 import tern.server.nodejs.process.NodejsProcessManager;
 
 /**
@@ -62,7 +62,6 @@ public class TernCorePlugin extends Plugin {
 		super.start(context);
 
 		IDETernProjectSynchronizer.getInstance().initialize();
-		TernModuleMetadataManager.getInstance().init(getTernCoreBaseDir());
 		TernFileConfigurationManager.getManager().initialize();
 		TernModuleInstallManager.getManager().initialize();
 		

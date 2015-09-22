@@ -40,6 +40,7 @@ function J2V8TernServer(defs, plugins) {
 	    plugins: plugins,
 	    debug: verbose,
 	    projectDir: dir,
+	    ecmaVersion: config.ecmaVersion,
 	    dependencyBudget: config.dependencyBudget,
 	    stripCRs: stripCRs
 	  });
@@ -65,21 +66,24 @@ function J2V8TernServer(defs, plugins) {
 		_this.data = data;
 	  });
 	  if (_this.err) throw _this.err;
+	  if (verbose) console.log("Response: " + JSON.stringify(_this.data, null, 2));
 	  return JSON.stringify(_this.data);
     }	
 }
 
 var verbose = true;
-var projectDir;
-var stripCRs;
+var projectDir = "/";
+var stripCRs = false;
 
 var defaultConfig = {
   libs: [],
   loadEagerly: false,
   plugins: {},
   ecmaScript: true,
+  ecmaVersion: 6,
   dependencyBudget: tern.defaultOptions.dependencyBudget
 };
+
 var config = defaultConfig;
 
 

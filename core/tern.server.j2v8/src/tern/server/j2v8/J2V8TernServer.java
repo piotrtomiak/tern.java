@@ -13,21 +13,19 @@ package tern.server.j2v8;
 import java.io.IOException;
 import java.util.List;
 
+import com.eclipsesource.json.Json;
+import com.eclipsesource.json.JsonObject;
+import com.eclipsesource.v8.V8;
+
 import tern.ITernProject;
 import tern.TernException;
 import tern.server.AbstractScriptEngineTernServer;
 import tern.server.IResponseHandler;
-import tern.server.ITernDef;
-import tern.server.ITernPlugin;
 import tern.server.protocol.IJSONObjectHelper;
 import tern.server.protocol.MinimalJSONHelper;
 import tern.server.protocol.TernDoc;
 import tern.server.protocol.html.ScriptTagRegion;
 import tern.utils.IOUtils;
-
-import com.eclipsesource.json.JsonObject;
-import com.eclipsesource.json.JsonValue;
-import com.eclipsesource.v8.V8;
 
 /**
  * Tern server implemented with J2V8
@@ -39,16 +37,6 @@ public class J2V8TernServer extends AbstractScriptEngineTernServer {
 
 	public J2V8TernServer(ITernProject project) {
 		super(project);
-	}
-
-	@Override
-	public void addDef(ITernDef def) throws TernException {
-		getProject().addLib(def);
-	}
-
-	@Override
-	public void addPlugin(ITernPlugin plugin) throws TernException {
-		getProject().addPlugin(plugin);
 	}
 
 	@Override
@@ -79,7 +67,7 @@ public class J2V8TernServer extends AbstractScriptEngineTernServer {
 			String script = new StringBuilder("server.request(")
 					.append(doc.toString()).append(");").toString();
 			String json = v8.executeStringScript(script);
-			return (JsonObject) JsonValue.readFrom(json);
+			return Json.parse(json).asObject();
 		} catch (Throwable e) {
 			throw new TernException(e);
 		} finally {
@@ -106,6 +94,7 @@ public class J2V8TernServer extends AbstractScriptEngineTernServer {
 				v8 = null;
 			}
 		}
+		fireEndServer();
 	}
 
 	public void log(String message, Integer level) {

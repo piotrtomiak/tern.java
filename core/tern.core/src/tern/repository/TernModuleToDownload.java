@@ -1,5 +1,5 @@
 /**
- *  Copyright (c) 2013-2014 Angelo ZERR.
+ *  Copyright (c) 2013-2015 Angelo ZERR.
  *  All rights reserved. This program and the accompanying materials
  *  are made available under the terms of the Eclipse Public License v1.0
  *  which accompanies this distribution, and is available at
@@ -10,28 +10,21 @@
  */
 package tern.repository;
 
+import com.eclipsesource.json.JsonObject;
+
 import tern.metadata.TernModuleMetadata;
 import tern.server.AbstractBasicTernModule;
 import tern.server.ModuleType;
-
-import com.eclipsesource.json.JsonObject;
+import tern.server.TernModuleInfo;
 
 public class TernModuleToDownload extends AbstractBasicTernModule {
 
-	private TernModuleMetadata metadata;
-
 	public TernModuleToDownload(String name, JsonObject module) {
-		super(name, getModuleType(module));
-		this.metadata = new TernModuleMetadata(module, null);
+		super(new TernModuleInfo(name), getModuleType(module), new TernModuleMetadata(module, null));
 	}
 
 	private static ModuleType getModuleType(JsonObject module) {
 		// TODO : retrieve module type
 		return ModuleType.Plugin;
-	}
-
-	@Override
-	public TernModuleMetadata getMetadata() {
-		return metadata;
 	}
 }

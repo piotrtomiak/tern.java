@@ -17,6 +17,7 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 
+import tern.EcmaVersion;
 import tern.ITernProject;
 import tern.TernException;
 import tern.TernResourcesManager;
@@ -24,6 +25,7 @@ import tern.doc.IJSDocument;
 import tern.eclipse.jface.TernLabelProvider;
 import tern.eclipse.jface.fieldassist.TernContentProposalProvider;
 import tern.eclipse.swt.JSDocumentText;
+import tern.eclipse.swt.samples.TernProjectFactory;
 import tern.server.ITernServer;
 import tern.server.LoggingInterceptor;
 import tern.server.TernDef;
@@ -46,19 +48,18 @@ public class NodejsTernEditor {
 	private void createUI() throws TernException, IOException,
 			InterruptedException {
 
+		ITernProject project = TernProjectFactory.create();
+		project.addLib(TernDef.browser);
+		project.save();
+		
 		File nodejsTernBaseDir = new File("../../core/ternjs/node_modules/tern");
 		NodejsProcessManager.getInstance().init(nodejsTernBaseDir);
 
-		File projectDir = new File(".");
-		ITernProject project = TernResourcesManager.getTernProject(projectDir);
 		ITernServer server = new NodejsTernServer(project);
 		((NodejsTernServer) server).addInterceptor(LoggingInterceptor
 				.getInstance());
 		((NodejsTernServer) server)
 				.addProcessListener(PrintNodejsProcessListener.getInstance());
-
-		server.addDef(TernDef.browser);
-		server.addDef(TernDef.ecma5);
 
 		Display display = new Display();
 		Shell shell = new Shell(display);

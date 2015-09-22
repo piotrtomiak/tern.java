@@ -1,5 +1,5 @@
 /**
- *  Copyright (c) 2013-2014 Angelo ZERR.
+ *  Copyright (c) 2013-2015 Angelo ZERR.
  *  All rights reserved. This program and the accompanying materials
  *  are made available under the terms of the Eclipse Public License v1.0
  *  which accompanies this distribution, and is available at
@@ -17,6 +17,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import tern.EcmaVersion;
 import tern.ITernProject;
 import tern.TernException;
 import tern.repository.ITernRepository;
@@ -32,13 +33,10 @@ import com.eclipsesource.json.JsonValue;
  */
 public abstract class AbstractScriptEngineTernServer extends AbstractTernServer {
 
-	private final String[] ACORN_SCRIPTS = {
-			"node_modules/acorn/dist/acorn.js",
-			"node_modules/acorn/dist/acorn_loose.js",
-			"node_modules/acorn/dist/walk.js" };
+	private final String[] ACORN_SCRIPTS = { "acorn/dist/acorn.js", "acorn/dist/acorn_loose.js", "acorn/dist/walk.js" };
 
-	private final String[] TERN_SCRIPTS = { "lib/signal.js", "lib/tern.js",
-			"lib/def.js", "lib/comment.js", "lib/infer.js" };
+	private final String[] TERN_SCRIPTS = { "tern/lib/signal.js", "tern/lib/tern.js", "tern/lib/def.js",
+			"tern/lib/comment.js", "tern/lib/infer.js" };
 
 	protected class TernResource {
 
@@ -105,27 +103,32 @@ public abstract class AbstractScriptEngineTernServer extends AbstractTernServer 
 
 			// Load acorn
 			for (int i = 0; i < ACORN_SCRIPTS.length; i++) {
-				scripts.add(getResource(new File(repository.getTernBaseDir(),
-						ACORN_SCRIPTS[i])));
+				scripts.add(getResource(new File(repository.getNodeModulesDir(), ACORN_SCRIPTS[i])));
 			}
 			// Load ternjs
 			for (int i = 0; i < TERN_SCRIPTS.length; i++) {
-				scripts.add(getResource(new File(repository.getTernBaseDir(),
-						TERN_SCRIPTS[i])));
+				scripts.add(getResource(new File(repository.getNodeModulesDir(), TERN_SCRIPTS[i])));
 			}
+			// load ECMAScript defs
+			EcmaVersion ecmaVersion = super.getProject().getEcmaVersion();
+			if (ecmaVersion == null) {
+				ecmaVersion = EcmaVersion.ES5;
+			}
+			switch (ecmaVersion) {
+			case ES5:
+				addDef(TernDef.ecma5.getName(), repository, defs, false);
+				break;
+			case ES6:
+				addDef(TernDef.ecma5.getName(), repository, defs, false);
+				addDef(TernDef.ecma6.getName(), repository, defs, false);
+				break;
+			}
+
 			// Load defs
 			JsonArray libs = getProject().getLibs();
 			if (libs != null) {
-				ITernModule module = null;
-				File defFile = null;
 				for (JsonValue lib : libs) {
-					module = repository.getModule(lib.asString());
-					if (module != null) {
-						defFile = repository.getFile(module);
-						if (defFile != null && defFile.exists()) {
-							defs.add(getResource(defFile));
-						}
-					}
+					addDef(lib.asString(), repository, defs, true);
 				}
 			}
 			// Load plugins
@@ -150,22 +153,33 @@ public abstract class AbstractScriptEngineTernServer extends AbstractTernServer 
 		}
 	}
 
-	// protected abstract void addDef(String def);
+	protected void addDef(String def, ITernRepository repository, List<TernResource> defs, boolean ignoreEcma)
+			throws IOException {
+		if (ignoreEcma && (def.equals(TernDef.ecma5.getName()) || def.equals(TernDef.ecma6.getName()))) {
+			return;
+		}
+		ITernModule module = repository.getModule(def);
+		if (module != null) {
+			File defFile = repository.getFile(module);
+			if (defFile != null && defFile.exists()) {
+				defs.add(getResource(defFile));
+			}
+		}
+	}
 
 	protected TernResource getResource(File scriptFile) throws IOException {
 		// Use FileInputStream (instead of FileReader) to set encoding to UTF-8,
 		// to avoid exception of acorn.js loading :
 		// ternjs\node_modules\tern\node_modules\acorn\dist\acorn.js:877:
 		// SyntaxError: Invalid regular expression:
-		// /[ÂªÂµÂºÃ€-Ã–Ã˜-Ã¶Ã¸-Ë?Ë†-Ë‘Ë -Ë¤Ë¬Ë®Í°-Í´Í¶Í·Íº-Í½Í¿Î†Îˆ-ÎŠÎŒÎŽ-Î¡Î£-ÏµÏ·-Ò?ÒŠ-Ô¯Ô±-Õ–Õ™Õ¡-Ö‡×?-×ª×°-×²Ø -ÙŠÙ®Ù¯Ù±-Û“Û•Û¥Û¦Û®Û¯Ûº-Û¼Û¿Ü?Ü’-Ü¯Ý?-Þ¥Þ±ßŠ-ßªß´ßµßºà €-à •à šà ¤à ¨à¡€-à¡˜à¢ -à¢²à¤„-à¤¹à¤½à¥?à¥˜-à¥¡à¥±-à¦€à¦…-à¦Œà¦?à¦?à¦“-à¦¨à¦ª...<omitted>...œ]/:
+		// /[Ã‚ÂªÃ‚ÂµÃ‚ÂºÃƒâ‚¬-Ãƒâ€“ÃƒËœ-ÃƒÂ¶ÃƒÂ¸-Ã‹?Ã‹â€ -Ã‹â€˜Ã‹Â -Ã‹Â¤Ã‹Â¬Ã‹Â®Ã�Â°-Ã�Â´Ã�Â¶Ã�Â·Ã�Âº-Ã�Â½Ã�Â¿ÃŽâ€ ÃŽË†-ÃŽÅ ÃŽÅ’ÃŽÅ½-ÃŽÂ¡ÃŽÂ£-Ã�ÂµÃ�Â·-Ã’?Ã’Å -Ã”Â¯Ã”Â±-Ã•â€“Ã•â„¢Ã•Â¡-Ã–â€¡Ã—?-Ã—ÂªÃ—Â°-Ã—Â²Ã˜Â -Ã™Å Ã™Â®Ã™Â¯Ã™Â±-Ã›â€œÃ›â€¢Ã›Â¥Ã›Â¦Ã›Â®Ã›Â¯Ã›Âº-Ã›Â¼Ã›Â¿Ãœ?Ãœâ€™-ÃœÂ¯Ã�?-ÃžÂ¥ÃžÂ±ÃŸÅ -ÃŸÂªÃŸÂ´ÃŸÂµÃŸÂºÃ Â â‚¬-Ã Â â€¢Ã Â Å¡Ã Â Â¤Ã Â Â¨Ã Â¡â‚¬-Ã Â¡ËœÃ Â¢Â -Ã Â¢Â²Ã Â¤â€ž-Ã Â¤Â¹Ã Â¤Â½Ã Â¥?Ã Â¥Ëœ-Ã Â¥Â¡Ã Â¥Â±-Ã Â¦â‚¬Ã Â¦â€¦-Ã Â¦Å’Ã Â¦?Ã Â¦?Ã Â¦â€œ-Ã Â¦Â¨Ã Â¦Âª...<omitted>...Å“]/:
 		// Range out of order in character class
 		String script = getScriptContent(scriptFile);
 		String filename = getFilename(scriptFile);
 		return new TernResource(script, filename);
 	}
 
-	protected String getScriptContent(File scriptFile) throws IOException,
-			FileNotFoundException {
+	protected String getScriptContent(File scriptFile) throws IOException, FileNotFoundException {
 		return IOUtils.toString(new FileInputStream(scriptFile), "UTF-8");
 	}
 

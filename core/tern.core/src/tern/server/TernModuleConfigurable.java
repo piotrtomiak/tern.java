@@ -1,5 +1,5 @@
 /**
- *  Copyright (c) 2013-2014 Angelo ZERR.
+ *  Copyright (c) 2013-2015 Angelo ZERR.
  *  All rights reserved. This program and the accompanying materials
  *  are made available under the terms of the Eclipse Public License v1.0
  *  which accompanies this distribution, and is available at
@@ -10,14 +10,19 @@
  */
 package tern.server;
 
+import java.io.IOException;
+import java.io.StringWriter;
+import java.io.Writer;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeMap;
 
+import com.eclipsesource.json.Json;
 import com.eclipsesource.json.JsonObject;
 import com.eclipsesource.json.JsonValue;
+import com.eclipsesource.json.WriterConfig;
 
 import tern.TernException;
 import tern.metadata.TernModuleMetadata;
@@ -68,11 +73,6 @@ public class TernModuleConfigurable implements ITernModuleConfigurable, Cloneabl
 	@Override
 	public String getVersion() {
 		return wrappedModule.getVersion();
-	}
-
-	@Override
-	public String getPath() {
-		return wrappedModule.getPath();
 	}
 
 	@Override
@@ -148,7 +148,15 @@ public class TernModuleConfigurable implements ITernModuleConfigurable, Cloneabl
 		TernModuleConfigurable result = new TernModuleConfigurable(wrappedModule);
 		result.wrappedModule = TernModuleHelper.clone(wrappedModule);
 		if (options != null) {
-			result.options = new JsonObject(options);
+			//Maybe not very efficient, but allows for a deep copy and 
+			//handles all of possible types.
+			Writer writer = new StringWriter();
+			try {
+				options.writeTo(writer, WriterConfig.MINIMAL);
+			} catch (IOException e) {
+				throw new RuntimeException(e);
+			}
+			result.options = Json.parse(writer.toString());
 		}
 		result.modules.clear();
 		for (Entry<String, ITernModule> entry: modules.entrySet()) {

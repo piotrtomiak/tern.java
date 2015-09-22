@@ -1,5 +1,5 @@
 /**
- *  Copyright (c) 2013-2014 Angelo ZERR.
+ *  Copyright (c) 2013-2015 Angelo ZERR.
  *  All rights reserved. This program and the accompanying materials
  *  are made available under the terms of the Eclipse Public License v1.0
  *  which accompanies this distribution, and is available at
@@ -9,8 +9,6 @@
  *  Angelo Zerr <angelo.zerr@gmail.com> - initial API and implementation
  */
 package tern.server;
-
-import java.io.IOException;
 
 import tern.ITernFileSynchronizer;
 import tern.TernException;
@@ -24,24 +22,6 @@ import tern.server.protocol.html.ScriptTagRegion;
  * 
  */
 public interface ITernServer {
-
-	/**
-	 * Add Tern JSON Type Definition.
-	 * 
-	 * @param def
-	 *            the Tern JSON Type Defition to add to the server.
-	 * @throws IOException
-	 */
-	void addDef(ITernDef def) throws TernException;
-
-	/**
-	 * Add Tern plugin.
-	 * 
-	 * @param plugin
-	 *            the Tern plugin to add to the server.
-	 * @throws IOException
-	 */
-	void addPlugin(ITernPlugin plugin) throws TernException;
 
 	/**
 	 * Register a file with the server. Note that files can also be included in
