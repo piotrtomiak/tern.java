@@ -20,6 +20,8 @@ import tern.server.ITernModule;
 import tern.server.ITernModuleConfigurable;
 import tern.server.ITernPlugin;
 
+import tern.utils.TernModuleHelper;
+
 /**
  * Label provider for {@link ITernPlugin} and {@link ITernModule}.
  * 
@@ -67,7 +69,7 @@ public class TernModuleLabelProvider extends LabelProvider implements
 	 */
 	public static Image getImageModule(ITernModule module) {
 		Image image = TernUIPlugin.getTernDescriptorManager().getImage(
-				module.getType());
+				module);
 		if (image != null) {
 			return image;
 		}

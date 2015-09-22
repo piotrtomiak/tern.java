@@ -1,5 +1,5 @@
 /**
- *  Copyright (c) 2013-2014 Angelo ZERR and Genuitec LLC.
+ *  Copyright (c) 2013-2014 Angelo ZERR.
  *  All rights reserved. This program and the accompanying materials
  *  are made available under the terms of the Eclipse Public License v1.0
  *  which accompanies this distribution, and is available at
@@ -7,7 +7,6 @@
  *
  *  Contributors:
  *  Angelo Zerr <angelo.zerr@gmail.com> - initial API and implementation
- *  Piotr Tomiak <piotr@genuitec.com> - refactoring of file management API
  */
 package tern;
 
@@ -16,6 +15,10 @@ import java.io.IOException;
 import java.util.List;
 
 import org.w3c.dom.Node;
+
+import com.eclipsesource.json.JsonArray;
+import com.eclipsesource.json.JsonObject;
+import com.eclipsesource.json.JsonValue;
 
 import tern.repository.ITernRepository;
 import tern.scriptpath.ITernScriptPath;
@@ -27,11 +30,12 @@ import tern.server.protocol.completions.ITernCompletionCollector;
 import tern.server.protocol.definition.ITernDefinitionCollector;
 import tern.server.protocol.guesstypes.ITernGuessTypesCollector;
 import tern.server.protocol.guesstypes.TernGuessTypesQuery;
+import tern.server.protocol.highlight.ITernHighlightCollector;
+import tern.server.protocol.highlight.TernHighlightQuery;
 import tern.server.protocol.lint.ITernLintCollector;
+import tern.server.protocol.outline.ITernOutlineCollector;
+import tern.server.protocol.outline.TernOutlineQuery;
 import tern.server.protocol.type.ITernTypeCollector;
-
-import com.eclipsesource.json.JsonArray;
-import com.eclipsesource.json.JsonObject;
 
 /**
  * Tern project API.
@@ -64,6 +68,20 @@ public interface ITernProject extends ITernAdaptable {
 	 */
 	void handleException(Throwable t);
 
+	/**
+	 * Set ECMAScript version
+	 * 
+	 * @param ecmaVersion the ECMAScript version 
+	 */
+	void setEcmaVersion(EcmaVersion ecmaVersion);
+
+	/**
+	 * Returns ECMAScript version.
+	 * 
+	 * @return ECMAScript version.
+	 */
+	EcmaVersion getEcmaVersion();
+	
 	// --------------------- JSON Type Definitions
 
 	/**
@@ -130,7 +148,7 @@ public interface ITernProject extends ITernAdaptable {
 	 * @param options
 	 *            plugin options.
 	 */
-	void addPlugin(ITernPlugin module, JsonObject options);
+	void addPlugin(ITernPlugin module, JsonValue options);
 
 	/**
 	 * Returns true if the given plugin exists and false otherwise.
@@ -166,7 +184,7 @@ public interface ITernProject extends ITernAdaptable {
 	 * @return list of tern lint plugins.
 	 */
 	ITernPlugin[] getLinters();
-	
+
 	// ---------------- Tern save
 
 	/**
@@ -263,8 +281,8 @@ public interface ITernProject extends ITernAdaptable {
 			throws IOException, TernException;
 
 	// ---------- Lint
-	void request(TernQuery query, ITernFile file, ITernLintCollector collector)
-			throws IOException, TernException;
+	void request(TernQuery query, ITernFile file, boolean synch,
+			ITernLintCollector collector) throws IOException, TernException;
 
 	void request(TernQuery query, ITernLintCollector collector)
 			throws IOException, TernException;
@@ -275,6 +293,19 @@ public interface ITernProject extends ITernAdaptable {
 			ITernGuessTypesCollector collector) throws IOException,
 			TernException;
 
+	// ---------- Outline
+
+	void request(TernOutlineQuery query, ITernFile file,
+			ITernOutlineCollector collector) throws IOException,
+			TernException;
+
+	// ---------- Highlight
+	
+	void request(TernHighlightQuery query, ITernHighlightCollector collector) throws IOException, TernException;
+	
+	//ME - content scope, which can limit number of files uploaded to the server
+	ContentScope getScope();
+	
 	/**
 	 * Returns the tern repository used by the tern project.
 	 * 
@@ -282,5 +313,11 @@ public interface ITernProject extends ITernAdaptable {
 	 */
 	ITernRepository getRepository();
 
-	ContentScope getScope();
+	/**
+	 * Set the tern repository used by the tern project.
+	 * 
+	 * @param repository
+	 */
+	void setRepository(ITernRepository repository);
+
 }

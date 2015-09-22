@@ -1,14 +1,13 @@
-/*******************************************************************************
- * Copyright (c) 2000, 2007 IBM Corporation and others.
- * All rights reserved. This program and the accompanying materials
- * are made available under the terms of the Eclipse Public License v1.0
- * which accompanies this distribution, and is available at
- * http://www.eclipse.org/legal/epl-v10.html
+/**
+ *  Copyright (c) 2013-2014 Angelo ZERR.
+ *  All rights reserved. This program and the accompanying materials
+ *  are made available under the terms of the Eclipse Public License v1.0
+ *  which accompanies this distribution, and is available at
+ *  http://www.eclipse.org/legal/epl-v10.html
  *
- * Contributors:
- *     IBM Corporation - initial API and implementation
- *******************************************************************************/
-
+ *  Contributors:
+ *  Angelo Zerr <angelo.zerr@gmail.com> - initial API and implementation
+ */
 package tern.eclipse.ide.ui.contentassist;
 
 import org.eclipse.core.runtime.Assert;
@@ -185,12 +184,18 @@ public class PositionBasedCompletionProposal implements ICompletionProposal,
 	 * (org.eclipse.jface.text.IDocument, int,
 	 * org.eclipse.jface.text.DocumentEvent)
 	 */
+	@Override
 	public boolean validate(IDocument document, int offset, DocumentEvent event) {
 		try {
-			String content = document.get(fReplacementPosition.getOffset(),
-					offset - fReplacementPosition.getOffset());
-			if (fReplacementString.startsWith(content))
+			String content = document.get(fReplacementPosition.getOffset(), offset - fReplacementPosition.getOffset());
+			if (fReplacementString.startsWith(content)) {
 				return true;
+			} else if (fReplacementString.length() > 0) {
+				char c = fReplacementString.charAt(0);
+				if ((c == '"' || c == '\'') && fReplacementString.startsWith(c + content)) {
+					return true;
+				}
+			}
 		} catch (BadLocationException e) {
 			// ignore concurrently modified document
 		}

@@ -26,6 +26,7 @@ import tern.ITernProject;
 import tern.TernException;
 import tern.metadata.ModuleDependenciesComparator;
 import tern.metadata.TernModuleMetadata;
+import tern.metadata.TernModuleMetadataManager;
 import tern.server.BasicTernDef;
 import tern.server.BasicTernPlugin;
 import tern.server.ITernDef;
@@ -35,6 +36,7 @@ import tern.server.ITernPlugin;
 import tern.server.ModuleType;
 import tern.server.TernDef;
 import tern.server.TernModuleConfigurable;
+import tern.server.TernModuleInfo;
 import tern.server.TernPlugin;
 
 import com.eclipsesource.json.JsonObject;
@@ -135,8 +137,7 @@ public class TernModuleHelper {
 	public static boolean isConfigurableModule(ITernModule module) {
 		TernModuleMetadata metadata = module.getMetadata();
 		return !StringUtils.isEmpty(module.getVersion())
-				|| (metadata != null && (metadata.hasOptions() || metadata
-						.isLinter()));
+				|| (metadata != null && (metadata.hasOptions() || metadata.isLinter()));
 	}
 
 	/**
@@ -149,8 +150,7 @@ public class TernModuleHelper {
 	 * @param plugins
 	 *            to update.
 	 */
-	public static void update(List<ITernDef> defs, List<ITernPlugin> plugins,
-			ITernModule module) {
+	public static void update(List<ITernDef> defs, List<ITernPlugin> plugins, ITernModule module) {
 		update(defs, plugins, null, module);
 	}
 
@@ -164,8 +164,7 @@ public class TernModuleHelper {
 	 * @param plugins
 	 *            to update.
 	 */
-	private static void update(List<ITernDef> defs, List<ITernPlugin> plugins,
-			JsonObject options, ITernModule module) {
+	private static void update(List<ITernDef> defs, List<ITernPlugin> plugins, JsonValue options, ITernModule module) {
 		switch (module.getModuleType()) {
 		case Def:
 			defs.add((ITernDef) module);
@@ -174,10 +173,8 @@ public class TernModuleHelper {
 			plugins.add((ITernPlugin) module);
 			break;
 		case Configurable:
-			ITernModule wrappedModule = ((ITernModuleConfigurable) module)
-					.getWrappedModule();
-			JsonObject wrappedOptions = ((ITernModuleConfigurable) module)
-					.getOptions();
+			ITernModule wrappedModule = ((ITernModuleConfigurable) module).getWrappedModule();
+			JsonValue wrappedOptions = ((ITernModuleConfigurable) module).getOptions();
 			update(defs, plugins, wrappedOptions, wrappedModule);
 			break;
 		}
@@ -199,8 +196,7 @@ public class TernModuleHelper {
 	 * @param module
 	 * @param ternProject
 	 */
-	public static void update(ITernModule module, JsonObject options,
-			ITernProject ternProject) {
+	public static void update(ITernModule module, JsonValue options, ITernProject ternProject) {
 		switch (module.getModuleType()) {
 		case Def:
 			ternProject.addLib((ITernDef) module);
@@ -209,10 +205,8 @@ public class TernModuleHelper {
 			ternProject.addPlugin((ITernPlugin) module, options);
 			break;
 		case Configurable:
-			ITernModule wrappedModule = ((ITernModuleConfigurable) module)
-					.getWrappedModule();
-			JsonObject wrappedOptions = ((ITernModuleConfigurable) module)
-					.getOptions();
+			ITernModule wrappedModule = ((ITernModuleConfigurable) module).getWrappedModule();
+			JsonValue wrappedOptions = ((ITernModuleConfigurable) module).getOptions();
 			update(wrappedModule, wrappedOptions, ternProject);
 			break;
 		}
@@ -228,21 +222,24 @@ public class TernModuleHelper {
 	 * @return
 	 * @throws TernException
 	 */
-	public static ITernModuleConfigurable findConfigurable(ITernModule module,
-			JsonValue options, List<ITernModule> allModules)
-			throws TernException {
+	public static ITernModuleConfigurable findConfigurable(ITernModule module, JsonValue options,
+			List<ITernModule> allModules) throws TernException {
 		String version = module.getVersion();
+		ITernModuleConfigurable c;
 		for (ITernModule f : allModules) {
-			if (f.getModuleType() == ModuleType.Configurable
-					&& f.getType().equals(module.getType())) {
+			if (f.getModuleType() == ModuleType.Configurable && f.getType().equals(module.getType())) {
+				c = ((ITernModuleConfigurable) f);
 				if (!StringUtils.isEmpty(version)) {
-					((ITernModuleConfigurable) f).setVersion(version);
+					c.setVersion(version);
 				}
-				if (options instanceof JsonObject) {
-					// set a copy of the options.
-					((ITernModuleConfigurable) f).setOptions(new JsonObject(
-							(JsonObject) options));
-				}
+				if (options != null) {
+					if (options.isObject()) {
+						// set a copy of the options.
+						c.setOptions(new JsonObject((JsonObject) options));
+					} else if (options.isNull()) {
+						c.setOptions(options);
+					}
+				}				
 				return (ITernModuleConfigurable) f;
 			}
 		}
@@ -264,9 +261,8 @@ public class TernModuleHelper {
 
 	public static ITernModule getModule(String filename) {
 		if (filename.startsWith(TERN_SUFFIX)) {
-			String name = filename.substring(TERN_SUFFIX.length(),
-					filename.length());
-			return getPlugin(name);
+			String name = filename.substring(TERN_SUFFIX.length(), filename.length());
+			return getPluginOrDef(name);
 		}
 		int index = filename.lastIndexOf('.');
 		if (index == -1) {
@@ -307,6 +303,28 @@ public class TernModuleHelper {
 	}
 
 	/**
+	 * Return the tern plugin or def by name.
+	 * 
+	 * @param name
+	 * @return
+	 */
+	private static ITernModule getPluginOrDef(String name) {
+		// tern plugin?
+		ITernPlugin plugin = TernPlugin.getTernPlugin(name);
+		if (plugin != null) {
+			return plugin;
+		}
+		// tern def?
+		ITernDef def = TernDef.getTernDef(name);
+		if (def != null) {
+			return def;
+		}
+		TernModuleInfo info = new TernModuleInfo(name);
+		TernModuleMetadata metadata = TernModuleMetadataManager.getInstance().getMetadata(info.getType());
+		return metadata != null && metadata.isDef() ? new BasicTernDef(info) : new BasicTernPlugin(info);
+	}
+
+	/**
 	 * Returns the file path as string.
 	 * 
 	 * @param file
@@ -329,11 +347,9 @@ public class TernModuleHelper {
 	public static String getFileName(ITernModule module) {
 		switch (module.getModuleType()) {
 		case Def:
-			return new StringBuilder(module.getName()).append('.')
-					.append(JSON_EXTENSION).toString();
+			return new StringBuilder(module.getName()).append('.').append(JSON_EXTENSION).toString();
 		default:
-			return new StringBuilder(module.getName()).append('.')
-					.append(JS_EXTENSION).toString();
+			return new StringBuilder(module.getName()).append('.').append(JS_EXTENSION).toString();
 		}
 	}
 	

@@ -1,5 +1,5 @@
 /**
- *  Copyright (c) 2013-2015 Angelo ZERR and Genuitec LLC.
+ *  Copyright (c) 2013-2014 Angelo ZERR.
  *  All rights reserved. This program and the accompanying materials
  *  are made available under the terms of the Eclipse Public License v1.0
  *  which accompanies this distribution, and is available at
@@ -7,8 +7,6 @@
  *
  *  Contributors:
  *  Angelo Zerr <angelo.zerr@gmail.com> - initial API and implementation
- *  Piotr Tomiak <piotr@genutiec.com> - asynchronous request processing and 
- *  									refactoring of collectors API 
  */
 package tern.server.rhino;
 
@@ -22,7 +20,6 @@ import org.mozilla.javascript.NativeObject;
 import org.mozilla.javascript.Scriptable;
 import org.mozilla.javascript.UniqueTag;
 
-import tern.ITernFileSynchronizer;
 import tern.ITernProject;
 import tern.TernException;
 import tern.server.AbstractTernServer;
@@ -259,6 +256,11 @@ public class RhinoTernServer extends AbstractTernServer {
 				return null;
 			}
 			return text.toString();
+		}
+		
+		@Override
+		public Long getLong(Object jsonObject, String name) {
+			return null;
 		}
 
 		@Override

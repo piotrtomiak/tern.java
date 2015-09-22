@@ -22,6 +22,7 @@ public class JSDTTernStartup implements IStartup {
 		final IWorkbench workbench = PlatformUI.getWorkbench();
 		workbench.getDisplay().asyncExec(new Runnable() {
 			public void run() {
+				// Java Editor tracker
 				IWorkbenchWindow window = workbench.getActiveWorkbenchWindow();
 				if (window != null) {
 					JavaEditorTracker.getInstance();

@@ -1,5 +1,5 @@
 /**
- *  Copyright (c) 2013-present Angelo ZERR.
+ *  Copyright (c) 2013-2014 Angelo ZERR.
  *  All rights reserved. This program and the accompanying materials
  *  are made available under the terms of the Eclipse Public License v1.0
  *  which accompanies this distribution, and is available at
@@ -11,6 +11,7 @@
 package tern.repository;
 
 import java.io.File;
+import java.io.IOException;
 
 import tern.TernException;
 import tern.server.ITernModule;
@@ -98,9 +99,28 @@ public interface ITernRepository {
 	ITernModule getModule(String name);
 
 	/**
+	 * Returns the module by origin and null otherwise.
+	 * 
+	 * @param origin
+	 * @return the module by origin and null otherwise.
+	 */
+	ITernModule getModuleByOrigin(String origin);
+
+	/**
 	 * Returns the list fo tern plugin which are linter.
 	 * 
 	 * @return the list fo tern plugin which are linter.
 	 */
 	ITernPlugin[] getLinters();
+
+	/**
+	 * Install the given module file to the repository.
+	 * 
+	 * @param moduleFile
+	 *            module file which is a zip/jar or folder which contains tern
+	 *            module.
+	 * @throws IOException
+	 * @throws TernException
+	 */
+	void install(File moduleFile) throws IOException, TernException;
 }

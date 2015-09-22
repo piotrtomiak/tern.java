@@ -36,10 +36,10 @@ import tern.eclipse.ide.ui.TernUIPlugin;
 import tern.eclipse.ide.ui.descriptors.ITernModuleDescriptorManager;
 import tern.eclipse.ide.ui.descriptors.ITernModuleImage;
 import tern.eclipse.ide.ui.descriptors.options.ITernModuleOptionFactory;
-import tern.eclipse.jface.TernImagesRegistry;
+import tern.eclipse.jface.images.TernImagesRegistry;
+import tern.metadata.TernModuleMetadata;
 import tern.server.ITernModule;
 import tern.server.protocol.completions.TernCompletionItem;
-import tern.utils.StringUtils;
 
 /**
  * Tern descriptor manager.
@@ -87,21 +87,8 @@ public class TernModuleDescriptorManager implements
 	}
 
 	@Override
-	public Image getImage(String id) {
-		ITernModuleImage descriptor = getTernModuleImage(id);
-		if (descriptor != null) {
-			return descriptor.getImage();
-		}
-		return null;
-	}
-
-	@Override
-	public ImageDescriptor getImageDescriptor(String id) {
-		ITernModuleImage descriptor = getTernModuleImage(id);
-		if (descriptor != null) {
-			return descriptor.getImageDescriptor();
-		}
-		return null;
+	public Image getImage(ITernModule module) {
+		return TernImagesRegistry.getImage(module);
 	}
 
 	@Override
@@ -228,33 +215,20 @@ public class TernModuleDescriptorManager implements
 
 	@Override
 	public Image getImage(TernCompletionItem item) {
-		Image image = TernImagesRegistry.getImage(item, true);
-		if (image != null) {
-			return image;
-		}
-		// use origin name (ex : yui instead of using yui3)
-		String origin = item.getOriginType();
-		if (!StringUtils.isEmpty(origin)) {
-			image = getImage(origin);
-		}
-		return image != null ? image : TernImagesRegistry
-				.getImage(TernImagesRegistry.IMG_UNKNOWN);
+		// Retrieve the JS type (boolean, array, string, number, or fn).
+		String jsType = TernImagesRegistry.getJSType(item, true);
+		// Retrieve the origin name (ex : yui instead of using yui3)
+		ITernModule module = item.getTernModule();
+		return TernImagesRegistry.getImage(jsType, module);
 	}
 
 	@Override
 	public ImageDescriptor getImageDescriptor(TernCompletionItem item) {
-		ImageDescriptor descriptor = TernImagesRegistry.getImageDescriptor(
-				item, true);
-		if (descriptor != null) {
-			return descriptor;
-		}
-		// use origin name (ex : yui instead of using yui3)
-		String origin = item.getOriginType();
-		if (!StringUtils.isEmpty(origin)) {
-			descriptor = getImageDescriptor(origin);
-		}
-		return descriptor != null ? descriptor : TernImagesRegistry
-				.getImageDescriptor(TernImagesRegistry.IMG_UNKNOWN);
+		// Retrieve the JS type (boolean, array, string, number, or fn).
+		String jsType = TernImagesRegistry.getJSType(item, true);
+		// Retrieve the origin name (ex : yui instead of using yui3)
+		ITernModule module = item.getTernModule();
+		return TernImagesRegistry.getImageDescriptor(jsType, module);
 	}
 
 	private File getTempDir() {

@@ -17,6 +17,7 @@ import java.util.Set;
 import java.util.TreeMap;
 
 import com.eclipsesource.json.JsonObject;
+import com.eclipsesource.json.JsonValue;
 
 import tern.TernException;
 import tern.metadata.TernModuleMetadata;
@@ -36,7 +37,7 @@ public class TernModuleConfigurable implements ITernModuleConfigurable, Cloneabl
 
 	private ITernModule wrappedModule;
 	private final Map<String, ITernModule> modules;
-	private JsonObject options;
+	private JsonValue options;
 
 	public TernModuleConfigurable(ITernModule module) {
 		this.modules = new TreeMap<String, ITernModule>(TernModuleHelper.MODULE_VERSION_COMPARATOR);
@@ -52,6 +53,11 @@ public class TernModuleConfigurable implements ITernModuleConfigurable, Cloneabl
 	@Override
 	public String getDisplayName() {
 		return wrappedModule.getDisplayName();
+	}
+
+	@Override
+	public String getOrigin() {
+		return wrappedModule.getOrigin();
 	}
 
 	@Override
@@ -89,8 +95,7 @@ public class TernModuleConfigurable implements ITernModuleConfigurable, Cloneabl
 	public ITernModule setVersion(String version) throws TernException {
 		ITernModule module = modules.get(version);
 		if (module == null) {
-			throw new TernException("Unsupported version " + version
-					+ " for type " + getType());
+			throw new TernException("Unsupported version " + version + " for type " + getType());
 		}
 		wrappedModule = module;
 		return module;
@@ -111,12 +116,18 @@ public class TernModuleConfigurable implements ITernModuleConfigurable, Cloneabl
 	}
 
 	@Override
-	public JsonObject getOptions() {
-		return options;
+	public JsonObject getOptionsObject() {
+		return options != null && options.isObject() ? (JsonObject) options : null;
 	}
 
+	
 	@Override
-	public void setOptions(JsonObject options) {
+	public JsonValue getOptions() {
+		return options;
+	}
+	
+	@Override
+	public void setOptions(JsonValue options) {
 		this.options = options;
 	}
 	
@@ -160,14 +171,15 @@ public class TernModuleConfigurable implements ITernModuleConfigurable, Cloneabl
 	public Collection<ITernModule> getModules() {
 		return modules.values();
 	}
-	
+
 	@Override
 	public boolean hasVersion() {
 		return !modules.isEmpty();
 	}
-	
+
 	@Override
-	public String toString() {		
+	public String toString() {
 		return getType();
 	}
+
 }

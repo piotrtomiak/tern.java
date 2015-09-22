@@ -1,3 +1,13 @@
+/**
+ *  Copyright (c) 2013-2014 Angelo ZERR.
+ *  All rights reserved. This program and the accompanying materials
+ *  are made available under the terms of the Eclipse Public License v1.0
+ *  which accompanies this distribution, and is available at
+ *  http://www.eclipse.org/legal/epl-v10.html
+ *
+ *  Contributors:
+ *  Angelo Zerr <angelo.zerr@gmail.com> - initial API and implementation
+ */
 package tern;
 
 import java.io.File;
@@ -25,16 +35,15 @@ public class TernRepositoryTest {
 		assertHasModule(repository, "jquery");
 		assertHasModule(repository, "underscore");
 		assertHasModule(repository, "angular");
-		assertHasModule(repository, "ckeditor_4.4.1", "ckeditor", "4.4.1");
-		assertHasModule(repository, "component");
+		assertHasModule(repository, "ckeditor4.4.x", "ckeditor", "4.4.x");
 		assertHasModule(repository, "dojotoolkit_1.6", "dojotoolkit", "1.6");
 		assertHasModule(repository, "dojotoolkit_1.8", "dojotoolkit", "1.8");
 		assertHasModule(repository, "dojotoolkit_1.9", "dojotoolkit", "1.9");
 		assertHasModule(repository, "extjs_4.2.1", "extjs", "4.2.1");
 		assertHasModule(repository, "extjs_5.0.0", "extjs", "5.0.0");
-		assertHasModule(repository, "gmaps3.18", "gmaps", "3.18");
-		assertHasModule(repository, "gmaps3.19", "gmaps", "3.19");
-		assertHasModule(repository, "gmaps3.20", "gmaps", "3.20");
+		assertHasModule(repository, "gmaps3.exp", "gmaps", "3.exp");
+		assertHasModule(repository, "gmaps3.frozen", "gmaps", "3.frozen");
+		assertHasModule(repository, "gmaps3.ref", "gmaps", "3.ref");
 		assertHasModule(repository, "grunt");
 		assertHasModule(repository, "meteor");
 		assertHasModule(repository, "node");

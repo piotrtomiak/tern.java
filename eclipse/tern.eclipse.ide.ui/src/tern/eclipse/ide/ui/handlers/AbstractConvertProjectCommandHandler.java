@@ -37,6 +37,7 @@ import org.eclipse.ui.handlers.HandlerUtil;
 import com.genuitec.eclipse.core.util.PlatformUIUtil;
 import com.genuitec.eclipse.core.util.PreferencesUtils;
 
+import tern.EcmaVersion;
 import tern.eclipse.ide.core.IIDETernProject;
 import tern.eclipse.ide.core.TernCorePlugin;
 import tern.eclipse.ide.core.preferences.TernCorePreferenceConstants;
@@ -65,11 +66,15 @@ public abstract class AbstractConvertProjectCommandHandler extends
 		IIDETernProject ternProject = TernCorePlugin.getTernProject(project,
 				force);
 
-		IScopeContext[] fLookupOrder = new IScopeContext[] {
+		IScopeContext[] context = new IScopeContext[] {
 				InstanceScope.INSTANCE, DefaultScope.INSTANCE };
 
-		// add default JSON type definitions and plugins
-		ITernModule modules[] = getModules(fLookupOrder);
+		// Upate ECMAScript version
+		EcmaVersion ecmaVersion = getEcmaVersion(context);
+		ternProject.setEcmaVersion(ecmaVersion);
+		
+		// Update tern modules : JSON type definitions + plugins
+		ITernModule modules[] = getModules(context);
 		for (int i = 0; i < modules.length; i++) {
 			TernModuleHelper.update(modules[i], ternProject);
 		}
@@ -81,7 +86,7 @@ public abstract class AbstractConvertProjectCommandHandler extends
 			ternProject.save();
 		} catch (IOException e) {
 			Trace.trace(Trace.SEVERE,
-					"Error while configuring angular nature.", e);
+					"Error while configuring tern nature.", e);
 		}
 	}
 
@@ -148,16 +153,36 @@ public abstract class AbstractConvertProjectCommandHandler extends
 		}
 	}
 
-	protected ITernModule[] getModules(IScopeContext[] fLookupOrder) {
+	/**
+	 * Returns the preferences ecma version.
+	 * 
+	 * @param context
+	 * @return the preferences ecma version.
+	 */
+	protected EcmaVersion getEcmaVersion(IScopeContext[] context) {
+		int version = fPreferenceService.getInt(TernCorePlugin
+				.getDefault().getBundle().getSymbolicName(),
+				TernCorePreferenceConstants.DEFAULT_ECMA_VERSION,
+				TernCorePreferenceConstants.DEFAULT_ECMA_VERSION_VALUE,
+				context);
+		return EcmaVersion.get(version);
+	}
+	
+	/**
+	 * Returns the preferences list of tern modules.
+	 * @param context
+	 * @return the preferences list of tern modules.
+	 */
+	protected ITernModule[] getModules(IScopeContext[] context) {
 		String moduleNames = fPreferenceService.getString(TernCorePlugin
 				.getDefault().getBundle().getSymbolicName(),
 				TernCorePreferenceConstants.DEFAULT_TERN_MODULES,
 				TernCorePreferenceConstants.DEFAULT_TERN_MODULES_VALUE,
-				fLookupOrder);
+				context);
 		return TernCorePlugin.getTernRepositoryManager().getTernModules(
 				moduleNames, null);
 	}
-
+	
 	protected abstract String getConvertingProjectJobTitle(IProject project);
 
 }

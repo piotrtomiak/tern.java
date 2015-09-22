@@ -1,5 +1,5 @@
 /**
- *  Copyright (c) 2013-2014 Angelo ZERR and Genuitec LLC.
+ *  Copyright (c) 2013-2014 Angelo ZERR.
  *  All rights reserved. This program and the accompanying materials
  *  are made available under the terms of the Eclipse Public License v1.0
  *  which accompanies this distribution, and is available at
@@ -13,7 +13,6 @@ package tern.eclipse.ide.ui.hover;
 import org.eclipse.jface.internal.text.html.BrowserInformationControl;
 import org.eclipse.jface.text.IInformationControlCreator;
 
-import tern.eclipse.ide.core.IIDETernProjectProvider;
 import tern.eclipse.jface.text.HoverControlCreator;
 import tern.eclipse.jface.text.HoverLocationListener;
 

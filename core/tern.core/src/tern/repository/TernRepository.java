@@ -11,9 +11,12 @@
 package tern.repository;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import tern.TernException;
@@ -22,6 +25,7 @@ import tern.server.ITernPlugin;
 import tern.server.ModuleType;
 import tern.utils.ExtensionUtils;
 import tern.utils.TernModuleHelper;
+import tern.utils.ZipUtils;
 
 /**
  * Tern repository implementation.
@@ -31,12 +35,15 @@ public class TernRepository implements ITernRepository {
 
 	private static final String DEFS_FOLDER = "defs";
 	private static final String PLUGIN_FOLDER = "plugin";
-	private static final String NODE_MODULES_FOLDER = "node_modules";
+
+	private static final List<String> IGNORE_PLUGINS = Arrays
+			.asList(new String[] { "commonjs", "modules", "node_resolve" });
 
 	private final String name;
 	private File ternBaseDir;
 	private final boolean defaultRepository;
 	private Map<String, ITernModule> modules;
+	private Map<String, ITernModule> modulesByOrigin;
 	private ITernPlugin[] linters;
 
 	public TernRepository(String name, File ternBaseDir) {
@@ -68,12 +75,25 @@ public class TernRepository implements ITernRepository {
 		} catch (TernException e) {
 			return null;
 		}
+	}
 
+	@Override
+	public ITernModule getModuleByOrigin(String origin) {
+		try {
+			intializeIfNeeded();
+			return modulesByOrigin.get(origin);
+		} catch (TernException e) {
+			return null;
+		}
 	}
 
 	private void intializeIfNeeded() throws TernException {
 		if (modules == null) {
-			modules = loadModules();
+			Map<String, ITernModule> modules = new HashMap<String, ITernModule>();
+			Map<String, ITernModule> modulesByOrigin = new HashMap<String, ITernModule>();
+			loadModules(modules, modulesByOrigin);
+			this.modules = modules;
+			this.modulesByOrigin = modulesByOrigin;
 			linters = searchLinters(modules.values());
 		}
 	}
@@ -81,28 +101,29 @@ public class TernRepository implements ITernRepository {
 	private ITernPlugin[] searchLinters(Collection<ITernModule> values) {
 		Collection<ITernPlugin> linters = new ArrayList<ITernPlugin>();
 		for (ITernModule module : values) {
-			if (module.getModuleType() == ModuleType.Plugin
-					&& ((ITernPlugin) module).isLinter()) {
+			if (module.getModuleType() == ModuleType.Plugin && ((ITernPlugin) module).isLinter()) {
 				linters.add((ITernPlugin) module);
 			}
 		}
 		return linters.toArray(ITernPlugin.EMPTY_PLUGIN);
 	}
 
-	private Map<String, ITernModule> loadModules() throws TernException {
-		Map<String, ITernModule> modules = new HashMap<String, ITernModule>();
+	private void loadModules(Map<String, ITernModule> modules, Map<String, ITernModule> modulesByOrigin)
+			throws TernException {
 		// defs
-		loadModules(modules, DEFS_FOLDER);
+		loadModules(modules, modulesByOrigin, new File(getTernBaseDir(), DEFS_FOLDER), null);
 		// plugin
-		loadModules(modules, PLUGIN_FOLDER);
+		loadModules(modules, modulesByOrigin, new File(getTernBaseDir(), PLUGIN_FOLDER), IGNORE_PLUGINS);
 		// node_modules
-		loadModules(modules, NODE_MODULES_FOLDER);
-		return modules;
+		loadModules(modules, modulesByOrigin, getNodeModulesDir(), null);
 	}
 
-	private void loadModules(Map<String, ITernModule> modules, String dir)
-			throws TernException {
-		File baseDir = new File(getTernBaseDir(), dir);
+	private File getNodeModulesDir() {
+		return getTernBaseDir().getParentFile();
+	}
+
+	private void loadModules(Map<String, ITernModule> modules, Map<String, ITernModule> modulesByOrigin, File baseDir,
+			List<String> ignoreModules) throws TernException {
 		if (baseDir.exists()) {
 			File[] files = baseDir.listFiles();
 			File file = null;
@@ -110,11 +131,19 @@ public class TernRepository implements ITernRepository {
 			for (int i = 0; i < files.length; i++) {
 				file = files[i];
 				module = TernModuleHelper.getModule(file.getName());
-				if (module != null) {
+				if (module != null && !isIgnoreModule(module, ignoreModules)) {
 					modules.put(module.getName(), module);
+					modulesByOrigin.put(module.getOrigin(), module);
 				}
 			}
 		}
+	}
+
+	private boolean isIgnoreModule(ITernModule module, List<String> ignoreModules) {
+		if (ignoreModules == null) {
+			return false;
+		}
+		return ignoreModules.contains(module.getName());
 	}
 
 	@Override
@@ -150,21 +179,18 @@ public class TernRepository implements ITernRepository {
 		switch (module.getModuleType()) {
 		case Plugin:
 		case Configurable:
-			moduleFile = new File(ternBaseDir, new StringBuilder(PLUGIN_FOLDER)
-					.append('/').append(fileName).toString());
+			moduleFile = new File(ternBaseDir,
+					new StringBuilder(PLUGIN_FOLDER).append('/').append(fileName).toString());
 			break;
 		case Def:
-			moduleFile = new File(ternBaseDir, new StringBuilder(DEFS_FOLDER)
-					.append('/').append(fileName).toString());
+			moduleFile = new File(ternBaseDir, new StringBuilder(DEFS_FOLDER).append('/').append(fileName).toString());
 			break;
 		}
 		if (moduleFile.exists()) {
 			return moduleFile;
 		}
-		moduleFile = new File(ternBaseDir, new StringBuilder(
-				NODE_MODULES_FOLDER).append('/')
-				.append(ExtensionUtils.TERN_SUFFIX).append(module.getName())
-				.append('/').append(fileName).toString());
+		moduleFile = new File(getNodeModulesDir(), new StringBuilder(ExtensionUtils.TERN_SUFFIX)
+				.append(module.getName()).append('/').append(fileName).toString());
 		if (moduleFile.exists()) {
 			return moduleFile;
 		}
@@ -180,5 +206,29 @@ public class TernRepository implements ITernRepository {
 			return ITernPlugin.EMPTY_PLUGIN;
 		}
 		return linters;
+	}
+
+	@Override
+	public void install(File moduleFile) throws IOException, TernException {
+		if (!moduleFile.exists()) {
+			throw new TernException(
+					"Cannot install module file <" + TernModuleHelper.getPath(moduleFile) + ">. It doesn't exists.");
+		}
+		File baseDir = getNodeModulesDir();
+		if (!baseDir.exists()) {
+			throw new TernException("Cannot install module file <" + TernModuleHelper.getPath(moduleFile)
+					+ ">. Tern repository <" + TernModuleHelper.getPath(baseDir) + "> doesn't exists.");
+		}
+		if (ZipUtils.isZipFile(moduleFile) || ZipUtils.isJarFile(moduleFile)) {
+			// Zip or JAR file, unzip it to the tern repository.
+			ZipUtils.extract(moduleFile, baseDir);
+		} else if (moduleFile.isDirectory()) {
+			// Folder, copy this folder to the tern repository
+			throw new TernException("TODO!");
+		} else {
+			throw new TernException("Cannot install module file <" + TernModuleHelper.getPath(moduleFile)
+					+ ">. It must be a folder or a zip/jar file.");
+		}
+
 	}
 }

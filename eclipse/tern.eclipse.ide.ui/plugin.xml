@@ -92,116 +92,116 @@
 			class="tern.eclipse.ide.internal.ui.preferences.TernUIPreferenceInitializer" />
 	</extension>
 			 
-	<!--Preferences:-->
+    <!--Preferences:-->
     <extension
        point="org.eclipse.ui.preferencePages">  
        <!-- Tern Global preferences page -->  
        <page
-	          name="%TernPreferencePage.name"
-              category="org.eclipse.wst.jsdt.ui.preferences.JavaBasePreferencePage"
-	          class="tern.eclipse.ide.internal.ui.preferences.TernGlobalPreferencesPage"
-	          id="tern.eclipse.ide.preferences" />
-	   <page  name="%TernContentAssistPropertyPage.name"
+              name="%TernPreferencePage.name"
+              class="tern.eclipse.ide.internal.ui.preferences.TernGlobalPreferencesPage"
+              id="tern.eclipse.ide.preferences"
+              category="org.eclipse.wst.jsdt.ui.preferences.JavaBasePreferencePage" />
+       <page  name="%TernContentAssistPropertyPage.name"
               category="tern.eclipse.ide.preferences"
-	          class="tern.eclipse.ide.internal.ui.preferences.TernContentAssistPreferencesPage"
-	          id="tern.eclipse.ide.ui.preferences.contentassist" />		          	  
+              class="tern.eclipse.ide.internal.ui.preferences.TernContentAssistPreferencesPage"
+              id="tern.eclipse.ide.ui.preferences.contentassist" />                        
        <page  name="%TernDevelopmentPropertyPage.name"
               category="tern.eclipse.ide.preferences"
-	          class="tern.eclipse.ide.internal.ui.preferences.TernDevelopmentPreferencesPage"
-	          id="tern.eclipse.ide.ui.preferences.development" />
+              class="tern.eclipse.ide.internal.ui.preferences.TernDevelopmentPreferencesPage"
+              id="tern.eclipse.ide.ui.preferences.development" />
        <page  name="%TernRepositoryPropertyPage.name"
               category="tern.eclipse.ide.ui.preferences.development"
 	          class="tern.eclipse.ide.internal.ui.preferences.TernRepositoryPreferencesPage"
 	          id="tern.eclipse.ide.ui.preferences.repository" />
 <!--	   <page  name="%TernValidationPropertyPage.name"
               category="tern.eclipse.ide.preferences"
-	          class="tern.eclipse.ide.internal.ui.preferences.TernValidationPreferencesPage"
-	          id="tern.eclipse.ide.ui.preferences.validation" />-->
-	</extension>
+              class="tern.eclipse.ide.internal.ui.preferences.TernValidationPreferencesPage"
+              id="tern.eclipse.ide.ui.preferences.validation" />-->
+    </extension>
 
-	<extension
-         point="org.eclipse.ui.propertyPages">		      
+    <extension
+         point="org.eclipse.ui.propertyPages">
       <page
             name="%TernMainPropertyPage.name"        
-            category="org.eclipse.wst.jsdt.internal.ui.preferences.JavaScriptMainPage"
-            class="tern.eclipse.ide.internal.ui.properties.TernMainPropertyPage"
-            id="tern.eclipse.ide.ui.properties">
+            class="tern.eclipse.ide.ui.properties.TernMainPropertyPage"
+            id="tern.eclipse.ide.ui.properties"
+            category="org.eclipse.wst.jsdt.internal.ui.preferences.JavaScriptMainPage" >
          <enabledWhen>
-		     <adapt type="org.eclipse.core.resources.IProject">
+             <adapt type="org.eclipse.core.resources.IProject">
                   <test property="tern.eclipse.ide.ui.isTernProject" />
-		     </adapt>         
+             </adapt>         
          </enabledWhen>
       </page>
-	  <page
+      <page
             name="%TernContentAssistPropertyPage.name"
             category="tern.eclipse.ide.ui.properties"        
             class="tern.eclipse.ide.internal.ui.preferences.TernContentAssistPreferencesPage"
             id="tern.eclipse.ide.ui.properties.contentassist">
          <enabledWhen>
-		     <adapt type="org.eclipse.core.resources.IProject">
+             <adapt type="org.eclipse.core.resources.IProject">
                   <test property="tern.eclipse.ide.ui.isTernProject" />
-		     </adapt>         
+             </adapt>         
          </enabledWhen>
       </page>          
       <!-- 
-	  <page
+      <page
             name="%TernModulesPropertyPage.name"
             category="tern.eclipse.ide.ui.properties"        
             class="tern.eclipse.ide.ui.properties.TernModulesPropertyPage"
             id="tern.eclipse.ide.ui.properties.modules">
          <enabledWhen>
-		     <adapt type="org.eclipse.core.resources.IProject">
+             <adapt type="org.eclipse.core.resources.IProject">
                   <test property="tern.eclipse.ide.ui.isTernProject" />
-		     </adapt>         
+             </adapt>         
          </enabledWhen>
       </page>     
       
-	  <page
+      <page
             name="%TernScriptPathsPropertyPage.name"
             category="tern.eclipse.ide.ui.properties"        
             class="tern.eclipse.ide.internal.ui.properties.TernScriptPathsPropertyPage"
             id="tern.eclipse.ide.ui.properties.scriptpaths">
          <enabledWhen>
-		     <adapt type="org.eclipse.core.resources.IProject">
+             <adapt type="org.eclipse.core.resources.IProject">
                   <test property="tern.eclipse.ide.ui.isTernProject" />
-		     </adapt>         
+             </adapt>         
          </enabledWhen>
       </page>
       -->
-	  <page
+      <page
             name="%TernDevelopmentPropertyPage.name"
             category="tern.eclipse.ide.ui.properties"        
             class="tern.eclipse.ide.internal.ui.preferences.TernDevelopmentPreferencesPage"
             id="tern.eclipse.ide.ui.properties.development">
          <enabledWhen>
-		     <adapt type="org.eclipse.core.resources.IProject">
+             <adapt type="org.eclipse.core.resources.IProject">
                   <test property="tern.eclipse.ide.ui.isTernProject" />
-		     </adapt>         
+             </adapt>         
          </enabledWhen>
       </page>
-	  <page
+      <page
             name="%TernRepositoryPropertyPage.name"
             category="tern.eclipse.ide.ui.properties.development"        
             class="tern.eclipse.ide.internal.ui.preferences.TernRepositoryPreferencesPage"
             id="tern.eclipse.ide.ui.properties.repository">
          <enabledWhen>
-		     <adapt type="org.eclipse.core.resources.IProject">
+             <adapt type="org.eclipse.core.resources.IProject">
                   <test property="tern.eclipse.ide.ui.isTernProject" />
-		     </adapt>         
+             </adapt>         
          </enabledWhen>
       </page>      
-	  <page
+      <page
             name="%TernValidationPropertyPage.name"
             category="tern.eclipse.ide.ui.properties"        
             class="tern.eclipse.ide.internal.ui.preferences.TernValidationPreferencesPage"
             id="tern.eclipse.ide.ui.properties.validation">
          <enabledWhen>
-		     <adapt type="org.eclipse.core.resources.IProject">
+             <adapt type="org.eclipse.core.resources.IProject">
                   <test property="tern.eclipse.ide.ui.isTernProject" />
-		     </adapt>         
+             </adapt>         
          </enabledWhen>
       </page>
-	</extension>
+    </extension>
      
     <!-- Tern Console -->
  	<extension
@@ -215,22 +215,10 @@
 	          </instanceof></enablement>
 	    </consolePageParticipant>
 	 </extension>
-<!-- Moved to tern.eclipse.ide.jsdt
-   <extension
-         point="org.eclipse.ui.workbench.texteditor.hyperlinkDetectors">
-      <hyperlinkDetector
-            class="tern.eclipse.ide.internal.ui.hyperlink.TernHyperLinkDetector"
-            id="tern.eclipse.ide.internal.ui.hyperlink.TernHyperLinkDetector"
-            name="%TernHyperLinkDetector"
-            activate="true"
-            targetId="org.eclipse.wst.jsdt.ui.javaCode">
-      </hyperlinkDetector>
-   </extension> -->
       
    <!-- Tern Defs + Plugins descriptor -->
    <extension
-         point="tern.eclipse.ide.ui.ternModuleDescriptors">
-      
+         point="tern.eclipse.ide.ui.ternModuleDescriptors">      
       <!-- Options -->
       <optionFactory
          id="string"
@@ -256,149 +244,65 @@
          id="lintRules"
          class="tern.eclipse.ide.internal.ui.descriptors.options.LintRulesTernModuleOptionFactory" >         
       </optionFactory>
-          
-      <!-- Tern def descriptors -->
-      <image
-      	 id="chrome-apps"
-      	 icon="/icons/full/obj16/chrome-apps.png" >
-      </image>
-      <image
-      	 id="browser"
-      	 icon="/icons/full/obj16/browser.gif" >
-      </image>
-      <image
-         id="ecma"
-         icon="/icons/full/obj16/ecma.png" >
-      </image>       
-      <image
-         id="jquery"
-         icon="/icons/full/obj16/jquery.png" >
-      </image>      
-      <image
-            id="underscore"
-            icon="/icons/full/obj16/underscore.png" >
-      </image>  
-      <!-- Tern plugin descriptors -->
-      <image
-            id="angular"
-            icon="/icons/full/obj16/angular.png" >
-      </image>
-      <image
-            id="aui"
-            icon="/icons/full/obj16/aui.png" >
-      </image>       
-      <image
-            id="ckeditor"
-            icon="/icons/full/obj16/ckeditor.png" >
-      </image>
-      <image
-            id="closure"
-            icon="/icons/full/obj16/closure.png" >
-      </image>
-      <image
-            id="complete_strings"
-            icon="/icons/full/obj16/completion.png" >
-      </image>      
-      <image
-            id="cordovajs"
-            icon="/icons/full/obj16/cordovajs.png" >
-      </image>
-      <image
-            id="dojotoolkit"
-            icon="/icons/full/obj16/dojotoolkit.png" >
-      </image>
-      <image
-            id="eslint"
-            icon="/icons/full/obj16/eslint.png" >
-      </image>      
-      <image
-            id="extjs"
-            icon="/icons/full/obj16/extjs.png" >
-      </image>
-  	  <image
-            id="gmaps"
-            icon="/icons/full/obj16/gmaps.png" >
-      </image>
-      <image
-            id="gas"
-            icon="/icons/full/obj16/gas.png" >
-      </image>             
-  	  <image
-            id="grunt"
-            icon="/icons/full/obj16/grunt.png" >
-      </image>
-  	  <image
-            id="gulp"
-            icon="/icons/full/obj16/gulp.png" >
-      </image>      
-      <image
-            id="guess-types"
-            icon="/icons/full/obj16/completion.png" >
-      </image>
-  	  <image
-            id="jasmine"
-            icon="/icons/full/obj16/jasmine.png" >
-      </image>
-      <image
-            id="jscs"
-            icon="/icons/full/obj16/jscs.png" >
-      </image>
-      <image
-            id="jshint"
-            icon="/icons/full/obj16/jshint.png" >
-      </image>      
-      <image
-            id="liferay"
-            icon="/icons/full/obj16/liferay.png" >
-      </image>
-      <image
-            id="lint"
-            icon="/icons/full/obj16/lint.png" >
-      </image>      
-  	  <image
-            id="meteor"
-            icon="/icons/full/obj16/meteor.png" >        
-      </image>
-  	  <image
-            id="node-express"
-            icon="/icons/full/obj16/node-express.png" >
-      </image>
-  	  <image
-            id="node-mongodb-native"
-            icon="/icons/full/obj16/node-mongodb-native.png" >
-      </image>
-  	  <image
-            id="node-mongoose"
-            icon="/icons/full/obj16/node-mongoose.png" >
-      </image>   
- 	  <image
-            id="node-lint"
-            icon="/icons/full/obj16/node.png" >
-      </image>                                         
-  	  <image
-            id="node"
-            icon="/icons/full/obj16/node.png" >
-      </image>
-  	  <image
-            id="protractor"
-            icon="/icons/full/obj16/protractor.png" >
-      </image>
-  	  <image
-            id="qooxdoo"
-            icon="/icons/full/obj16/qooxdoo.png" >
-      </image>      
-  	  <image
-            id="tabris"
-            icon="/icons/full/obj16/tabris.png" >
-      </image>            
-  	  <image
-            id="requirejs"
-            icon="/icons/full/obj16/requirejs.png" >
-      </image>                 
-      <image
-            id="yui"
-            icon="/icons/full/obj16/yui.png" >
-      </image>      
    </extension>   
-         	       	 
+
+	<!--======================================================================================-->
+	<!-- tern Explorer View                                      						             -->
+	<!--======================================================================================-->
+	
+   <extension
+         point="org.eclipse.ui.views">
+      <view
+            name="%TernExplorerView.name"
+            icon="$nl$/icons/full/eview16/tern-explorer.png"
+            category="org.eclipse.wst.jsdt.ui.java"
+            class="tern.eclipse.ide.internal.ui.views.TernExplorerView"
+            id="tern.eclipse.ide.ui.views.TernExplorerView">
+      </view>
+  </extension>
+   
+  <!--        
+  <extension
+			point="org.eclipse.ui.navigator.navigatorContent">
+		<navigatorContent
+				activeByDefault="true"
+				contentProvider="tern.eclipse.ide.internal.ui.views.TernExplorerContentProvider"
+				id="tern.eclipse.ide.internal.views.TernExplorerContent"
+				labelProvider="tern.eclipse.ide.internal.ui.views.TernExplorerLabelProvider"
+				name="%commonNavigatorContentName"
+				priority="low">
+			<triggerPoints>
+			     <or>
+					<and>
+                 		<instanceof	value="org.eclipse.core.resources.IResource" />						
+					</and>
+				</or>
+			</triggerPoints>
+			<possibleChildren>
+				<or>
+					<and>
+                 		<instanceof	value="org.eclipse.core.resources.IResource" />
+					</and>
+				</or>
+			</possibleChildren> 
+		</navigatorContent>
+   </extension>
+              
+  <extension
+      point="org.eclipse.ui.navigator.viewer">
+    <viewer
+         viewerId="tern.eclipse.ide.ui.views.TernExplorerView">
+    </viewer>
+    <viewerContentBinding
+         viewerId="tern.eclipse.ide.ui.views.TernExplorerView">
+      <includes>
+         <contentExtension
+               isRoot="false"
+               pattern="tern.eclipse.ide.internal.views.TernExplorerContent">
+         </contentExtension>
+      </includes>
+    </viewerContentBinding>
+  </extension>
+  --> 
+              	       	 
 </plugin>        

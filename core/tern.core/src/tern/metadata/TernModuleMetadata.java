@@ -10,6 +10,7 @@
  */
 package tern.metadata;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -37,6 +38,7 @@ public class TernModuleMetadata {
 
 	private static final String NAME_FIELD = "name";
 	private static final String LABEL_FIELD = "label";
+	private static final String ORIGIN_FIELD = "origin";
 	private static final String DESCRIPTION_FIELD = "description";
 	private static final String HOMEPAGE_FIELD = "homepage";
 	private static final String AUTHOR_FIELD = "author";
@@ -44,11 +46,14 @@ public class TernModuleMetadata {
 	private static final String BUGS_FIELD = "bugs";
 	private static final String HELP_FIELD = "help";
 	private static final String LINTER_FIELD = "linter";
+	private static final String DEF_FIELD = "def";
 	private static final String URL_FIELD = "url";
 	private static final String DEPENDENCIES_FIELD = "dependencies";
 	private static final String OPTIONS_FIELD = "options";
+	private static final String ICON_FIELD = "icon";
 
 	private final String name;
+	private final String origin;
 	private final String label;
 	private final String description;
 	private final String homepage;
@@ -57,18 +62,24 @@ public class TernModuleMetadata {
 	private final String bugsURL;
 	private final String helpURL;
 	private final boolean linter;
+	private final boolean def;
 	private final Map<String, Collection<String>> dependencies;
 	private final Map<String, Collection<String>> requiredDependencies;
 	private final Collection<TernModuleMetadataOption> options;
+	private File fileIcon;
 
 	/**
 	 * Create module metadata from JSON object.
 	 * 
 	 * @param json
+	 * @param file
 	 */
-	public TernModuleMetadata(JsonObject json) {
+	public TernModuleMetadata(JsonObject json, File file) {
 		this.name = JsonHelper.getString(json, NAME_FIELD);
 		this.label = JsonHelper.getString(json, LABEL_FIELD);
+		this.origin = !StringUtils.isEmpty(JsonHelper.getString(json,
+				ORIGIN_FIELD)) ? JsonHelper.getString(json, ORIGIN_FIELD)
+				: null;
 		this.description = JsonHelper.getString(json, DESCRIPTION_FIELD);
 		this.homepage = JsonHelper.getString(json, HOMEPAGE_FIELD);
 		this.author = JsonHelper.getString(json, AUTHOR_FIELD);
@@ -76,6 +87,7 @@ public class TernModuleMetadata {
 		this.bugsURL = getURL(json, BUGS_FIELD);
 		this.helpURL = getURL(json, HELP_FIELD);
 		this.linter = json.getBoolean(LINTER_FIELD, false);
+		this.def = json.getBoolean(DEF_FIELD, false);
 		// dependencies
 		JsonValue dependencies = json.get(DEPENDENCIES_FIELD);
 		if (dependencies != null) {
@@ -92,6 +104,20 @@ public class TernModuleMetadata {
 		} else {
 			this.options = null;
 		}
+		// icon
+		this.fileIcon = getFileIcon(json, file);
+	}
+
+	private File getFileIcon(JsonObject json, File file) {
+		if (file == null) {
+			return null;
+		}
+		String icon = JsonHelper.getString(json, ICON_FIELD);
+		if (StringUtils.isEmpty(icon)) {
+			return null;
+		}
+		File fileIcon = new File(file.getParentFile(), icon);
+		return fileIcon.exists() ? fileIcon : null;
 	}
 
 	private Map<String, Collection<String>> getRequiredDependencies() {
@@ -209,6 +235,15 @@ public class TernModuleMetadata {
 	}
 
 	/**
+	 * Returns the origin of the module.
+	 * 
+	 * @return the origin of the module.
+	 */
+	public String getOrigin() {
+		return origin;
+	}
+
+	/**
 	 * Returns the description of the module.
 	 * 
 	 * @return the description of the module.
@@ -306,8 +341,16 @@ public class TernModuleMetadata {
 	public boolean isLinter() {
 		return linter;
 	}
+	
+	public boolean isDef() {
+		return def;
+	}
 
 	public boolean hasOptions() {
 		return options != null && options.size() > 0;
+	}
+
+	public File getFileIcon() {
+		return fileIcon;
 	}
 }

@@ -29,7 +29,6 @@ public abstract class AbstractTernServerGuessTypesTest extends
 	protected ITernProject createProject() {
 		ITernProject project = super.createProject();
 		project.addPlugin(TernPlugin.guess_types);
-		project.addLib(TernDef.ecma5);
 		project.addLib(TernDef.browser);
 		return project;
 	}
@@ -46,7 +45,7 @@ public abstract class AbstractTernServerGuessTypesTest extends
 		// first arg is string type
 		Collection<String> names = collector.get(0);
 		Assert.assertNotNull(names);
-		Assert.assertArrayEquals(new String[] { "name", "s", "y" },
+		Assert.assertArrayEquals(new String[] { "\"\"", "''", "name", "s", "y" },
 				names.toArray());
 
 		// second arg has none suggestion

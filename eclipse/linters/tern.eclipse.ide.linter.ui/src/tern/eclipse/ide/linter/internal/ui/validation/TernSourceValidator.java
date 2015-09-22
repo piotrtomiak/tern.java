@@ -1,5 +1,5 @@
 /**
- *  Copyright (c) 2013-2015 Angelo ZERR.
+ *  Copyright (c) 2013-2014 Angelo ZERR.
  *  All rights reserved. This program and the accompanying materials
  *  are made available under the terms of the Eclipse Public License v1.0
  *  which accompanies this distribution, and is available at
@@ -70,7 +70,7 @@ public class TernSourceValidator implements IValidator, ISourceValidator {
 			if (lintPlugins.length > 0) {
 				ITernFile ternFile = new TernDocumentFile(file, document);
 				TernValidationHelper.validate(ternFile, ternProject, false,
-						reporter, this);
+						true, reporter, this);
 			}
 		} catch (CoreException e) {
 			Trace.trace(Trace.SEVERE, "Error while tern validation.", e);

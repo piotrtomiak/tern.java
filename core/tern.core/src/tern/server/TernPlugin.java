@@ -16,6 +16,7 @@ import java.util.Collection;
 import tern.metadata.TernModuleMetadata;
 import tern.metadata.TernModuleMetadataManager;
 import tern.utils.TernModuleHelper;
+import tern.utils.StringUtils;
 
 /**
  * Tern plugin.
@@ -25,19 +26,20 @@ public enum TernPlugin implements ITernPlugin {
 
 	aui15("aui", "1.5.x"),
 	aui2("aui", "2.0.x"), 
-	angular("tern/plugin/angular"), 
+	angular("tern/plugin/angular"),
+	browser_extension("browser-extension", "browser-extension", null, null),
 	chrome_apps("chrome-apps", "chrome-apps", null, null), 
 	component("tern/plugin/component"), 
-	ckeditor_4_4_1("ckeditor", "4.4.1", true), 
+	ckeditor_4_4_x("ckeditor", "4.4.x"), 
 	closure(""),
 	cordovajs("tern/plugin/cordovajs"), 
 	doc_comment("tern/plugin/doc_comment"), 
 	dojotoolkit_1_6("dojotoolkit", "1.6", true), 
 	dojotoolkit_1_8("dojotoolkit", "1.8", true), 
-	dojotoolkit_1_9("dojotoolkit", "1.9", true), 
+	dojotoolkit_1_9("dojotoolkit", "1.9", true),
+	es_modules(""),
 	extjs_4_2_1("extjs", "4.2.1", true), 
 	extjs_5_0_0("extjs", "5.0.0", true), 
-	guess_types("guess-types", "guess-types", null, null), 
 	grunt("tern/plugin/grunt"),
 	gulp("tern/plugin/gulp"),
 	gas("tern/plugin/gas"), 
@@ -56,7 +58,11 @@ public enum TernPlugin implements ITernPlugin {
 	lint(null, null, null, null, true),
 	eslint(null, null, null, null, true),
 	jshint(null, null, null, null, true),
-	jscs(null, null, null, null, true);
+	jscs(null, null, null, null, true), 
+	
+	// other
+	guess_types("guess-types", "guess-types", null, null),
+	outline("outline", "outline", null, null);
 
 	private static final ITernPlugin[] linters = createLinters();
 	
@@ -165,5 +171,15 @@ public enum TernPlugin implements ITernPlugin {
 	@Override
 	public boolean isLinter() {
 		return linter;
+	}
+	
+	@Override
+	public String getOrigin() {
+		String origin = null;
+		TernModuleMetadata metadata = getMetadata();
+		if (metadata != null) {
+			origin = metadata.getOrigin();
+		}
+		return !StringUtils.isEmpty(origin) ? origin : getName();
 	}
 }

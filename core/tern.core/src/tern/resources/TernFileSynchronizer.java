@@ -1,5 +1,5 @@
 /**
- *  Copyright (c) 2013-2015 Angelo ZERR and Genuitec LLC.
+ *  Copyright (c) 2013-2014 Angelo ZERR.
  *  All rights reserved. This program and the accompanying materials
  *  are made available under the terms of the Eclipse Public License v1.0
  *  which accompanies this distribution, and is available at
@@ -7,8 +7,6 @@
  *
  *  Contributors:
  *  Angelo Zerr <angelo.zerr@gmail.com> - initial API and implementation
- *  Piotr Tomiak <piotr@genuitec.com> - refactoring of file management API
- *  								  - asynchronous file upload
  */
 package tern.resources;
 
@@ -33,6 +31,9 @@ import tern.server.ITernServer;
 import tern.server.protocol.TernDoc;
 import tern.server.protocol.TernFile;
 import tern.server.protocol.TernQuery;
+import tern.server.protocol.completions.TernCompletionsQuery;
+import tern.server.protocol.definition.TernDefinitionQuery;
+import tern.server.protocol.type.TernTypeQuery;
 
 import com.eclipsesource.json.JsonArray;
 import com.eclipsesource.json.JsonValue;
@@ -218,18 +219,19 @@ public class TernFileSynchronizer implements ITernFileSynchronizer {
 		try {
 			try {
 				TernQuery query = doc.getQuery();
-				if (query != null && TernResourcesManager.isJSFile(file)) {
-					addJSFile(doc, file);
-					return;
-				} else if (query != null
-						&& TernResourcesManager.isHTMLFile(file)) {
-					// This is HTML file case: never keep the file on the server
-					String queryType = query.getType();
-					if (queryType.equals("completions") || //$NON-NLS-1$
-							queryType.equals("definition") || //$NON-NLS-1$
-							queryType.equals("type")) { //$NON-NLS-1$
-						addHTMLFile(doc, file);
+				if (query != null) {
+					if (TernResourcesManager.isJSFile(file)) {
+						addJSFile(doc, file);
 						return;
+					} else if (TernResourcesManager.isHTMLFile(file)) {
+						// This is HTML file case: never keep the file on the server
+						String queryType = query.getType();
+						if (TernCompletionsQuery.isQueryType(queryType) ||
+								TernDefinitionQuery.isQueryType(queryType) ||
+								TernTypeQuery.isQueryType(queryType)) {
+							addHTMLFile(doc, file);
+							return;
+						}	
 					}
 				}
 				TernFile tf = file.toTernServerFile(getProject());

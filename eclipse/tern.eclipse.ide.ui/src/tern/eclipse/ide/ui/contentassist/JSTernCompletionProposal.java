@@ -1,5 +1,5 @@
 /**
- *  Copyright (c) 2013-2015 Angelo ZERR.
+ *  Copyright (c) 2013-2014 Angelo ZERR.
  *  All rights reserved. This program and the accompanying materials
  *  are made available under the terms of the Eclipse Public License v1.0
  *  which accompanies this distribution, and is available at
@@ -37,11 +37,11 @@ import org.eclipse.ui.texteditor.link.EditorLinkedModeUI;
 
 import tern.ITernFile;
 import tern.ITernProject;
+import tern.ITernProject;
 import tern.eclipse.ide.internal.ui.Trace;
 import tern.eclipse.ide.ui.TernUIPlugin;
 import tern.eclipse.ide.ui.utils.HTMLTernPrinter;
 import tern.eclipse.jface.contentassist.TernCompletionProposal;
-import tern.server.ITernModule;
 import tern.server.TernPlugin;
 import tern.server.protocol.completions.FunctionInfo;
 import tern.server.protocol.completions.Parameter;
@@ -75,7 +75,6 @@ public class JSTernCompletionProposal extends TernCompletionProposal {
 	private String indentChars;
 
 	private ITernFile ternFile;
-	private ITernProject ternProject;
 
 	public JSTernCompletionProposal(TernCompletionProposalRec proposal) {
 		super(proposal);
@@ -182,6 +181,7 @@ public class JSTernCompletionProposal extends TernCompletionProposal {
 	}
 
 	protected void guessParameters(int offset) {
+		ITernProject ternProject = super.getTernProject();
 		if (ternProject != null
 				&& ternProject.hasPlugin(TernPlugin.guess_types)) {
 			String property = super.getName();
@@ -281,7 +281,7 @@ public class JSTernCompletionProposal extends TernCompletionProposal {
 		}
 
 		String indentation = getIndentation(document, offset);
-		arguments = new Arguments();
+		arguments = new Arguments(getTernProject());
 
 		StringBuilder replacement = new StringBuilder(super.getName());
 		replacement.append(LPAREN);
@@ -364,7 +364,7 @@ public class JSTernCompletionProposal extends TernCompletionProposal {
 				indent(replacement, indentation, nbIndentations);
 				replacement.append("}");
 			} else {
-				if ("{}".equals(parameter.getType()) && isGenerateObjectValue()) {
+				if ("{}".equals(parameter.getType()) && isGenerateObjectValue() && initialFunction) {
 					replacement.append("{");
 					replacement.append("\n");
 					indent(replacement, indentation, nbIndentations);
@@ -576,14 +576,6 @@ public class JSTernCompletionProposal extends TernCompletionProposal {
 		return ternFile;
 	}
 
-	public void setTernProject(ITernProject ternProject) {
-		this.ternProject = ternProject;
-	}
-
-	public ITernProject getTernProject() {
-		return ternProject;
-	}
-
 	private void ensurePositionCategoryInstalled(final IDocument document,
 			LinkedModeModel model) {
 		if (!document.containsPositionCategory(getCategory())) {
@@ -625,17 +617,5 @@ public class JSTernCompletionProposal extends TernCompletionProposal {
 	private String getCategory() {
 		return "JSTernCompletionProposal_" + toString(); //$NON-NLS-1$
 	}
-
-	/**
-	 * Use tern repository to retrieve the real module type (ex : yui for yui3).
-	 */
-	@Override
-	public String getOriginType() {
-		String origin = getOrigin();
-		if (origin == null) {
-			return null;
-		}
-		ITernModule module = this.ternProject.getRepository().getModule(origin);
-		return module != null ? module.getType() : origin;
-	}
+	
 }

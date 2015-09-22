@@ -22,9 +22,8 @@ public class BasicTernDef extends AbstractBasicTernModule implements ITernDef {
 		super(name, ModuleType.Def);
 	}
 
-	@Override
-	public String getType() {
-		return getName();
+	public BasicTernDef(TernModuleInfo info) {
+		super(info, ModuleType.Def);
 	}
 
 	@Override

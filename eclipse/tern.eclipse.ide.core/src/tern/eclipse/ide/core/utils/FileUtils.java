@@ -1,5 +1,5 @@
 /**
- *  Copyright (c) 2013-2014 Angelo ZERR and Genuitec LLC.
+ *  Copyright (c) 2013-2014 Angelo ZERR.
  *  All rights reserved. This program and the accompanying materials
  *  are made available under the terms of the Eclipse Public License v1.0
  *  which accompanies this distribution, and is available at
@@ -7,12 +7,12 @@
  *
  *  Contributors:
  *  Angelo Zerr <angelo.zerr@gmail.com> - initial API and implementation
- *  Piotr Tomiak <piotr@genuitec.com> - refactoring of file management API
  */
 package tern.eclipse.ide.core.utils;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.ProjectScope;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.preferences.IScopeContext;
@@ -78,4 +78,14 @@ public class FileUtils {
 		return null;
 	}
 
+	/**
+	 * Returns true if the given resource is valid and false otherwise.
+	 * 
+	 * @param resource
+	 * @return true if the given resource is valid and false otherwise.
+	 */
+	public static boolean isValidResource(IResource resource) {
+		return !(resource == null || resource.isDerived() || resource.isTeamPrivateMember() || !resource.isAccessible()
+				|| resource.getName().charAt(0) == '.');
+	}
 }

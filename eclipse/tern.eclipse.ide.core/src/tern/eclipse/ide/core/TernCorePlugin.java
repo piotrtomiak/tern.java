@@ -1,5 +1,5 @@
 /**
- *  Copyright (c) 2013-2014 Angelo ZERR and Genuitec LLC.
+ *  Copyright (c) 2013-2014 Angelo ZERR.
  *  All rights reserved. This program and the accompanying materials
  *  are made available under the terms of the Eclipse Public License v1.0
  *  which accompanies this distribution, and is available at
@@ -7,7 +7,6 @@
  *
  *  Contributors:
  *  Angelo Zerr <angelo.zerr@gmail.com> - initial API and implementation
- *  Piotr Tomiak <piotr@genuitec.com> - refactoring of file management API
  */
 package tern.eclipse.ide.core;
 
@@ -27,6 +26,7 @@ import org.osgi.framework.BundleContext;
 import tern.ITernResourcesManagerDelegate;
 import tern.TernResourcesManager;
 import tern.eclipse.ide.internal.core.TernFileConfigurationManager;
+import tern.eclipse.ide.internal.core.TernModuleInstallManager;
 import tern.eclipse.ide.internal.core.TernNatureAdaptersManager;
 import tern.eclipse.ide.internal.core.TernProjectLifecycleManager;
 import tern.eclipse.ide.internal.core.TernRepositoryManager;
@@ -64,7 +64,8 @@ public class TernCorePlugin extends Plugin {
 		IDETernProjectSynchronizer.getInstance().initialize();
 		TernModuleMetadataManager.getInstance().init(getTernCoreBaseDir());
 		TernFileConfigurationManager.getManager().initialize();
-
+		TernModuleInstallManager.getManager().initialize();
+		
 		// set up resource management for IDE
 		InternalTernResourcesManager resMan = InternalTernResourcesManager
 				.getInstance();
@@ -94,7 +95,8 @@ public class TernCorePlugin extends Plugin {
 		TernNatureAdaptersManager.getManager().destroy();
 		TernFileConfigurationManager.getManager().destroy();
 		IDETernProjectSynchronizer.getInstance().dispose();
-
+		TernModuleInstallManager.getManager().destroy();
+		
 		plugin = null;
 		super.stop(context);
 	}

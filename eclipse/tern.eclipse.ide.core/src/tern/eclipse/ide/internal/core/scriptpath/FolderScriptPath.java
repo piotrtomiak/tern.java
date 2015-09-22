@@ -1,5 +1,5 @@
 /**
- *  Copyright (c) 2013-2014 Angelo ZERR and Genuitec LLC.
+ *  Copyright (c) 2013-2014 Angelo ZERR.
  *  All rights reserved. This program and the accompanying materials
  *  are made available under the terms of the Eclipse Public License v1.0
  *  which accompanies this distribution, and is available at
@@ -7,7 +7,6 @@
  *
  *  Contributors:
  *  Angelo Zerr <angelo.zerr@gmail.com> - initial API and implementation
- *  Piotr Tomiak <piotr@genuitec.com> - refactoring of file management API
  */
 package tern.eclipse.ide.internal.core.scriptpath;
 
@@ -18,17 +17,16 @@ import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
-import org.eclipse.core.resources.IResourceProxy;
-import org.eclipse.core.resources.IResourceProxyVisitor;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IPath;
 
-import tern.ITernFile;
 import tern.ITernProject;
-import tern.TernResourcesManager;
+import tern.eclipse.ide.core.IIDETernProject;
+import tern.eclipse.ide.core.IIDETernScriptPathReporter;
+import tern.eclipse.ide.core.utils.PathUtils;
 import tern.eclipse.ide.internal.core.Trace;
 import tern.scriptpath.ITernScriptResource;
-import tern.scriptpath.impl.AbstractTernScriptPath;
-import tern.scriptpath.impl.JSFileScriptResource;
+import tern.scriptpath.impl.ContainerTernScriptPath;
 
 /**
  * Folder script path. This script path implementation gives the capability to
@@ -37,34 +35,35 @@ import tern.scriptpath.impl.JSFileScriptResource;
  * their subfolders.
  * 
  */
-public class FolderScriptPath extends AbstractTernScriptPath {
+public class FolderScriptPath extends ContainerTernScriptPath implements IIDETernScriptPath {
 
-	private IContainer container;
+	private final IContainer container;
+	private final IIDETernScriptPathReporter reporter;
 
-	public FolderScriptPath(ITernProject project, IContainer container,
-			String external) {
-		super(project, ScriptPathsType.FOLDER, external);
+	public FolderScriptPath(ITernProject project, IContainer container, String[] inclusionPatterns,
+			String[] exclusionPatterns, String external) {
+		super(project, ScriptPathsType.FOLDER, inclusionPatterns, exclusionPatterns, external);
 		this.container = container;
+		this.reporter = ((IIDETernProject) project).getScriptPathReporter();
 	}
 
 	@Override
 	public List<ITernScriptResource> getScriptResources() {
-		ScriptResourceProxyVisitor visitor = new ScriptResourceProxyVisitor();
+		List<ITernScriptResource> resources = new ArrayList<ITernScriptResource>();
+		ScriptResourceProxyVisitor visitor = new ScriptResourceProxyVisitor(this, resources, reporter);
 		try {
 			if (container.exists()) {
 				container.accept(visitor, IResource.NONE);
 			}
 		} catch (CoreException e) {
 			Trace.trace(Trace.SEVERE,
-					"Error while retrieving script resources from the folder script path "
-							+ container.getName(), e);
+					"Error while retrieving script resources from the folder script path " + container.getName(), e);
 		}
-		return visitor.resources;
+		return resources;
 	}
 
 	public String getLabel() {
-		StringBuilder text = new StringBuilder(container.getName()).append(
-				" - ").append( //$NON-NLS-1$
+		StringBuilder text = new StringBuilder(container.getName()).append(" - ").append( //$NON-NLS-1$
 				container.getFullPath().makeRelative().toString());
 		if (getExternalLabel() != null) {
 			text.append(" (").append(getExternalLabel()).append(")"); //$NON-NLS-1$ //$NON-NLS-2$
@@ -79,8 +78,7 @@ public class FolderScriptPath extends AbstractTernScriptPath {
 
 	@Override
 	public Object getAdapter(@SuppressWarnings("rawtypes") Class clazz) {
-		if (clazz == IContainer.class || clazz == IResource.class
-				|| clazz == IFolder.class) {
+		if (clazz == IContainer.class || clazz == IResource.class || clazz == IFolder.class) {
 			return container;
 		}
 		if (clazz == IProject.class && container instanceof IProject) {
@@ -97,36 +95,25 @@ public class FolderScriptPath extends AbstractTernScriptPath {
 	@Override
 	public boolean equals(Object obj) {
 		if (obj instanceof FolderScriptPath) {
-			return super.equals(obj)
-					&& container.equals(((FolderScriptPath) obj).container);
+			return super.equals(obj) && container.equals(((FolderScriptPath) obj).container);
 		}
 		return false;
 	}
 
-	private class ScriptResourceProxyVisitor implements IResourceProxyVisitor {
-
-		public List<ITernScriptResource> resources = new ArrayList<ITernScriptResource>();
-
-		@Override
-		public boolean visit(IResourceProxy proxy) throws CoreException {
-			int type = proxy.getType();
-			switch (type) {
-			case IResource.PROJECT:
-			case IResource.FOLDER:
-				return true;
-			case IResource.FILE:
-				String filename = proxy.getName();
-				if (TernResourcesManager.isJSFile(filename)) {
-					IResource resource = proxy.requestResource();
-					ITernFile file = TernResourcesManager.getTernFile(resource);
-					if (file != null) {
-						resources.add(new JSFileScriptResource(
-								getOwnerProject(), file));
-					}
-				}
-			}
-			return false;
-		}
+	@Override
+	public boolean isBelongToContainer(IPath path) {
+		IPath folderPath = getFullPath();
+		return PathUtils.isBelongToContainer(path, folderPath);
 	}
 
+	@Override
+	public boolean isInScope(IPath path, int resourceType) {
+		IPath folderPath = getFullPath();
+		IPath relativePath = PathUtils.getRelativePath(path, folderPath, resourceType);
+		return isInScope(relativePath, EclipsePathAdapter.INSTANCE);
+	}
+
+	public IPath getFullPath() {
+		return container.getFullPath();
+	}
 }

@@ -1,12 +1,12 @@
 /**
- *  Copyright (c) 2015 Genuitec LLC.
+ *  Copyright (c) 2013-2014 Angelo ZERR.
  *  All rights reserved. This program and the accompanying materials
  *  are made available under the terms of the Eclipse Public License v1.0
  *  which accompanies this distribution, and is available at
  *  http://www.eclipse.org/legal/epl-v10.html
  *
  *  Contributors:
- *  Piotr Tomiak <piotr@genuitec.com> - initial API and implementation
+ *  Angelo Zerr <angelo.zerr@gmail.com> - initial API and implementation
  */
 package tern.server.protocol;
 
@@ -21,8 +21,12 @@ import tern.server.protocol.definition.ITernDefinitionCollector;
 import tern.server.protocol.definition.TernDefinitionResultProcessor;
 import tern.server.protocol.guesstypes.ITernGuessTypesCollector;
 import tern.server.protocol.guesstypes.TernGuessTypesResultProcessor;
+import tern.server.protocol.highlight.ITernHighlightCollector;
+import tern.server.protocol.highlight.TernHighlightResultProcessor;
 import tern.server.protocol.lint.ITernLintCollector;
 import tern.server.protocol.lint.TernLintResultProcessor;
+import tern.server.protocol.outline.ITernOutlineCollector;
+import tern.server.protocol.outline.TernOutlineResultProcessor;
 import tern.server.protocol.type.ITernTypeCollector;
 import tern.server.protocol.type.TernTypeResultProcessor;
 
@@ -54,6 +58,10 @@ public class TernResultsProcessorsFactory {
 			return (ITernResultProcessor<T>) TernLintResultProcessor.INSTANCE;
 		} else if (collector instanceof ITernGuessTypesCollector) {
 			return (ITernResultProcessor<T>) TernGuessTypesResultProcessor.INSTANCE;
+		}else if (collector instanceof ITernOutlineCollector) {
+			return (ITernResultProcessor<T>) TernOutlineResultProcessor.INSTANCE;
+		}else if (collector instanceof ITernHighlightCollector) {
+			return (ITernResultProcessor<T>) TernHighlightResultProcessor.INSTANCE;
 		} else {
 			throw new TernException(
 					MessageFormat

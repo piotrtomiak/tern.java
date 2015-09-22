@@ -17,6 +17,7 @@ import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.resources.WorkspaceJob;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
@@ -71,10 +72,11 @@ public class JSDTClassPathManager implements IElementChangedListener,
 	}
 
 	private class ConfigureJob extends WorkspaceJob {
-		IJavaScriptProject fJsProject;
+		private final IJavaScriptProject jsProject;
 
 		private ConfigureJob(IJavaScriptProject jsProject) {
 			super("Tern Project configuration job");
+			this.jsProject = jsProject;
 		}
 
 		@Override
@@ -85,8 +87,8 @@ public class JSDTClassPathManager implements IElementChangedListener,
 			}
 			monitor.beginTask("Confuguring the project", 1);
 			// JSDT "Includes Path", has changed.
-			if (fJsProject != null) {
-				IProject project = fJsProject.getProject();
+			if (jsProject != null) {
+				IProject project = jsProject.getProject();
 				if (TernCorePlugin.hasTernNature(project)) {
 					// It's a tern project
 					try {
@@ -94,7 +96,7 @@ public class JSDTClassPathManager implements IElementChangedListener,
 								.getTernProject(project);
 						// Synchronize tern script paths with JSDT
 						// "Include Path"
-						synchTernScriptPaths(fJsProject, ternProject);
+						synchTernScriptPaths(jsProject, ternProject);
 					} catch (Exception e) {
 						Trace.trace(Trace.SEVERE,
 								"Error while JSDT ClassPath changed.", e);
@@ -179,7 +181,11 @@ public class JSDTClassPathManager implements IElementChangedListener,
 	public void startup() {
 		JavaScriptCore.addElementChangedListener(this,
 				ElementChangedEvent.POST_CHANGE);
-		TernCorePlugin.addTernProjectLifeCycleListener(this);
+		// the JSDT Class Path Manager is registered as listener with the
+		// ternProjectLifecycleListeners extension point
+		// to be sure when TernProject fires listener, this JSDT Class Path
+		// manager is registered.
+		// TernCorePlugin.addTernProjectLifeCycleListener(this);
 	}
 
 	public void shutdown() {
@@ -224,16 +230,16 @@ public class JSDTClassPathManager implements IElementChangedListener,
 				case IIncludePathEntry.CPE_LIBRARY:
 					// TODO : manage JSDT library
 					// JSDT Source file => Tern script path file.
-					/*IFolder libFolder = ResourcesPlugin.getWorkspace().getRoot()
-							.getFolder(entry.getPath());
-					try {
-						ternProject.addExternalScriptPath(libFolder,
-								ScriptPathsType.FOLDER, JSDT_EXTERNAL_LABEL);
-					} catch (IOException e) {
-						Trace.trace(Trace.SEVERE,
-								"Error while adding external tern script path for project "
-										+ ternProject.getProject().getName(), e);
-					}*/
+					/*
+					 * IFolder libFolder =
+					 * ResourcesPlugin.getWorkspace().getRoot()
+					 * .getFolder(entry.getPath()); try {
+					 * ternProject.addExternalScriptPath(libFolder,
+					 * ScriptPathsType.FOLDER, JSDT_EXTERNAL_LABEL); } catch
+					 * (IOException e) { Trace.trace(Trace.SEVERE,
+					 * "Error while adding external tern script path for project "
+					 * + ternProject.getProject().getName(), e); }
+					 */
 					break;
 				case IIncludePathEntry.CPE_SOURCE:
 					if (entry.getPath().segmentCount() == 1) {
@@ -245,10 +251,13 @@ public class JSDTClassPathManager implements IElementChangedListener,
 						IFolder folder = ResourcesPlugin.getWorkspace()
 								.getRoot().getFolder(entry.getPath());
 						try {
-							ternProject
-									.addExternalScriptPath(folder,
-											ScriptPathsType.FOLDER,
-											JSDT_EXTERNAL_LABEL);
+							String[] inclusionPatterns = toTernPatterns(entry
+									.getInclusionPatterns());
+							String[] exclusionPatterns = toTernPatterns(entry
+									.getExclusionPatterns());
+							ternProject.addExternalScriptPath(folder,
+									ScriptPathsType.FOLDER, inclusionPatterns,
+									exclusionPatterns, JSDT_EXTERNAL_LABEL);
 						} catch (IOException e) {
 							Trace.trace(Trace.SEVERE,
 									"Error while adding external tern script path for project "
@@ -270,6 +279,17 @@ public class JSDTClassPathManager implements IElementChangedListener,
 		}
 	}
 
+	private String[] toTernPatterns(IPath[] paths) {
+		if (paths == null || paths.length < 1) {
+			return null;
+		}
+		String[] patterns = new String[paths.length];
+		for (int i = 0; i < paths.length; i++) {
+			patterns[i] = paths[i].toString();
+		}
+		return patterns;
+	}
+
 	/**
 	 * Synchronize tern project script paths with JSDT "Include Path"
 	 * 
@@ -282,8 +302,12 @@ public class JSDTClassPathManager implements IElementChangedListener,
 		IProject project = ResourcesPlugin.getWorkspace().getRoot()
 				.getProject(entry.getPath().lastSegment());
 		try {
+			String[] inclusionPatterns = toTernPatterns(entry
+					.getInclusionPatterns());
+			String[] exclusionPatterns = toTernPatterns(entry
+					.getExclusionPatterns());
 			ternProject.addExternalScriptPath(project, ScriptPathsType.PROJECT,
-					JSDT_EXTERNAL_LABEL);
+					inclusionPatterns, exclusionPatterns, JSDT_EXTERNAL_LABEL);
 		} catch (IOException e) {
 			Trace.trace(Trace.SEVERE,
 					"Error while adding external tern script path for project "

@@ -13,6 +13,8 @@ package tern.server.protocol.completions;
 import java.util.ArrayList;
 import java.util.List;
 
+import tern.ITernProject;
+import tern.server.ITernModule;
 import tern.utils.StringUtils;
 
 /**
@@ -31,6 +33,8 @@ public class TernCompletionItem {
 	private List<Parameter> parameters;
 	private String[] allTypes;
 	private boolean hasDisplayName;
+
+	private ITernProject ternProject;
 
 	public TernCompletionItem(TernCompletionProposalRec proposal) {
 		this.proposal = proposal;
@@ -335,12 +339,39 @@ public class TernCompletionItem {
 		return "string".equals(getJsType());
 	}
 
+	public ITernProject getTernProject() {
+		return ternProject;
+	}
+
+	public void setTernProject(ITernProject ternProject) {
+		this.ternProject = ternProject;
+	}
+
 	/**
 	 * Returns the origin type.
 	 * 
 	 * @return the origin type.
 	 */
-	public String getOriginType() {
-		return getOrigin();
+//	public String getOriginType() {
+//		ITernModule module = getModule();
+//		// Use tern repository to retrieve the real module type (ex : yui for
+//		// yui3).
+//		return module != null ? module.getType() : null;
+//	}
+
+	/**
+	 * Returns the tern module and null otherwise.
+	 * 
+	 * @return the tern module and null otherwise.
+	 */
+	public ITernModule getTernModule() {
+		String origin = getOrigin();
+		if (origin == null) {
+			return null;
+		}
+		if (ternProject == null) {
+			return null;
+		}
+		return this.ternProject.getRepository().getModuleByOrigin(origin);
 	}
 }

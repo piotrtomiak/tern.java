@@ -10,8 +10,6 @@
  */
 package tern.eclipse.ide.ui.utils;
 
-import java.io.File;
-
 import org.eclipse.core.filebuffers.FileBuffers;
 import org.eclipse.core.filebuffers.ITextFileBuffer;
 import org.eclipse.core.filebuffers.ITextFileBufferManager;
@@ -24,7 +22,6 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.NullProgressMonitor;
-import org.eclipse.core.runtime.Path;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.ITextOperationTarget;
 import org.eclipse.jface.text.source.ISourceViewer;
@@ -131,8 +128,12 @@ public class EditorUtils {
 	public static IFile getFile(IDocument document) {
 		ITextFileBufferManager bufferManager = FileBuffers
 				.getTextFileBufferManager(); // get the buffer manager
-		IPath location = bufferManager.getTextFileBuffer(document)
-				.getLocation();
+		ITextFileBuffer buffer = bufferManager.getTextFileBuffer(document);
+		IPath location = buffer == null ? null : buffer.getLocation();
+		if (location == null) {
+			return null;
+		}
+		
 		return ResourcesPlugin.getWorkspace().getRoot().getFile(location);
 	}
 

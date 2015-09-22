@@ -1,5 +1,5 @@
 /**
- *  Copyright (c) 2013-2014 Angelo ZERR and Genuitec LLC.
+ *  Copyright (c) 2013-2014 Angelo ZERR.
  *  All rights reserved. This program and the accompanying materials
  *  are made available under the terms of the Eclipse Public License v1.0
  *  which accompanies this distribution, and is available at
@@ -7,7 +7,6 @@
  *
  *  Contributors:
  *  Angelo Zerr <angelo.zerr@gmail.com> - initial API and implementation
- *  Piotr Tomiak <piotr@genuitec.com> - refactoring of file management API
  */
 package tern.scriptpath.impl;
 
@@ -25,14 +24,16 @@ import tern.scriptpath.ITernScriptPath;
  * project.
  * 
  */
-public class ProjectScriptPath extends AbstractTernScriptPath {
+public class ProjectScriptPath extends ContainerTernScriptPath {
 
 	private final ITernProject project;
 	private final List<ITernScriptResource> scripts;
 
 	public ProjectScriptPath(ITernProject project, ITernProject ownerProject,
+			String[] inclusionPatterns, String[] exclusionPatterns,
 			String external) {
-		super(ownerProject, ScriptPathsType.PROJECT, external);
+		super(ownerProject, ScriptPathsType.PROJECT, inclusionPatterns,
+				exclusionPatterns, external);
 		this.project = project;
 		this.scripts = new ArrayList<ITernScriptResource>();
 	}
@@ -40,7 +41,7 @@ public class ProjectScriptPath extends AbstractTernScriptPath {
 	public ITernProject getProject() {
 		return project;
 	}
-	
+
 	@Override
 	public String getLabel() {
 		if (getExternalLabel() != null) {
@@ -58,30 +59,34 @@ public class ProjectScriptPath extends AbstractTernScriptPath {
 	@Override
 	public List<ITernScriptResource> getScriptResources() {
 		this.scripts.clear();
+		collect(scripts);
+		return scripts;
+	}
+
+	protected void collect(List<ITernScriptResource> scripts) {
 		for (ITernScriptPath scriptPath : project.getScriptPaths()) {
-			if (scriptPath.getType() != ScriptPathsType.PROJECT ||
-					!scriptPath.getOwnerProject().equals(project)) {
+			if (scriptPath.getType() != ScriptPathsType.PROJECT
+					&& !scriptPath.getOwnerProject().equals(project)) {
 				this.scripts.addAll(scriptPath.getScriptResources());
 			}
 		}
-		return scripts;
 	}
 
 	@Override
 	public Object getAdapter(@SuppressWarnings("rawtypes") Class clazz) {
 		return project.getAdapter(clazz);
 	}
-	
+
 	@Override
 	public int hashCode() {
-		return super.hashCode()*17 + project.hashCode();
+		return super.hashCode() * 17 + project.hashCode();
 	}
-	
+
 	@Override
 	public boolean equals(Object obj) {
 		if (obj instanceof ProjectScriptPath) {
-			return super.equals(obj) &&
-					project.equals(((ProjectScriptPath) obj).project);
+			return super.equals(obj)
+					&& project.equals(((ProjectScriptPath) obj).project);
 		}
 		return false;
 	}

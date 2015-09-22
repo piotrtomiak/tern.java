@@ -1,5 +1,5 @@
 /**
- *  Copyright (c) 2013-2015 Angelo ZERR.
+ *  Copyright (c) 2013-2014 Angelo ZERR.
  *  All rights reserved. This program and the accompanying materials
  *  are made available under the terms of the Eclipse Public License v1.0
  *  which accompanies this distribution, and is available at
@@ -14,6 +14,7 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
 
+import tern.EcmaVersion;
 import tern.TernException;
 import tern.server.ITernModule;
 
@@ -111,9 +112,21 @@ public interface IWorkingCopy {
 	List<ITernModule> getAllModules();
 
 	/**
+	 * Returns the all modules without ECMAScript and JSDoc.
+	 * 
+	 * @return the all modules without ECMAScript and JSDoc.
+	 */
+	List<ITernModule> getFilteredModules();
+	
+	/**
 	 * Returns the owner tern project.
 	 * 
 	 * @return the owner tern project.
 	 */
 	IIDETernProject getProject();
+
+	EcmaVersion getEcmaVersion();
+	
+	void setEcmaVersion(EcmaVersion ecmaVersion);
+
 }

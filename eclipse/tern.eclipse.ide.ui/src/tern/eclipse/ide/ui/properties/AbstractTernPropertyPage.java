@@ -1,5 +1,5 @@
 /**
- *  Copyright (c) 2013-201 Angelo ZERR.
+ *  Copyright (c) 2013-2014 Angelo ZERR.
  *  All rights reserved. This program and the accompanying materials
  *  are made available under the terms of the Eclipse Public License v1.0
  *  which accompanies this distribution, and is available at
@@ -20,6 +20,7 @@ import org.eclipse.ui.dialogs.PropertyPage;
 import tern.TernException;
 import tern.eclipse.ide.core.IIDETernProject;
 import tern.eclipse.ide.core.IWorkingCopy;
+import tern.eclipse.ide.core.IWorkingCopyListener;
 import tern.eclipse.ide.core.TernCorePlugin;
 import tern.eclipse.ide.internal.ui.Trace;
 
@@ -73,16 +74,36 @@ public abstract class AbstractTernPropertyPage extends PropertyPage {
 	 * @throws IOException
 	 * @throws TernException
 	 */
-	protected void saveWorkingCopy() throws CoreException, IOException,
-			TernException {
+	private void saveWorkingCopy() throws CoreException, IOException, TernException {
 		getWorkingCopy().commit(this);
 	}
 
 	@Override
-	public void dispose() {
+	public final void dispose() {
 		super.dispose();
-		// on close page, clear the working copy.
-		getWorkingCopy().clear();
+		try {
+			if (workingCopy != null) {
+				if (this instanceof IWorkingCopyListener) {
+					workingCopy.removeWorkingCopyListener((IWorkingCopyListener) this);
+				}
+				// on close page, clear the working copy.
+				workingCopy.clear();
+			}
+		} catch (Throwable e) {
+		}
 	}
+
+	@Override
+	public final boolean performOk() {
+		try {
+			doPerformOk();
+			saveWorkingCopy();
+		} catch (Exception e) {
+			Trace.trace(Trace.SEVERE, "Error while saving tern project", e);
+		}
+		return super.performOk();
+	}
+
+	protected abstract void doPerformOk() throws Exception;
 
 }

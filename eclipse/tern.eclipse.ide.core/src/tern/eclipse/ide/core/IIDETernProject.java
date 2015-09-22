@@ -1,5 +1,5 @@
 /**
- *  Copyright (c) 2013-2014 Angelo ZERR and Genuitec LLC.
+ *  Copyright (c) 2013-2014 Angelo ZERR.
  *  All rights reserved. This program and the accompanying materials
  *  are made available under the terms of the Eclipse Public License v1.0
  *  which accompanies this distribution, and is available at
@@ -7,7 +7,6 @@
  *
  *  Contributors:
  *  Angelo Zerr <angelo.zerr@gmail.com> - initial API and implementation
- *  Piotr Tomiak <piotr@genuitec.com> - refactoring of file management API
  */
 package tern.eclipse.ide.core;
 
@@ -56,10 +55,12 @@ public interface IIDETernProject extends ITernProject {
 	 */
 	ITernScriptPath getScriptPath(String path);
 
-	ITernScriptPath createScriptPath(IResource resource, ScriptPathsType type);
+	ITernScriptPath createScriptPath(IResource resource, ScriptPathsType type,
+			String[] inclusionPatterns, String[] exclusionPatterns);
 
 	ITernScriptPath addExternalScriptPath(IResource resource,
-			ScriptPathsType type, String external) throws IOException;
+			ScriptPathsType type, String[] inclusionPatterns,
+			String[] exclusionPatterns, String external) throws IOException;
 
 	void removeExternalScriptPaths(String external);
 
@@ -97,5 +98,22 @@ public interface IIDETernProject extends ITernProject {
 	 */
 	IWorkingCopy getWorkingCopy(Object caller) throws TernException;
 
-	boolean isInScope(IResource resource);
+	/**
+	 * Returns true if the given resource is in the scope of the tern script
+	 * paths and false otherwise.
+	 * 
+	 * @param resource to check
+	 * @param context scope context which maintains include/exclude containers and null otherwise.
+	 * 
+	 * @return true if the given resource is in the scope of the tern script
+	 *         paths and false otherwise.
+	 */
+	boolean isInScope(IResource resource, IScopeContext context);
+
+	/**
+	 * Returns the tern script path reporter and null otherwise.
+	 * 
+	 * @return the tern script path reporter and null otherwise.
+	 */
+	IIDETernScriptPathReporter getScriptPathReporter();
 }

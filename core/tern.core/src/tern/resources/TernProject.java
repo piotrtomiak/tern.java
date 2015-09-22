@@ -1,5 +1,5 @@
 /**
- *  Copyright (c) 2013-2015 Angelo ZERR and Genuitec LLC.
+ *  Copyright (c) 2013-2014 Angelo ZERR.
  *  All rights reserved. This program and the accompanying materials
  *  are made available under the terms of the Eclipse Public License v1.0
  *  which accompanies this distribution, and is available at
@@ -7,8 +7,6 @@
  *
  *  Contributors:
  *  Angelo Zerr <angelo.zerr@gmail.com> - initial API and implementation
- *  Piotr Tomiak <piotr@genuitec.com> - refactoring of file management API
- *  								  - asynchronous file upload
  */
 package tern.resources;
 
@@ -25,6 +23,14 @@ import java.util.List;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 
+import com.eclipsesource.json.JsonArray;
+import com.eclipsesource.json.JsonObject;
+import com.eclipsesource.json.JsonValue;
+import com.eclipsesource.json.ParseException;
+import com.eclipsesource.json.PrettyPrint;
+import com.eclipsesource.json.WriterConfig;
+
+import tern.EcmaVersion;
 import tern.ITernFile;
 import tern.ITernFileSynchronizer;
 import tern.ITernProject;
@@ -37,6 +43,7 @@ import tern.scriptpath.impl.dom.DOMElementsScriptPath;
 import tern.server.ITernDef;
 import tern.server.ITernPlugin;
 import tern.server.ITernServer;
+import tern.server.TernDef;
 import tern.server.TernPlugin;
 import tern.server.protocol.JsonHelper;
 import tern.server.protocol.TernDoc;
@@ -45,14 +52,13 @@ import tern.server.protocol.completions.ITernCompletionCollector;
 import tern.server.protocol.definition.ITernDefinitionCollector;
 import tern.server.protocol.guesstypes.ITernGuessTypesCollector;
 import tern.server.protocol.guesstypes.TernGuessTypesQuery;
+import tern.server.protocol.highlight.ITernHighlightCollector;
+import tern.server.protocol.highlight.TernHighlightQuery;
 import tern.server.protocol.lint.ITernLintCollector;
+import tern.server.protocol.outline.ITernOutlineCollector;
+import tern.server.protocol.outline.TernOutlineQuery;
 import tern.server.protocol.type.ITernTypeCollector;
 import tern.utils.IOUtils;
-
-import com.eclipsesource.json.JsonArray;
-import com.eclipsesource.json.JsonObject;
-import com.eclipsesource.json.JsonValue;
-import com.eclipsesource.json.ParseException;
 
 /**
  * Tern project configuration.
@@ -83,13 +89,15 @@ public class TernProject extends JsonObject implements ITernProject {
 
 	private static final long serialVersionUID = 1L;
 
+	private static final String ECMA_VERSION_FIELD_NAME = "ecmaVersion"; //$NON-NLS-1$
 	private static final String PLUGINS_FIELD_NAME = "plugins"; //$NON-NLS-1$
 	private static final String LIBS_FIELD_NAME = "libs"; //$NON-NLS-1$
 	private static final String LOAD_EAGERLY_FIELD_NAME = "loadEagerly"; //$NON-NLS-1$
-
+			
 	private final File projectDir;
 	protected final File ternProjectFile;
-	
+	private ITernRepository repository;
+
 	private ITernPlugin[] linters;
 
 	/**
@@ -100,7 +108,9 @@ public class TernProject extends JsonObject implements ITernProject {
 	private String lastTernProjectFileContent;
 
 	private Object libLock = new Object();
-	
+
+	private List<ITernPlugin> lastLinters;
+
 	/**
 	 * Tern project constructor.
 	 * 
@@ -110,8 +120,7 @@ public class TernProject extends JsonObject implements ITernProject {
 	public TernProject(File projectDir) {
 		this.projectDir = projectDir;
 		this.ternProjectFile = new File(projectDir, TERN_PROJECT_FILE);
-		this.fileSynchronizer = InternalTernResourcesManager.getInstance()
-				.createTernFileSynchronizer(this);
+		this.fileSynchronizer = InternalTernResourcesManager.getInstance().createTernFileSynchronizer(this);
 	}
 
 	@Override
@@ -134,6 +143,30 @@ public class TernProject extends JsonObject implements ITernProject {
 		return ternProjectFile;
 	}
 
+	
+	@Override
+	public void setEcmaVersion(EcmaVersion ecmaVersion) {
+		super.set(ECMA_VERSION_FIELD_NAME, ecmaVersion.getVersion());
+	}
+
+	@Override
+	public EcmaVersion getEcmaVersion() {
+		int version = super.getInt(ECMA_VERSION_FIELD_NAME, -1);
+		if (version == -1) {
+			// Search if .tern-project contains ecma5.json, etc
+			if (hasLib(TernDef.ecma7)) {
+				return EcmaVersion.ES7;
+			}
+			if (hasLib(TernDef.ecma6)) {
+				return EcmaVersion.ES6;
+			}
+			if (hasLib(TernDef.ecma5)) {
+				return EcmaVersion.ES5;
+			}
+		}
+		return EcmaVersion.get(version);
+	}
+	
 	/**
 	 * Returns true if lib or plugins exists and false otheriwse.
 	 * 
@@ -162,11 +195,11 @@ public class TernProject extends JsonObject implements ITernProject {
 	 */
 	@Override
 	public void addLib(String lib) {
-	  synchronized(libLock) {
-		if (!hasLib(lib)) {
-			getLibs().add(lib);
+		synchronized (libLock) {
+			if (!hasLib(lib)) {
+				getLibs().add(lib);
+			}
 		}
-	  }
 	}
 
 	/**
@@ -177,16 +210,16 @@ public class TernProject extends JsonObject implements ITernProject {
 	 */
 	@Override
 	public boolean hasLib(String lib) {
-	  synchronized(libLock) {
-		JsonArray libs = getLibs();
-		if (libs != null) {
-			for (JsonValue l : libs) {
-				if (l.isString() && l.asString().equals(lib))
-					return true;
+		synchronized (libLock) {
+			JsonArray libs = getLibs();
+			if (libs != null) {
+				for (JsonValue l : libs) {
+					if (l.isString() && l.asString().equals(lib))
+						return true;
+				}
 			}
+			return false;
 		}
-		return false;
-	  }
 	}
 
 	/**
@@ -216,14 +249,14 @@ public class TernProject extends JsonObject implements ITernProject {
 	 */
 	@Override
 	public JsonArray getLibs() {
-	  synchronized(libLock) {
-		JsonArray libs = (JsonArray) super.get(LIBS_FIELD_NAME);
-		if (libs == null) {
-			libs = new JsonArray();
-			add(LIBS_FIELD_NAME, libs);
+		synchronized (libLock) {
+			JsonArray libs = (JsonArray) super.get(LIBS_FIELD_NAME);
+			if (libs == null) {
+				libs = new JsonArray();
+				add(LIBS_FIELD_NAME, libs);
+			}
+			return libs;
 		}
-		return libs;
-	  }
 	}
 
 	/**
@@ -231,9 +264,9 @@ public class TernProject extends JsonObject implements ITernProject {
 	 */
 	@Override
 	public void clearLibs() {
-	  synchronized(libLock) {
-		remove(LIBS_FIELD_NAME);
-	  }
+		synchronized (libLock) {
+			remove(LIBS_FIELD_NAME);
+		}
 	}
 
 	/**
@@ -267,7 +300,7 @@ public class TernProject extends JsonObject implements ITernProject {
 	 *            plugin options.
 	 */
 	@Override
-	public void addPlugin(ITernPlugin plugin, JsonObject options) {
+	public void addPlugin(ITernPlugin plugin, JsonValue options) {
 		JsonObject plugins = getPlugins();
 		if (options == null)
 			options = new JsonObject();
@@ -326,31 +359,33 @@ public class TernProject extends JsonObject implements ITernProject {
 		remove(PLUGINS_FIELD_NAME);
 		this.linters = null;
 	}
-	
+
 	@Override
 	public ITernPlugin[] getLinters() {
 		if (linters == null) {
 			Collection<ITernPlugin> plugins = new ArrayList<ITernPlugin>();
-			// dynamic linter coming from repository
-			ITernRepository repository = getRepository();
-			if (repository != null) {
-				addLinter(plugins, repository.getLinters());
-			} else {
-				// known linters
-				addLinter(plugins, TernPlugin.getLinters());
-			}
+			collectLinters(plugins);
 			linters = plugins.toArray(ITernPlugin.EMPTY_PLUGIN);
 		}
 		return linters;
 	}
 
-	private void addLinter(Collection<ITernPlugin> plugins,
-			ITernPlugin[] knownLintPlugins) {
+	protected void collectLinters(Collection<ITernPlugin> plugins) {
+		// dynamic linter coming from repository
+		ITernRepository repository = getRepository();
+		if (repository != null) {
+			addLinter(plugins, repository.getLinters());
+		} else {
+			// known linters
+			addLinter(plugins, TernPlugin.getLinters());
+		}
+	}
+
+	private void addLinter(Collection<ITernPlugin> plugins, ITernPlugin[] knownLintPlugins) {
 		ITernPlugin knownLintPlugin;
 		for (int i = 0; i < knownLintPlugins.length; i++) {
 			knownLintPlugin = knownLintPlugins[i];
-			if (hasPlugin(knownLintPlugin)
-					&& !plugins.contains(knownLintPlugin)) {
+			if (hasPlugin(knownLintPlugin) && !plugins.contains(knownLintPlugin)) {
 				plugins.add(knownLintPlugin);
 			}
 		}
@@ -375,7 +410,7 @@ public class TernProject extends JsonObject implements ITernProject {
 		try {
 			doSave();
 		} finally {
-			this.lastTernProjectFileContent = toString();
+			reset();
 		}
 	}
 
@@ -390,7 +425,7 @@ public class TernProject extends JsonObject implements ITernProject {
 			Writer writer = null;
 			try {
 				writer = new FileWriter(ternProjectFile);
-				super.writeTo(writer);
+				super.writeTo(writer, WriterConfig.PRETTY_PRINT);
 			} finally {
 				if (writer != null) {
 					IOUtils.closeQuietly(writer);
@@ -405,8 +440,51 @@ public class TernProject extends JsonObject implements ITernProject {
 	 * @throws IOException
 	 */
 	public final void load() throws IOException {
-		doLoad();
+		try {
+			Collection<ITernPlugin> lastLinters = getLastLinters();
+			doLoad();
+			if (lastLinters != null) {
+				ITernPlugin[] newLinters = getLinters();
+				if (isLintersChanged(lastLinters, newLinters)) {
+					onLintersChanged();
+				}
+			}
+		} finally {
+			reset();
+			this.lastLinters = new ArrayList<ITernPlugin>();
+			collectLinters(lastLinters);
+		}
+	}
+
+	/**
+	 * Listener lanched when linter is added or removed from the .tern-project.
+	 */
+	protected void onLintersChanged() {
+
+	}
+
+	/**
+	 * Returns true if linters has changed and false otherwise.
+	 * 
+	 * @param oldLinters
+	 * @param newLinters
+	 * @return true if linters has changed and false otherwise.
+	 */
+	private boolean isLintersChanged(Collection<ITernPlugin> oldLinters, ITernPlugin[] newLinters) {
+		if (oldLinters.size() != newLinters.length) {
+			return true;
+		}
+		// TODO : implement changes of linter options
+		return false;
+	}
+
+	protected void reset() {
 		this.lastTernProjectFileContent = toString();
+		this.linters = null;
+	}
+
+	public List<ITernPlugin> getLastLinters() {
+		return lastLinters;
 	}
 
 	/**
@@ -427,7 +505,7 @@ public class TernProject extends JsonObject implements ITernProject {
 		} else {
 			createEmptyTernProjectFile();
 		}
-		this.lastTernProjectFileContent = toString();
+		reset();
 	}
 
 	/**
@@ -461,14 +539,12 @@ public class TernProject extends JsonObject implements ITernProject {
 
 	@Override
 	public ITernFile getFile(String name) {
-		return InternalTernResourcesManager.getInstance().getTernFile(this,
-				name);
+		return InternalTernResourcesManager.getInstance().getTernFile(this, name);
 	}
 
 	@Override
 	public ITernFile getFile(Object fileObject) {
-		return InternalTernResourcesManager.getInstance().getTernFile(
-				fileObject);
+		return InternalTernResourcesManager.getInstance().getTernFile(fileObject);
 	}
 
 	@Override
@@ -484,8 +560,7 @@ public class TernProject extends JsonObject implements ITernProject {
 		return null;
 	}
 
-	protected void synchronize(TernDoc doc, JsonArray names,
-			ITernScriptPath scriptPath, Node domNode, ITernFile file) {
+	protected void synchronize(TernDoc doc, JsonArray names, ITernScriptPath scriptPath, Node domNode, ITernFile file) {
 		ITernFileSynchronizer synchronizer = getFileSynchronizer();
 		synchronizer.ensureSynchronized();
 		if (file != null) {
@@ -493,10 +568,8 @@ public class TernProject extends JsonObject implements ITernProject {
 				doc.getQuery().setFile(file.getFullName(this));
 			}
 			if (domNode != null) {
-				DOMElementsScriptPath domPath = createDOMElementsScriptPath(
-						domNode, file);
-				synchronizer.synchronizeScriptPath(domPath,
-						file.getFullName(this));
+				DOMElementsScriptPath domPath = createDOMElementsScriptPath(domNode, file);
+				synchronizer.synchronizeScriptPath(domPath, file.getFullName(this));
 			} else {
 				try {
 					synchronizer.synchronizeFile(doc, file);
@@ -510,8 +583,7 @@ public class TernProject extends JsonObject implements ITernProject {
 		}
 	}
 
-	protected DOMElementsScriptPath createDOMElementsScriptPath(Node domNode,
-			ITernFile file) {
+	protected DOMElementsScriptPath createDOMElementsScriptPath(Node domNode, ITernFile file) {
 		final Document doc = domNode.getOwnerDocument();
 		return new DOMElementsScriptPath(this, file, null) {
 			@Override
@@ -522,88 +594,94 @@ public class TernProject extends JsonObject implements ITernProject {
 	}
 
 	@Override
-	public void request(TernQuery query, ITernFile file,
-			ITernCompletionCollector collector) throws IOException,
-			TernException {
-		request(query, null, null, null, file, collector);
-	}
-
-	@Override
-	public void request(TernQuery query, JsonArray names,
-			ITernScriptPath scriptPath, Node domNode, ITernFile file,
-			ITernCompletionCollector collector) throws IOException,
-			TernException {
-		if (getScope() == ContentScope.TURN_OFF) {
-			return;
-		}
-		TernDoc doc = new TernDoc(query);
-		synchronize(doc, names, scriptPath, domNode, file);
-		ITernServer server = getTernServer();
-		server.request(doc, collector);
-	}
-
-	@Override
-	public void request(TernQuery query, ITernFile file,
-			ITernDefinitionCollector collector) throws IOException,
-			TernException {
-		request(query, null, null, null, file, collector);
-	}
-
-	@Override
-	public void request(TernQuery query, JsonArray names,
-			ITernScriptPath scriptPath, Node domNode, ITernFile file,
-			ITernDefinitionCollector collector) throws IOException,
-			TernException {
-		if (getScope() == ContentScope.TURN_OFF) {
-			return;
-		}
-		TernDoc doc = new TernDoc(query);
-		synchronize(doc, names, scriptPath, domNode, file);
-		ITernServer server = getTernServer();
-		server.request(doc, collector);
-	}
-
-	@Override
-	public void request(TernQuery query, ITernFile file,
-			ITernTypeCollector collector) throws IOException, TernException {
-		request(query, null, null, null, file, collector);
-	}
-
-	@Override
-	public void request(TernQuery query, JsonArray names,
-			ITernScriptPath scriptPath, Node domNode, ITernFile file,
-			ITernTypeCollector collector) throws IOException, TernException {
-		if (getScope() == ContentScope.TURN_OFF) {
-			return;
-		}
-		TernDoc doc = new TernDoc(query);
-		synchronize(doc, names, scriptPath, domNode, file);
-		ITernServer server = getTernServer();
-		server.request(doc, collector);
-	}
-
-	@Override
-	public void request(TernQuery query, ITernFile file,
-			ITernLintCollector collector) throws IOException, TernException {
-		if (getScope() == ContentScope.TURN_OFF) {
-			return;
-		}
-		TernDoc doc = new TernDoc(query);
-		synchronize(doc, null, null, null, file);
-		ITernServer server = getTernServer();
-		server.request(doc, collector);
-	}
-
-	@Override
-	public void request(TernQuery query, ITernLintCollector collector)
+	public void request(TernQuery query, ITernFile file, ITernCompletionCollector collector)
 			throws IOException, TernException {
-		request(query, null, collector);
+		request(query, null, null, null, file, collector);
 	}
 
 	@Override
-	public void request(TernGuessTypesQuery query, ITernFile file,
-			ITernGuessTypesCollector collector) throws IOException,
-			TernException {
+	public void request(TernQuery query, JsonArray names, ITernScriptPath scriptPath, Node domNode, ITernFile file,
+			ITernCompletionCollector collector) throws IOException, TernException {
+		if (getScope() == ContentScope.TURN_OFF) {
+			return;
+		}
+		TernDoc doc = new TernDoc(query);
+		synchronize(doc, names, scriptPath, domNode, file);
+		ITernServer server = getTernServer();
+		server.request(doc, collector);
+	}
+
+	@Override
+	public void request(TernQuery query, ITernFile file, ITernDefinitionCollector collector)
+			throws IOException, TernException {
+		request(query, null, null, null, file, collector);
+	}
+
+	@Override
+	public void request(TernQuery query, JsonArray names, ITernScriptPath scriptPath, Node domNode, ITernFile file,
+			ITernDefinitionCollector collector) throws IOException, TernException {
+		if (getScope() == ContentScope.TURN_OFF) {
+			return;
+		}
+		TernDoc doc = new TernDoc(query);
+		synchronize(doc, names, scriptPath, domNode, file);
+		ITernServer server = getTernServer();
+		server.request(doc, collector);
+	}
+
+	@Override
+	public void request(TernQuery query, ITernFile file, ITernTypeCollector collector)
+			throws IOException, TernException {
+		request(query, null, null, null, file, collector);
+	}
+
+	@Override
+	public void request(TernQuery query, JsonArray names, ITernScriptPath scriptPath, Node domNode, ITernFile file,
+			ITernTypeCollector collector) throws IOException, TernException {
+		if (getScope() == ContentScope.TURN_OFF) {
+			return;
+		}
+		TernDoc doc = new TernDoc(query);
+		synchronize(doc, names, scriptPath, domNode, file);
+		ITernServer server = getTernServer();
+		server.request(doc, collector);
+	}
+
+	@Override
+	public void request(TernQuery query, ITernFile file, boolean synch, ITernLintCollector collector)
+			throws IOException, TernException {
+		if (getScope() == ContentScope.TURN_OFF) {
+			return;
+		}
+		TernDoc doc = new TernDoc(query);
+		if (synch) {
+			synchronize(doc, null, null, null, file);
+		} else if (file != null) {
+			if (doc.getQuery() != null) {
+				doc.getQuery().setFile(file.getFullName(this));
+			}
+		}
+		ITernServer server = getTernServer();
+		server.request(doc, collector);
+	}
+
+	@Override
+	public void request(TernQuery query, ITernLintCollector collector) throws IOException, TernException {
+		request(query, null, true, collector);
+	}
+
+	@Override
+	public void request(TernGuessTypesQuery query, ITernFile file, ITernGuessTypesCollector collector)
+			throws IOException, TernException {
+		TernDoc doc = new TernDoc(query);
+		synchronize(doc, null, null, null, file);
+		ITernServer server = getTernServer();
+		server.request(doc, collector);
+	}
+
+	@Override
+	public void request(TernOutlineQuery query, ITernFile file, ITernOutlineCollector collector)
+			throws IOException, TernException {
 		if (getScope() == ContentScope.TURN_OFF) {
 			return;
 		}
@@ -613,9 +691,21 @@ public class TernProject extends JsonObject implements ITernProject {
 		server.request(doc, collector);
 	}
 
+	@Override
+	public void request(TernHighlightQuery query, ITernHighlightCollector collector) throws IOException, TernException {
+		TernDoc doc = new TernDoc(query);
+		ITernServer server = getTernServer();
+		server.request(doc, collector);
+	}
+	
 	@Override
 	public ITernRepository getRepository() {
-		return null;
+		return repository;
+	}
+
+	@Override
+	public void setRepository(ITernRepository repository) {
+		this.repository = repository;
 	}
 
 	public boolean isDirty() {
@@ -626,4 +716,5 @@ public class TernProject extends JsonObject implements ITernProject {
 	public ContentScope getScope() {
 		return ContentScope.WHOLE_PROJECT;
 	}
+
 }

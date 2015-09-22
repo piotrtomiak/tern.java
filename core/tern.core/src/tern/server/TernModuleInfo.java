@@ -1,5 +1,5 @@
 /**
- *  Copyright (c) 2013-present Angelo ZERR.
+ *  Copyright (c) 2013-2014 Angelo ZERR.
  *  All rights reserved. This program and the accompanying materials
  *  are made available under the terms of the Eclipse Public License v1.0
  *  which accompanies this distribution, and is available at
@@ -30,6 +30,12 @@ public class TernModuleInfo {
 			type = name;
 			version = null;
 		}
+	}
+
+	public TernModuleInfo(TernModuleInfo info) {
+		this.name = info.getName();
+		this.type = info.getType();
+		this.version = info.getVersion();
 	}
 
 	private static int getVersionIndex(String name) {
