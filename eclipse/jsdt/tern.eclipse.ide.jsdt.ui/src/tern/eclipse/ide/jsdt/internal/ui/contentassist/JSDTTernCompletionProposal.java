@@ -14,6 +14,7 @@ import org.eclipse.wst.jsdt.ui.text.java.IJavaCompletionProposal;
 
 import tern.eclipse.ide.ui.contentassist.JSTernCompletionProposal;
 import tern.server.protocol.completions.TernCompletionProposalRec;
+import tern.server.protocol.completions.TernTypeHelper;
 
 /**
  * Extends {@link JSTernCompletionProposal} to implements JSDT
@@ -31,10 +32,11 @@ public class JSDTTernCompletionProposal extends JSTernCompletionProposal
 	private static int CAT_ORDER_FUNCTION = 3;
 	private static int CAT_ORDER_PRIMITIVE_STATIC = 4;
 	private static int CAT_ORDER_OBJECT_STATIC = 5;
-	private static int CAT_ORDER_KEYWORD = 6;
-	
+	private static int CAT_ORDER_FUNCTION_OBJECT = 6;
+	private static int CAT_ORDER_KEYWORD = 7;
+
 	private int relevance;
-	
+
 	public JSDTTernCompletionProposal(TernCompletionProposalRec proposal) {
 		super(proposal);
 		relevance = (10 - getCategory()) * CATEGORY_SEPARATION - proposal.depth;
@@ -47,7 +49,10 @@ public class JSDTTernCompletionProposal extends JSTernCompletionProposal
 		if (isFunction()) {
 			return CAT_ORDER_FUNCTION;
 		}
-		
+		if (TernTypeHelper.isFunctionRefType(getType())) {
+			return CAT_ORDER_FUNCTION_OBJECT;
+		}
+
 		boolean allUpperCase = true;
 		String name = getName();
 		for (int i = 0; i < name.length(); i++) {
@@ -56,20 +61,18 @@ public class JSDTTernCompletionProposal extends JSTernCompletionProposal
 				break;
 			}
 		}
-		
+
 		String type = getType();
-		boolean object = !(
-				"bool".equals(type) || 
-				"number".equals(type) || 
-				"string".equals(type));
-		
+		boolean object = !("bool".equals(type) || "number".equals(type) || "string"
+				.equals(type));
+
 		int result;
 		if (allUpperCase) {
 			if (object) {
 				result = CAT_ORDER_OBJECT_STATIC;
 			} else {
 				result = CAT_ORDER_PRIMITIVE_STATIC;
-			} 
+			}
 		} else {
 			if (object) {
 				result = CAT_ORDER_OBJECT_FIELD;
@@ -77,10 +80,10 @@ public class JSDTTernCompletionProposal extends JSTernCompletionProposal
 				result = CAT_ORDER_PRIMITIVE_FIELD;
 			}
 		}
-		
+
 		return result;
 	}
-	
+
 	@Override
 	public int getRelevance() {
 		return relevance;

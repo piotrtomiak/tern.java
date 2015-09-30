@@ -30,6 +30,7 @@ import tern.utils.StringUtils;
 public class TernImagesRegistry {
 
 	public static final String IMG_FN = "tern.eclipse.jface.IMG_FN";
+	public static final String IMG_FN_OBJECT = "tern.eclipse.jface.IMG_FN_OBJECT";
 	public static final String IMG_ARRAY = "tern.eclipse.jface.IMG_ARRAY";
 	public static final String IMG_NUMBER = "tern.eclipse.jface.IMG_NUMBER";
 	public static final String IMG_STRING = "tern.eclipse.jface.IMG_STRING";
@@ -44,6 +45,8 @@ public class TernImagesRegistry {
 				TernImagesRegistry.class, "fn.gif"));
 		registerImageDescriptor(getOvr(IMG_FN), ImageDescriptor.createFromFile(
 				TernImagesRegistry.class, "fn_ovr.gif"));
+		registerImageDescriptor(IMG_FN_OBJECT, ImageDescriptor.createFromFile(
+				TernImagesRegistry.class, "fn_object.gif"));
 		registerImageDescriptor(IMG_ARRAY, ImageDescriptor.createFromFile(
 				TernImagesRegistry.class, "array.gif"));
 		registerImageDescriptor(getOvr(IMG_ARRAY),
@@ -129,7 +132,7 @@ public class TernImagesRegistry {
 			return TernImagesRegistry.IMG_OBJECT;
 		}
 		if (TernTypeHelper.isFunctionRefType(jsType)) {
-			return TernImagesRegistry.IMG_FN;
+			return TernImagesRegistry.IMG_FN_OBJECT;
 		}
 		if (returnNullIfUnknown) {
 			return null;
