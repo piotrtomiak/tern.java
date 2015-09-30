@@ -24,14 +24,66 @@ import tern.server.protocol.completions.TernCompletionProposalRec;
 public class JSDTTernCompletionProposal extends JSTernCompletionProposal
 		implements IJavaCompletionProposal {
 
+	private static int CATEGORY_SEPARATION = 100000;
+
+	private static int CAT_ORDER_PRIMITIVE_FIELD = 1;
+	private static int CAT_ORDER_OBJECT_FIELD = 2;
+	private static int CAT_ORDER_FUNCTION = 3;
+	private static int CAT_ORDER_PRIMITIVE_STATIC = 4;
+	private static int CAT_ORDER_OBJECT_STATIC = 5;
+	private static int CAT_ORDER_KEYWORD = 6;
+	
+	private int relevance;
+	
 	public JSDTTernCompletionProposal(TernCompletionProposalRec proposal) {
 		super(proposal);
+		relevance = (10 - getCategory()) * CATEGORY_SEPARATION - proposal.depth;
 	}
 
+	private int getCategory() {
+		if (isKeyword()) {
+			return CAT_ORDER_KEYWORD;
+		}
+		if (isFunction()) {
+			return CAT_ORDER_FUNCTION;
+		}
+		
+		boolean allUpperCase = true;
+		String name = getName();
+		for (int i = 0; i < name.length(); i++) {
+			if (Character.isLowerCase(name.charAt(i))) {
+				allUpperCase = false;
+				break;
+			}
+		}
+		
+		String type = getType();
+		boolean object = !(
+				"bool".equals(type) || 
+				"number".equals(type) || 
+				"string".equals(type));
+		
+		int result;
+		if (allUpperCase) {
+			if (object) {
+				result = CAT_ORDER_OBJECT_STATIC;
+			} else {
+				result = CAT_ORDER_PRIMITIVE_STATIC;
+			} 
+		} else {
+			if (object) {
+				result = CAT_ORDER_OBJECT_FIELD;
+			} else {
+				result = CAT_ORDER_PRIMITIVE_FIELD;
+			}
+		}
+		
+		return result;
+	}
+	
 	@Override
 	public int getRelevance() {
-		// TODO : compute relevance switch type?
-		return JSDTTernCompletionCollector.TERN_RELEVANT;
+		return relevance;
 	}
 
 }

@@ -33,7 +33,9 @@ public class TernImagesRegistry {
 	public static final String IMG_ARRAY = "tern.eclipse.jface.IMG_ARRAY";
 	public static final String IMG_NUMBER = "tern.eclipse.jface.IMG_NUMBER";
 	public static final String IMG_STRING = "tern.eclipse.jface.IMG_STRING";
+	public static final String IMG_OBJECT = "tern.eclipse.jface.IMG_OBJECT";
 	public static final String IMG_BOOLEAN = "tern.eclipse.jface.IMG_BOOLEAN";
+	public static final String IMG_KEYWORD = "tern.eclipse.jface.IMG_KEYWORD";
 	public static final String IMG_UNKNOWN = "tern.eclipse.jface.IMG_UNKNOWN";
 	public static final String IMG_CLASS = "tern.eclipse.jface.IMG_CLASS";
 	
@@ -57,11 +59,15 @@ public class TernImagesRegistry {
 		registerImageDescriptor(getOvr(IMG_STRING),
 				ImageDescriptor.createFromFile(TernImagesRegistry.class,
 						"string_ovr.gif"));
+		registerImageDescriptor(IMG_OBJECT, ImageDescriptor.createFromFile(
+				TernImagesRegistry.class, "object.gif"));
 		registerImageDescriptor(IMG_BOOLEAN, ImageDescriptor.createFromFile(
 				TernImagesRegistry.class, "boolean.gif"));
 		registerImageDescriptor(getOvr(IMG_BOOLEAN),
 				ImageDescriptor.createFromFile(TernImagesRegistry.class,
 						"boolean_ovr.gif"));
+		registerImageDescriptor(IMG_KEYWORD, ImageDescriptor.createFromFile(
+				TernImagesRegistry.class, "keyword.gif"));
 		registerImageDescriptor(IMG_UNKNOWN, ImageDescriptor.createFromFile(
 				TernImagesRegistry.class, "unknown.gif"));
 		registerImageDescriptor(getOvr(IMG_UNKNOWN),
@@ -97,11 +103,18 @@ public class TernImagesRegistry {
 	}
 
 	public static String getJSType(String jsType, boolean isFunction, boolean isArray, boolean returnNullIfUnknown) {
+		return getJSType(jsType, isFunction, isArray, false, returnNullIfUnknown);
+	}
+		
+	public static String getJSType(String jsType, boolean isFunction, boolean isArray, boolean isKeyword, boolean returnNullIfUnknown) {
 		if (isFunction) {
 			return TernImagesRegistry.IMG_FN;
 		}
 		if (isArray) {
 			return TernImagesRegistry.IMG_ARRAY;
+		}
+		if (isKeyword) {
+			return TernImagesRegistry.IMG_KEYWORD;
 		}
 		if (TernTypeHelper.isStringType(jsType)) {
 			return TernImagesRegistry.IMG_STRING;
@@ -109,6 +122,11 @@ public class TernImagesRegistry {
 			return TernImagesRegistry.IMG_NUMBER;
 		} else if (TernTypeHelper.isBoolType(jsType)) {
 			return TernImagesRegistry.IMG_BOOLEAN;
+		}
+		if (jsType != null
+				&& !"undefined".equals(jsType) 
+				&& !"?".equals(jsType)) {
+			return TernImagesRegistry.IMG_OBJECT;
 		}
 		if (TernTypeHelper.isFunctionRefType(jsType)) {
 			return TernImagesRegistry.IMG_FN;
@@ -125,7 +143,7 @@ public class TernImagesRegistry {
 	}
 	
 	public static String getJSType(TernCompletionItem item, boolean returnNullIfUnknown) {
-		return getJSType(item.getJsType(), item.isFunction(), item.isArray(), returnNullIfUnknown);
+		return getJSType(item.getJsType(), item.isFunction(), item.isArray(), item.isKeyword(), returnNullIfUnknown);
 	}
 	
 	public static Image getImage(TernCompletionItem item,
