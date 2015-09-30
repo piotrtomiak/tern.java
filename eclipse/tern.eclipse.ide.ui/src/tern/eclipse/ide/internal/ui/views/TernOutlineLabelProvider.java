@@ -19,7 +19,7 @@ import tern.eclipse.jface.images.TernImagesRegistry;
 import tern.server.protocol.outline.JSNode;
 import tern.utils.StringUtils;
 
-public class TernExplorerLabelProvider extends LabelProvider implements IStyledLabelProvider {
+public class TernOutlineLabelProvider extends LabelProvider implements IStyledLabelProvider {
 
 	@Override
 	public String getText(Object element) {
@@ -32,9 +32,13 @@ public class TernExplorerLabelProvider extends LabelProvider implements IStyledL
 	@Override
 	public Image getImage(Object element) {
 		if (element instanceof JSNode) {
-			String jsType = ((JSNode) element).getType();
-			boolean isFunction = jsType != null ? jsType.startsWith("fn(") : false;
-			boolean isArray = jsType != null ? jsType.startsWith("[") : false;
+			JSNode jsNode = (JSNode) element;
+			String jsType = jsNode.getType();
+			if (jsNode.isClass()) {
+				return TernImagesRegistry.getImage(TernImagesRegistry.IMG_CLASS);
+			}
+			boolean isFunction = jsNode.isFunction();
+			boolean isArray = jsNode.isArray();
 			return TernImagesRegistry.getImage(jsType, isFunction, isArray, false);
 		}
 		return super.getImage(element);
