@@ -13,7 +13,7 @@
 ###############################################################################
  -->
 <plugin>
-
+	<!-- ME handles script paths on it's own
 	<extension
 	      point="tern.eclipse.ide.core.ternProjectLifecycleListeners">
 	   <provider
@@ -22,5 +22,5 @@
 	         name="JSDT Class Path Manager Provider">
 	   </provider>
 	</extension>
-
+	-->
 </plugin>        

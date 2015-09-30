@@ -23,7 +23,9 @@
 	<extension-point id="ternProjectLifecycleListeners" name="%ternProjectLifecycleListeners.name"
 		schema="schema/ternProjectLifecycleListeners.exsd" />		
 	<extension-point id="ternServerTypes" name="%ternServerTypes.name"
-		schema="schema/ternServerTypes.exsd" />								
+		schema="schema/ternServerTypes.exsd" />
+	<extension-point id="ternServerListeners" name="Tern Serve Listeners" 
+		schema="schema/ternServerListeners.exsd"/>								
 	<extension-point id="ternModuleInstalls" name="%ternModuleInstalls.name"
 		schema="schema/ternModuleInstalls.exsd" />								
 

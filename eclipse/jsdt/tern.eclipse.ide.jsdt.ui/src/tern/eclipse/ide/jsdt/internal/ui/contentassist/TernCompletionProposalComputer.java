@@ -14,12 +14,14 @@ package tern.eclipse.ide.jsdt.internal.ui.contentassist;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.text.contentassist.ICompletionProposal;
 import org.eclipse.wst.jsdt.ui.text.java.ContentAssistInvocationContext;
+import org.eclipse.wst.jsdt.ui.text.java.IJavaCompletionProposal;
 import org.eclipse.wst.jsdt.ui.text.java.IJavaCompletionProposalComputer;
 import org.eclipse.wst.sse.ui.contentassist.CompletionProposalInvocationContext;
 import org.eclipse.wst.sse.ui.contentassist.ICompletionProposalComputer;
@@ -41,6 +43,25 @@ import tern.server.protocol.completions.TernCompletionsQuery;
 public class TernCompletionProposalComputer implements
 		IJavaCompletionProposalComputer, ICompletionProposalComputer {
 
+	private static final Comparator<ICompletionProposal> COMPARATOR = new Comparator<ICompletionProposal>() {
+		@Override
+		public int compare(ICompletionProposal o1, ICompletionProposal o2) {
+			int result = relevance(o2) - relevance(o1);
+			if (result == 0) {
+				result = o1.getDisplayString().compareToIgnoreCase(o2.getDisplayString());
+			}
+			return result;
+		}
+
+		private int relevance(ICompletionProposal proposal) {
+			if (proposal instanceof IJavaCompletionProposal) {
+				return ((IJavaCompletionProposal) proposal).getRelevance();
+			}
+			return 0;
+		}
+		
+	};
+	
 	public List computeCompletionProposals(
 			ContentAssistInvocationContext context, IProgressMonitor monitor) {
 		return computeCompletionProposals(context);
@@ -71,6 +92,9 @@ public class TernCompletionProposalComputer implements
 				ternProject.request(query, tf,
 						new JSDTTernCompletionCollector(proposals,
 								startOffset, tf, ternProject));
+				
+				//proposals have to be sorted
+				Collections.sort(proposals, COMPARATOR);
 				return proposals;
 
 			} catch (Exception e) {
