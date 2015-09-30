@@ -16,7 +16,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -26,19 +25,14 @@ import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IResourceVisitor;
-import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.QualifiedName;
 
-import com.eclipsesource.json.JsonArray;
 import com.eclipsesource.json.JsonObject;
 import com.eclipsesource.json.WriterConfig;
 
 import tern.ITernFile;
-import tern.ITernProject;
 import tern.TernException;
-import tern.TernResourcesManager;
 import tern.eclipse.ide.core.IIDETernProject;
 import tern.eclipse.ide.core.IIDETernScriptPathReporter;
 import tern.eclipse.ide.core.IScopeContext;
@@ -47,9 +41,7 @@ import tern.eclipse.ide.core.ITernProjectLifecycleListener.LifecycleEventType;
 import tern.eclipse.ide.core.ITernServerPreferencesListener;
 import tern.eclipse.ide.core.ITernServerType;
 import tern.eclipse.ide.core.IWorkingCopy;
-import tern.eclipse.ide.core.ScopeContext;
 import tern.eclipse.ide.core.TernCorePlugin;
-import tern.eclipse.ide.core.utils.FileUtils;
 import tern.eclipse.ide.internal.core.TernConsoleConnectorManager;
 import tern.eclipse.ide.internal.core.TernNatureAdaptersManager;
 import tern.eclipse.ide.internal.core.TernProjectLifecycleManager;
@@ -58,17 +50,11 @@ import tern.eclipse.ide.internal.core.TernServerListenersManager;
 import tern.eclipse.ide.internal.core.Trace;
 import tern.eclipse.ide.internal.core.WorkingCopy;
 import tern.eclipse.ide.internal.core.preferences.TernCorePreferencesSupport;
-import tern.eclipse.ide.internal.core.scriptpath.EclipseProjectScriptPath;
-import tern.eclipse.ide.internal.core.scriptpath.IIDETernScriptPath;
-import tern.eclipse.ide.internal.core.scriptpath.TernScriptPathComparator;
 import tern.repository.ITernRepository;
 import tern.resources.TernFileSynchronizer;
 import tern.resources.TernProject;
 import tern.scriptpath.ITernScriptPath;
 import tern.scriptpath.ITernScriptPath.ScriptPathsType;
-import tern.scriptpath.ITernScriptPathContainer;
-import tern.scriptpath.impl.JSFileScriptPath;
-import tern.scriptpath.impl.dom.DOMElementsScriptPath;
 import tern.server.ITernModule;
 import tern.server.ITernServer;
 import tern.server.ITernServerListener;
@@ -76,8 +62,6 @@ import tern.server.TernServerAdapter;
 import tern.utils.IOUtils;
 import tern.utils.StringUtils;
 import tern.utils.TernModuleHelper;
-
-import com.eclipsesource.json.JsonObject;
 
 /**
  * Eclipse IDE Tern project.
@@ -252,7 +236,6 @@ public class IDETernProject extends TernProject implements IIDETernProject, ITer
 		if (ide != null) {
 			// There is ide information.
 		}
-		resetSortScriptPaths();
 	}
 
 	/*
@@ -272,28 +255,6 @@ public class IDETernProject extends TernProject implements IIDETernProject, ITer
 		} catch (IOException e) {
 			Trace.trace(Trace.SEVERE, "Error while saving tern project", e);
 		}
-	}
-
-	/**
-	 * Returns the resource of the given path and type.
-	 * 
-	 * @param path
-	 *            the path of the script path
-	 * @param pathType
-	 *            the type of the script path.
-	 * @return
-	 */
-	private IResource getResource(String path, ScriptPathsType pathType) {
-		switch (pathType) {
-		case FILE:
-			return getProject().getFile(path);
-		case FOLDER:
-			return getProject().getFolder(path);
-		case PROJECT:
-			return ResourcesPlugin.getWorkspace().getRoot().getProject(path);
-		}
-		throw new UnsupportedOperationException(
-				"Cannot retrieve resource from the type=" + pathType + " of the path=" + path);
 	}
 
 	@Override
@@ -353,20 +314,6 @@ public class IDETernProject extends TernProject implements IIDETernProject, ITer
 	private void saveIDEInfos() {
 	}
 
-	private String toString(String[] patterns) {
-		if (patterns == null) {
-			return null;
-		}
-		StringBuilder result = new StringBuilder();
-		for (int i = 0; i < patterns.length; i++) {
-			if (i > 0) {
-				result.append(",");
-			}
-			result.append(patterns[i]);
-		}
-		return result.toString();
-	}
-
 	/**
 	 * Returns the list of script paths.
 	 * 
@@ -393,7 +340,7 @@ public class IDETernProject extends TernProject implements IIDETernProject, ITer
 	@Override
 	public ITernScriptPath createScriptPath(IResource resource, ScriptPathsType type, String[] inclusionPatterns,
 			String[] exclusionPatterns) {
-		return createScriptPath(resource, type, inclusionPatterns, exclusionPatterns, null);
+		throw new UnsupportedOperationException();
 	}
 
 	/**
@@ -632,110 +579,7 @@ public class IDETernProject extends TernProject implements IIDETernProject, ITer
 
 	@Override
 	public boolean isInScope(IResource resource, IScopeContext context) {
-		if (context == null) {
-			context = ScopeContext.DEFAULT;
-		}
-
-		// check if the resource is valid
-		if (!checkValidResource(resource, context)) {
-			return false;
-		}
-
-		// check if the resource is in scope with script paths.
-		return checkInScopeResource(resource, context);
-	}
-
-	/**
-	 * Returns true if the resource is valid and false otherwise.
-	 * 
-	 * @param resource
-	 * @param context
-	 * @return true if the resource is valid and false otherwise.
-	 */
-	private boolean checkValidResource(IResource resource, IScopeContext context) {
-		if (!FileUtils.isValidResource(resource)) {
-			return false;
-		}
-		IContainer parent = resource.getParent();
-		while ((parent.getType() & IResource.PROJECT) == 0) {
-			if (context.isExclude(parent)) {
-				return false;
-			}
-			if (context.isInclude(parent)) {
-				return true;
-			}
-			if (!FileUtils.isValidResource(parent)) {
-				context.addExclude(parent);
-				return false;
-			}
-			parent = parent.getParent();
-		}
-		return true;
-	}
-
-	/**
-	 * Returns true if the given resource is in the scope of tern script path
-	 * and false otherwise.
-	 * 
-	 * @param resource
-	 * @param context
-	 * @return true if the given resource is in the scope of tern script path
-	 *         and false otherwise.
-	 */
-	private boolean checkInScopeResource(IResource resource, IScopeContext context) {
-		List<ITernScriptPath> scriptPaths = getSortedScriptPaths();
-		if (scriptPaths.isEmpty()) {
-			// none script path, we consider that resource is in the scope?
-			return true;
-		}
-		
-		// Loop for each tern script path
-		int resourceType = resource.getType();
-		IPath path = resource.getFullPath();
-		IIDETernScriptPath s = null;
-		IContainer parent = null;
-		for (ITernScriptPath scriptPath : scriptPaths) {
-			if (scriptPath instanceof IIDETernScriptPath) {
-				// script path is an Eclipse Project or Folder
-				s = (IIDETernScriptPath) scriptPath;
-				if (s.isBelongToContainer(path)) {
-					// the resource path belongs to the Project/folder of the tern script path
-					if (!s.isInScope(path, resourceType)) {
-						// the tern script exclude or don't include the resource
-						return false;
-					} else if (resourceType == IResource.FILE) {
-						// None exclusion, check if the parent folder exclude the file
-						parent = resource.getParent();
-						while ((parent.getType() & IResource.PROJECT) == 0) {
-							if (context.isInclude(parent)) {
-								return true;
-							}
-							if (!s.isInScope(parent.getFullPath(), parent.getType())) {
-								context.addExclude(parent);
-								return false;
-							}
-							parent = parent.getParent();
-						}
-					}
-					// The parent folder of the resource 
-					context.addInclude(resource.getParent());
-					return true;
-				}
-			}
-		}
-		return true;
-	}
-
-	private List<ITernScriptPath> getSortedScriptPaths() {
-		if (sortedScriptPaths == null) {
-			if (!scriptPaths.isEmpty()) {
-				sortedScriptPaths = new ArrayList<ITernScriptPath>(scriptPaths);
-				Collections.sort(sortedScriptPaths, TernScriptPathComparator.INSTANCE);
-			} else {
-				sortedScriptPaths = Collections.emptyList();
-			}
-		}
-		return sortedScriptPaths;
+		throw new UnsupportedOperationException();
 	}
 
 	@Override
