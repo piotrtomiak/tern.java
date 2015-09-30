@@ -46,7 +46,6 @@ public class JSDTTernCorePlugin extends Plugin {
 		// Initialize DOMProvider with DOM-SSE
 		InternalTernResourcesManager.getInstance().setDOMProvider(
 				DOMSSEProvider.INSTANCE);
-		JSDTClassPathManager.getManager().startup();
 	}
 
 	/*
@@ -57,7 +56,6 @@ public class JSDTTernCorePlugin extends Plugin {
 	 * )
 	 */
 	public void stop(BundleContext context) throws Exception {
-		JSDTClassPathManager.getManager().shutdown();
 		plugin = null;
 		super.stop(context);
 	}
