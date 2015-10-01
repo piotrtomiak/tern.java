@@ -7,8 +7,9 @@
  *
  *  Contributors:
  *  Angelo Zerr <angelo.zerr@gmail.com> - initial API and implementation
- *  Piotr Tomiak <piotr@genutiec.com> - asynchronous request processing and 
- *  									refactoring of collectors API 
+ *  Piotr Tomiak <piotr@genuitec.com> - asynchronous request processing
+ *  									refactoring of collectors API
+ *  									unified completion proposals calculation 
  */
 package tern.eclipse.ide.ui.contentassist;
 
