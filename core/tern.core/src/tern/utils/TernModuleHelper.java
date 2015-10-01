@@ -51,32 +51,41 @@ public class TernModuleHelper {
 		
 		@Override
 		public int compare(String version1, String version2) {
-			int[] v1 = parseVersion(version1);
-			int[] v2 = parseVersion(version2);
+			String[] v1 = split(version1);
+			String[] v2 = split(version2);
 			for (int i = 0; i < v1.length || i < v2.length; i++) {
-				int a = i >= v1.length ? 0 : v1[i];
-				int b = i >= v2.length ? 0 : v2[i];
-				if (a > b) {
-					return 1;
-				} else if (a < b) {
-					return -1;
+				try {
+					int a = i >= v1.length ? 0 : Integer.parseInt(v1[i]);
+					int b = i >= v2.length ? 0 : Integer.parseInt(v2[i]);
+					if (a > b) {
+						return 1;
+					} else if (a < b) {
+						return -1;
+					}
+				} catch (Exception e) {
+					int val = v1[i].compareToIgnoreCase(v2[i]);
+					if (val != 0) {
+						return val;
+					}
 				}
 			}
 			return 0;
 		}
 		
-		private int[] parseVersion(String version) {
-			String[] segments = version.split("\\."); //$NON-NLS-1$
-			int[] result = new int[segments.length];
-			for (int i = 0; i < result.length; i++) {
-				try {
-					result[i] = Integer.parseInt(segments[i]);
-				} catch (Exception e) {
-					//ignore - assume 0
-				}
+		private String[] split(String str) {
+			List<String> res = new ArrayList<String>();
+			int start = 0;
+			int nextDot;
+			while ((nextDot = str.indexOf('.', start)) >= 0) {
+				res.add(str.substring(start, nextDot));
+				start = nextDot + 1;
 			}
-			return result;
+			if (start < str.length()) {
+				res.add(str.substring(start));
+			}
+			return res.toArray(new String[res.size()]);
 		}
+		
 	};
 	
 	/**
