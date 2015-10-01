@@ -10,8 +10,6 @@
  */
 package tern.eclipse.ide.ui.properties;
 
-import java.util.Collection;
-
 import org.eclipse.core.resources.IResource;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
@@ -24,15 +22,14 @@ import org.eclipse.ui.IWorkbenchPreferencePage;
 
 import tern.eclipse.ide.core.IWorkingCopy;
 import tern.eclipse.ide.core.IWorkingCopyListener;
+import tern.eclipse.ide.core.TernCorePlugin;
 import tern.eclipse.ide.internal.core.resources.IDETernProject.TernModuleModifyBroadCastMonitor;
 import tern.eclipse.ide.internal.ui.TernUIMessages;
 import tern.eclipse.ide.internal.ui.Trace;
 import tern.eclipse.ide.ui.ImageResource;
 import tern.eclipse.ide.ui.TernUIPlugin;
 import tern.eclipse.ide.ui.controls.TernModulesBlock;
-import tern.repository.ITernRepository;
 import tern.server.ITernModule;
-import tern.utils.TernModuleHelper;
 
 /**
  * Tern Modules (Plugins + JSON Type Definitions) property page.
@@ -86,16 +83,37 @@ public class TernModulesPropertyPage extends AbstractTernPropertyPage
 
 	public void refreshModules() {
 		try {
-			IWorkingCopy workingCopy = getWorkingCopy();
-			workingCopy.addWorkingCopyListener(this);
-			modulesBlock.refresh(workingCopy.getFilteredModules(), workingCopy.getCheckedModules());
+			if (TernCorePlugin.hasTernNature(getResource().getProject())) {
+				IWorkingCopy workingCopy = getWorkingCopy();
+				workingCopy.addWorkingCopyListener(this);
+				modulesBlock.refresh(workingCopy.getFilteredModules(), workingCopy.getCheckedModules());
+			}
 		} catch (Throwable e) {
 			Trace.trace(Trace.SEVERE, "Error while loading tern project", e);
 		}
 	}
+	
+	@Override
+	public final boolean performOk() {
+		if (super.performOk()) {
+			//Refresh modules after OK is performed.
+			//Handles the case of new JavaScript wizard.
+			Display.getDefault().asyncExec(new Runnable() {
+				@Override
+				public void run() {
+					refreshModules();	
+				}
+			});
+			return true;
+		}
+		return false;
+	}
 
 	@Override
 	protected void doPerformOk() throws Exception {
+		// Broadcast fire event
+		TernModuleModifyBroadCastMonitor.fireEvent();
+		
 		if (Thread.currentThread() == Display.getDefault().getThread()) {
 			// save column settings
 			modulesBlock.saveColumnSettings();
