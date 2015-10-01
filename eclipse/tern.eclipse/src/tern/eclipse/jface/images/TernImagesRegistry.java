@@ -47,6 +47,8 @@ public class TernImagesRegistry {
 				TernImagesRegistry.class, "fn_ovr.gif"));
 		registerImageDescriptor(IMG_FN_OBJECT, ImageDescriptor.createFromFile(
 				TernImagesRegistry.class, "fn_object.gif"));
+		registerImageDescriptor(getOvr(IMG_FN_OBJECT), ImageDescriptor.createFromFile(
+				TernImagesRegistry.class, "fn_object_ovr.png"));
 		registerImageDescriptor(IMG_ARRAY, ImageDescriptor.createFromFile(
 				TernImagesRegistry.class, "array.gif"));
 		registerImageDescriptor(getOvr(IMG_ARRAY),
@@ -56,7 +58,7 @@ public class TernImagesRegistry {
 				TernImagesRegistry.class, "number.gif"));
 		registerImageDescriptor(getOvr(IMG_NUMBER),
 				ImageDescriptor.createFromFile(TernImagesRegistry.class,
-						"number_ovr.gif"));
+						"number_ovr.png"));
 		registerImageDescriptor(IMG_STRING, ImageDescriptor.createFromFile(
 				TernImagesRegistry.class, "string.gif"));
 		registerImageDescriptor(getOvr(IMG_STRING),
@@ -64,11 +66,13 @@ public class TernImagesRegistry {
 						"string_ovr.gif"));
 		registerImageDescriptor(IMG_OBJECT, ImageDescriptor.createFromFile(
 				TernImagesRegistry.class, "object.gif"));
+		registerImageDescriptor(getOvr(IMG_OBJECT), ImageDescriptor.createFromFile(
+				TernImagesRegistry.class, "object_ovr.png"));
 		registerImageDescriptor(IMG_BOOLEAN, ImageDescriptor.createFromFile(
 				TernImagesRegistry.class, "boolean.gif"));
 		registerImageDescriptor(getOvr(IMG_BOOLEAN),
 				ImageDescriptor.createFromFile(TernImagesRegistry.class,
-						"boolean_ovr.gif"));
+						"boolean_ovr.png"));
 		registerImageDescriptor(IMG_KEYWORD, ImageDescriptor.createFromFile(
 				TernImagesRegistry.class, "keyword.gif"));
 		registerImageDescriptor(IMG_UNKNOWN, ImageDescriptor.createFromFile(
@@ -126,13 +130,13 @@ public class TernImagesRegistry {
 		} else if (TernTypeHelper.isBoolType(jsType)) {
 			return TernImagesRegistry.IMG_BOOLEAN;
 		}
+		if (TernTypeHelper.isFunctionRefType(jsType)) {
+			return TernImagesRegistry.IMG_FN_OBJECT;
+		}
 		if (jsType != null
 				&& !"undefined".equals(jsType) 
 				&& !"?".equals(jsType)) {
 			return TernImagesRegistry.IMG_OBJECT;
-		}
-		if (TernTypeHelper.isFunctionRefType(jsType)) {
-			return TernImagesRegistry.IMG_FN_OBJECT;
 		}
 		if (returnNullIfUnknown) {
 			return null;
