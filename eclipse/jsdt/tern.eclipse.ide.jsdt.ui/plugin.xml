@@ -116,7 +116,7 @@
    </extension>
            
 	<!-- Hyperlink for JavaScript (inside HTML file) -->
-	        
+	<!-- more efficient code in MyEclipse        
     <extension
          point="org.eclipse.ui.workbench.texteditor.hyperlinkDetectors">
       <hyperlinkDetector 
@@ -135,6 +135,7 @@
 			name="%ternHyperLinkDetector"
 			targetId="org.eclipse.wst.html.core.htmlsource"/>
    	</extension>
+   	-->
            		 
 	 <!-- I don't know why, but startup should be done, otherwise TernCompletionProposalComputer is not registered? -->
 	 <extension

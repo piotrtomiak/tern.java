@@ -31,6 +31,13 @@ public interface ITernResultsAsyncCollector extends ITernResultsCollector {
 	 * Called when all results were successfully collected
 	 */
 	void done();
+	
+	/**
+	 * Called when request has failed with an exception 
+	 * 
+	 * @param err
+	 */
+	void error(Throwable err);
 
 	String getRequestDisplayName();
 

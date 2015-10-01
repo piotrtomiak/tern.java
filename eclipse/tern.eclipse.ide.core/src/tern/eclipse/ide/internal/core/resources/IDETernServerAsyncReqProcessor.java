@@ -16,7 +16,6 @@ import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
 
 import tern.TernException;
-import tern.eclipse.ide.core.TernCorePlugin;
 import tern.server.ITernServer;
 import tern.server.ITernServerRequestProcessor;
 import tern.server.protocol.ITernResultsAsyncCollector;
@@ -104,11 +103,7 @@ public class IDETernServerAsyncReqProcessor extends Job implements
 			TernResultsProcessorsFactory.makeRequestAndProcess(doc, server,
 					collector);
 		} catch (Throwable e) {
-			TernCorePlugin
-					.getDefault()
-					.getLog()
-					.log(new Status(IStatus.ERROR, TernCorePlugin.PLUGIN_ID, e
-							.getMessage(), e));
+			collector.error(e);
 		}
 		// mark collection as done if not timed out earlier
 		synchronized (this) {

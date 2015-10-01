@@ -106,6 +106,11 @@ public abstract class AbstractTernHyperlink
 	public void done() {
 
 	}
+	
+	@Override
+	public void error(Throwable err) {
+		//ignore
+	}
 
 	@Override
 	public String getRequestDisplayName() {

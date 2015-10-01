@@ -15,10 +15,13 @@ package tern.eclipse.ide.ui.contentassist;
 
 import java.util.List;
 
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.text.contentassist.ICompletionProposal;
 
 import tern.ITernFile;
 import tern.ITernProject;
+import tern.eclipse.ide.core.TernCorePlugin;
 import tern.server.protocol.IJSONObjectHelper;
 import tern.server.protocol.ITernResultsAsyncCollector;
 import tern.server.protocol.completions.TernCompletionProposalRec;
@@ -51,6 +54,15 @@ public class JSTernCompletionAsyncCollector extends JSTernCompletionCollector
 		if (!timedOut) {
 			contentAdded = true;
 		}
+	}
+	
+	@Override
+	public void error(Throwable err) {
+		TernCorePlugin
+				.getDefault()
+				.getLog()
+				.log(new Status(IStatus.ERROR, TernCorePlugin.PLUGIN_ID, err
+						.getMessage(), err));
 	}
 
 	@Override
