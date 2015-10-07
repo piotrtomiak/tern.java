@@ -405,7 +405,7 @@ public class TernModulesBlock extends AbstractTableBlock {
 	}
 	
 	public boolean isDisposed() {
-		return tableViewer.getTable().isDisposed();
+		return tableViewer.getTable() == null || tableViewer.getTable().isDisposed();
 	}
 	
 	public Collection<ITernModule> getCheckedModules() {

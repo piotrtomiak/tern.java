@@ -101,7 +101,9 @@ public class TernModulesPropertyPage extends AbstractTernPropertyPage
 			Display.getDefault().asyncExec(new Runnable() {
 				@Override
 				public void run() {
-					refreshModules();	
+					if (!modulesBlock.isDisposed()) {
+						refreshModules();
+					}
 				}
 			});
 			return true;
