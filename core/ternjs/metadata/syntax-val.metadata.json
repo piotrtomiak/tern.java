@@ -1,0 +1,9 @@
+{
+ "name": "syntax-val",
+ "label": "Syntax Validator",
+ "icon": "sytax-val.png",
+ "homepage": "",
+ "author": "Piotr Tomiak <piotr@genuitec.com>",
+ "description": "This plugin validates syntax errors.",
+ "linter": true
+}
