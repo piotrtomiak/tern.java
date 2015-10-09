@@ -12,6 +12,9 @@ package tern.eclipse.ide.server.nodejs.internal.core.preferences;
 
 import java.io.File;
 
+import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Preferences;
 
 import tern.eclipse.ide.core.preferences.PreferencesSupport;
@@ -19,8 +22,6 @@ import tern.eclipse.ide.server.nodejs.core.INodejsInstall;
 import tern.eclipse.ide.server.nodejs.core.TernNodejsCoreConstants;
 import tern.eclipse.ide.server.nodejs.core.TernNodejsCorePlugin;
 import tern.server.nodejs.NodejsTernHelper;
-import tern.server.nodejs.process.NodejsProcess;
-import tern.server.nodejs.process.NodejsProcessHelper;
 import tern.utils.StringUtils;
 
 /**
@@ -160,6 +161,21 @@ public class TernNodejsCorePreferencesSupport {
 		} catch (Throwable e) {
 			return NodejsTernHelper.DEFAULT_REMOTE_PORT;
 		}
+	}
+
+	public String getDebugger() {
+		return preferencesSupport
+				.getWorkspacePreferencesValue(TernNodejsCoreConstants.NODEJS_DEBUGGER);
+	}
+
+	public IFile getTernServerDebugFile() {
+		String fileName = preferencesSupport
+				.getWorkspacePreferencesValue(TernNodejsCoreConstants.NODEJS_TERN_SERVER_DEBUG_FILE);
+		if (fileName != null) {
+			return ResourcesPlugin.getWorkspace().getRoot()
+					.getFile(new Path(fileName));
+		}
+		return null;
 	}
 
 }

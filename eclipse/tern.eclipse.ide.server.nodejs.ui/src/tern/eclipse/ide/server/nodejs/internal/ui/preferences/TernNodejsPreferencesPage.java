@@ -10,13 +10,26 @@
  */
 package tern.eclipse.ide.server.nodejs.internal.ui.preferences;
 
+import java.util.Collection;
+
+import org.eclipse.core.resources.IContainer;
+import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.preferences.IScopeContext;
 import org.eclipse.core.runtime.preferences.InstanceScope;
+import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.preference.BooleanFieldEditor;
 import org.eclipse.jface.preference.ComboFieldEditor;
 import org.eclipse.jface.preference.FieldEditorPreferencePage;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.preference.IntegerFieldEditor;
+import org.eclipse.jface.preference.StringButtonFieldEditor;
+import org.eclipse.jface.viewers.Viewer;
+import org.eclipse.jface.viewers.ViewerFilter;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
@@ -31,10 +44,13 @@ import org.eclipse.ui.preferences.ScopedPreferenceStore;
 
 import tern.eclipse.ide.core.TernCorePlugin;
 import tern.eclipse.ide.server.nodejs.core.IDENodejsProcessHelper;
+import tern.eclipse.ide.server.nodejs.core.INodejsDebugger;
 import tern.eclipse.ide.server.nodejs.core.INodejsInstall;
+import tern.eclipse.ide.server.nodejs.core.NodejsDebuggersManager;
 import tern.eclipse.ide.server.nodejs.core.TernNodejsCoreConstants;
 import tern.eclipse.ide.server.nodejs.core.TernNodejsCorePlugin;
 import tern.eclipse.ide.server.nodejs.internal.ui.TernNodejsUIMessages;
+import tern.eclipse.ide.server.nodejs.internal.ui.preferences.WorkspaceResourceSelectionDialog.Mode;
 import tern.eclipse.ide.ui.ImageResource;
 import tern.utils.StringUtils;
 
@@ -52,6 +68,8 @@ public class TernNodejsPreferencesPage extends FieldEditorPreferencePage
 	private IntegerFieldEditor timeoutField;
 	private IntegerFieldEditor testNumberField;
 	private BooleanFieldEditor persistentField;
+	private CheckComboFieldEditor debuggerField;
+	private StringButtonFieldEditor ternServerFile;
 	private ComboFieldEditor nodeJSInstallField;
 	private Label nodePathTitle;
 	private FileComboFieldEditor nativeNodePath;
@@ -125,6 +143,105 @@ public class TernNodejsPreferencesPage extends FieldEditorPreferencePage
 				TernNodejsUIMessages.TernNodejsPreferencesPage_nodeJSPersistent,
 				parent);
 		addField(persistentField);
+
+		// Debugger setup
+		Collection<INodejsDebugger> list = NodejsDebuggersManager
+				.getDebuggers();
+		String[][] debuggers = new String[list.size() + 1][2];
+		debuggers[0][0] = "-- choose the debugger --";
+		debuggers[0][1] = ""; //$NON-NLS-1$
+		int j = 0;
+		for (INodejsDebugger debugger : list) {
+			j++;
+			if (debugger.isInstalled()) {
+				debuggers[j][0] = debugger.getName();
+				debuggers[j][1] = debugger.getId();
+			} else {
+				debuggers[j][0] = debugger.getName() + " <not installed>";
+				debuggers[j][1] = ""; //$NON-NLS-1$
+			}
+		}
+		debuggerField = new CheckComboFieldEditor(
+				TernNodejsCoreConstants.NODEJS_DEBUGGER,
+				"Run in debug mode with:", debuggers, "", parent) { //$NON-NLS-2$
+			@Override
+			protected void updateComboBoxEnablement(Composite parent,
+					boolean enabled) {
+				super.updateComboBoxEnablement(parent, enabled);
+				ternServerFile.setEnabled(enabled, parent);
+			}
+		};
+		addField(debuggerField);
+
+		ternServerFile = new StringButtonFieldEditor(
+				TernNodejsCoreConstants.NODEJS_TERN_SERVER_DEBUG_FILE,
+				"Tern server file:", parent) {
+
+			@Override
+			protected boolean doCheckState() {
+				String file = getStringValue();
+				return !debuggerField.isCheckboxSelected()
+						|| ResourcesPlugin.getWorkspace().getRoot()
+								.getFile(new Path(file)).exists();
+			}
+
+			@Override
+			protected String changePressed() {
+				WorkspaceResourceSelectionDialog dialog = new WorkspaceResourceSelectionDialog(
+						getShell(),
+						Mode.FILE,
+						"Select tern server file",
+						"Select the tern server executable. It should be located in bin folder of the tern project.");
+				dialog.setAllowMultiple(false);
+				dialog.addFilter(new ViewerFilter() {
+
+					@Override
+					public boolean select(Viewer viewer, Object parentElement,
+							Object element) {
+						if (element instanceof IFile) {
+							IFile file = (IFile) element;
+							return file.getName().equals("tern") //$NON-NLS-1$
+									&& file.getParent().getName().equals("bin"); //$NON-NLS-1$
+						}
+
+						if (element instanceof IProject
+								&& !((IProject) element).isOpen())
+							return false;
+
+						if (element instanceof IContainer) { // i.e. IProject,
+																// IFolder
+							try {
+								IResource[] resources = ((IContainer) element)
+										.members();
+								for (int i = 0; i < resources.length; i++) {
+									if (select(viewer, parent, resources[i]))
+										return true;
+								}
+							} catch (CoreException e) {
+							}
+						}
+						return false;
+					}
+				});
+				dialog.open();
+				Object result = dialog.getFirstResult();
+				if (result instanceof IFile) {
+					IFile file = (IFile) dialog.getFirstResult();
+					return file.getFullPath().toString();
+				}
+				return null;
+			}
+		};
+		ternServerFile.setEmptyStringAllowed(false);
+		ternServerFile
+				.setErrorMessage("Selected file does not exist in the workspace.");
+		ternServerFile.setChangeButtonText("Browse...");
+		ternServerFile.getTextControl(parent).setEditable(false);
+		addField(ternServerFile);
+
+		GridData gd = new GridData();
+		gd.horizontalIndent = 25;
+		ternServerFile.getLabelControl(parent).setLayoutData(gd);
 
 		// Tern Server type combo
 		INodejsInstall[] installs = TernNodejsCorePlugin
@@ -221,6 +338,7 @@ public class TernNodejsPreferencesPage extends FieldEditorPreferencePage
 		timeoutField.setEnabled(!isRemote, parent);
 		testNumberField.setEnabled(!isRemote, parent);
 		persistentField.setEnabled(!isRemote, parent);
+		debuggerField.setEnabled(!isRemote, parent);
 		nodeJSInstallField.setEnabled(!isRemote, parent);
 		nodePathTitle.setEnabled(!isRemote);
 		nativeNodePath.setEnabled(!isRemote, parent);
@@ -253,8 +371,8 @@ public class TernNodejsPreferencesPage extends FieldEditorPreferencePage
 		IPreferenceStore store = getPreferenceStore();
 		store.setValue(TernNodejsCoreConstants.NODEJS_REMOTE_ACCESS,
 				remoteAccessButton.getSelection());
-		TernCorePlugin.getTernServerTypeManager()
-				.fireServerPreferencesChanged(null);
+		TernCorePlugin.getTernServerTypeManager().fireServerPreferencesChanged(
+				null);
 		return result;
 	}
 

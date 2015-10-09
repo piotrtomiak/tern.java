@@ -26,7 +26,7 @@ import tern.server.AbstractTernServer;
 import tern.server.IInterceptor;
 import tern.server.IResponseHandler;
 import tern.server.nodejs.process.INodejsProcessListener;
-import tern.server.nodejs.process.NodejsProcess;
+import tern.server.nodejs.process.INodejsProcess;
 import tern.server.nodejs.process.NodejsProcessAdapter;
 import tern.server.nodejs.process.NodejsProcessException;
 import tern.server.nodejs.process.NodejsProcessManager;
@@ -40,35 +40,35 @@ import tern.server.protocol.html.ScriptTagRegion;
  * 
  */
 public class NodejsTernServer extends AbstractTernServer {
-	
+
 	private static final String BASE_URL = "http://127.0.0.1:";
 
 	private String baseURL;
 
 	private List<IInterceptor> interceptors;
 
-	private NodejsProcess process;
+	private INodejsProcess process;
 	private List<INodejsProcessListener> listeners;
 
 	private long timeout = NodejsTernHelper.DEFAULT_TIMEOUT;
 
 	private int testNumber = NodejsTernHelper.DEFAULT_TEST_NUMBER;
 
-	private final INodejsProcessListener listener = new NodejsProcessAdapter() {
+	protected final INodejsProcessListener listener = new NodejsProcessAdapter() {
 
 		@Override
-		public void onStart(NodejsProcess server) {
+		public void onStart(INodejsProcess server) {
 			NodejsTernServer.this.fireStartServer();
 		}
 
-		public void onError(NodejsProcess process, String line) {
+		public void onError(INodejsProcess process, String line) {
 			if (line.contains("throw new exports.TimedOut()")) {
 				fireTimedOutServer();
 			}
 		};
-		
+
 		@Override
-		public void onStop(NodejsProcess server) {
+		public void onStop(INodejsProcess server) {
 			dispose();
 			fireEndServer();
 		}
@@ -103,14 +103,14 @@ public class NodejsTernServer extends AbstractTernServer {
 				project.getProjectDir(), nodejsBaseDir, nodejsTernBaseDir));
 	}
 
-	public NodejsTernServer(ITernProject project, NodejsProcess process) {
+	public NodejsTernServer(ITernProject project, INodejsProcess process) {
 		super(project);
 		this.process = process;
 		process.addProcessListener(listener);
 		initProcess(process);
 	}
 
-	private String computeBaseURL(Integer port) {
+	protected String computeBaseURL(Integer port) {
 		return new StringBuilder(BASE_URL).append(port).append("/").toString();
 	}
 
@@ -165,8 +165,8 @@ public class NodejsTernServer extends AbstractTernServer {
 		} finally {
 			endReadState();
 		}
-		
-		//set a timeout for the request
+
+		// set a timeout for the request
 		if (getRequestTimeout() > 0) {
 			doc.set("timeout", getRequestTimeout()); //$NON-NLS-1$
 		}
@@ -223,7 +223,7 @@ public class NodejsTernServer extends AbstractTernServer {
 		}
 	}
 
-	private NodejsProcess getProcess() throws TernException {
+	private INodejsProcess getProcess() throws TernException {
 		if (process == null) {
 			ITernProject project = super.getProject();
 			process = NodejsProcessManager.getInstance().create(
@@ -234,7 +234,7 @@ public class NodejsTernServer extends AbstractTernServer {
 		return process;
 	}
 
-	private void initProcess(NodejsProcess process) {
+	private void initProcess(INodejsProcess process) {
 		process.setPersistent(persistent);
 		process.setLoadingLocalPlugins(isLoadingLocalPlugins());
 		process.setQualityLevel(getQualityLevel());
