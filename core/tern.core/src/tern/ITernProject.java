@@ -36,6 +36,8 @@ import tern.server.protocol.highlight.TernHighlightQuery;
 import tern.server.protocol.lint.ITernLintCollector;
 import tern.server.protocol.outline.ITernOutlineCollector;
 import tern.server.protocol.outline.TernOutlineQuery;
+import tern.server.protocol.refs.ITernRefCollector;
+import tern.server.protocol.refs.TernRefsQuery;
 import tern.server.protocol.type.ITernTypeCollector;
 
 /**
@@ -304,9 +306,13 @@ public interface ITernProject extends ITernAdaptable {
 	
 	void request(TernHighlightQuery query, ITernHighlightCollector collector) throws IOException, TernException;
 	
+	// ---------- Refs
+	
+	void request(TernRefsQuery query, ITernFile file, ITernRefCollector collector) throws IOException, TernException;
+	
 	//ME - content scope, which can limit number of files uploaded to the server
 	ContentScope getScope();
-	
+
 	/**
 	 * Returns the tern repository used by the tern project.
 	 * 
