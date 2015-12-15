@@ -338,15 +338,19 @@ public abstract class AbstractNodejsProcess implements INodejsProcess {
 			listeners.remove(listener);
 		}
 	}
+	
+	private INodejsProcessListener[] getListeners() {
+		synchronized (listeners) {
+			return listeners.toArray(new INodejsProcessListener[listeners.size()]);
+		}
+	}
 
 	/**
 	 * Notify start process.
 	 */
 	protected void notifyCreateProcess(List<String> commands, File projectDir) {
-		synchronized (listeners) {
-			for (INodejsProcessListener listener : listeners) {
-				listener.onCreate(this, commands, projectDir);
-			}
+		for (INodejsProcessListener listener : getListeners()) {
+			listener.onCreate(this, commands, projectDir);
 		}
 	}
 
@@ -358,10 +362,8 @@ public abstract class AbstractNodejsProcess implements INodejsProcess {
 	 */
 	protected void notifyStartProcess(long startTime) {
 		this.elapsedSartTime = NodejsTernHelper.getElapsedTimeInMs(startTime);
-		synchronized (listeners) {
-			for (INodejsProcessListener listener : listeners) {
-				listener.onStart(this);
-			}
+		for (INodejsProcessListener listener : getListeners()) {
+			listener.onStart(this);
 		}
 	}
 
@@ -369,10 +371,8 @@ public abstract class AbstractNodejsProcess implements INodejsProcess {
 	 * Notify stop process.
 	 */
 	protected void notifyStopProcess() {
-		synchronized (listeners) {
-			for (INodejsProcessListener listener : listeners) {
-				listener.onStop(this);
-			}
+		for (INodejsProcessListener listener : getListeners()) {
+			listener.onStop(this);
 		}
 	}
 
@@ -382,10 +382,8 @@ public abstract class AbstractNodejsProcess implements INodejsProcess {
 	 * @param line
 	 */
 	protected void notifyDataProcess(String line) {
-		synchronized (listeners) {
-			for (INodejsProcessListener listener : listeners) {
-				listener.onData(this, line);
-			}
+		for (INodejsProcessListener listener : getListeners()) {
+			listener.onData(this, line);
 		}
 	}
 
@@ -394,10 +392,8 @@ public abstract class AbstractNodejsProcess implements INodejsProcess {
 	 */
 	protected void notifyErrorProcess(String line) {
 		this.hasError = true;
-		synchronized (listeners) {
-			for (INodejsProcessListener listener : listeners) {
-				listener.onError(AbstractNodejsProcess.this, line);
-			}
+		for (INodejsProcessListener listener : getListeners()) {
+			listener.onError(AbstractNodejsProcess.this, line);
 		}
 	}
 
