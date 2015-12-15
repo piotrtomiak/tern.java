@@ -11,6 +11,11 @@ import java.util.List;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
+import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
+import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.debug.core.DebugException;
 import org.eclipse.debug.core.DebugPlugin;
 import org.eclipse.debug.core.ILaunch;
@@ -50,7 +55,7 @@ public class WebclipseNodejsDebugProcess extends AbstractNodejsProcess {
 		try {
 			ILaunchConfigurationType type = manager
 					.getLaunchConfigurationType(WebclipseDebugger.LAUNCH_CONFIG_ID);
-			ILaunchConfigurationWorkingCopy lcwc = type.newInstance(null,
+			final ILaunchConfigurationWorkingCopy lcwc = type.newInstance(null,
 					manager.generateLaunchConfigurationName("tern-nodejs")); //$NON-NLS-1$
 			lcwc.setAttribute("jsAppLaunchingDelegateId", //$NON-NLS-1$
 					"com.genuitec.eclipse.javascript.debug.nodejs.standalone"); //$NON-NLS-1$
@@ -97,17 +102,32 @@ public class WebclipseNodejsDebugProcess extends AbstractNodejsProcess {
 				}
 			});
 
-			launch = lcwc.launch("debug", null); //$NON-NLS-1$
-
-			// setup std and err listeners
-			for (IProcess process : launch.getProcesses()) {
-				if ("javascript".equals(process.getAttribute(IProcess.ATTR_PROCESS_TYPE))) { //$NON-NLS-1$
-					new StdOut(process.getStreamsProxy()
-							.getOutputStreamMonitor());
-					new StdErr(process.getStreamsProxy()
-							.getErrorStreamMonitor());
+			new Job("Launching node.js debug process") {
+				
+				{
+					setSystem(true);
 				}
-			}
+				
+				@Override
+				protected IStatus run(IProgressMonitor monitor) {
+					try {
+						launch = lcwc.launch("debug", null);
+					} catch (CoreException e) {
+						return new Status(IStatus.ERROR, e.getStatus().getPlugin(), e.getStatus().getMessage(), e);
+					}
+					
+					// setup std and err listeners
+					for (IProcess process : launch.getProcesses()) {
+						if ("javascript".equals(process.getAttribute(IProcess.ATTR_PROCESS_TYPE))) { //$NON-NLS-1$
+							new StdOut(process.getStreamsProxy()
+									.getOutputStreamMonitor());
+							new StdErr(process.getStreamsProxy()
+									.getErrorStreamMonitor());
+						}
+					}
+					return Status.OK_STATUS;
+				}
+			}.schedule();
 
 		} catch (Exception e) {
 			throw new NodejsProcessException(e);
