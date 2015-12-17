@@ -10,18 +10,18 @@
  */
 package tern.eclipse.ide.internal.ui.views;
 
-import tern.eclipse.ide.core.resources.TernDocumentFile;
+import tern.ITernFile;
 import tern.server.protocol.outline.TernOutlineCollector;
 
 public class TernOutline extends TernOutlineCollector {
 
-	private final TernDocumentFile ternFile;
+	private final ITernFile ternFile;
 
-	public TernOutline(TernDocumentFile ternFile) {
+	public TernOutline(ITernFile ternFile) {
 		this.ternFile = ternFile;
 	}
 
-	public TernDocumentFile getTernFile() {
+	public ITernFile getTernFile() {
 		return ternFile;
 	}
 }

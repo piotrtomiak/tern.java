@@ -49,7 +49,8 @@ public class TernOutlineView extends ContentOutline {
 				if (TernCorePlugin.hasTernNature(project)) {
 					IDocument document = EditorUtils.getDocument(file);
 					if (document != null) {
-						return new TernContentOutlinePage(new TernDocumentFile(file, document));
+						return new TernContentOutlinePage(new TernDocumentFile(file, document), 
+								TernResourcesManager.getTernProject(project));
 					}
 				}
 			}

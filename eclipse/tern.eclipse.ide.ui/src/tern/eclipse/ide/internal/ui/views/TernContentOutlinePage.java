@@ -11,6 +11,7 @@
 package tern.eclipse.ide.internal.ui.views;
 
 import org.eclipse.core.resources.IFile;
+import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.jface.viewers.DoubleClickEvent;
 import org.eclipse.jface.viewers.IDoubleClickListener;
 import org.eclipse.jface.viewers.ISelection;
@@ -24,18 +25,21 @@ import org.eclipse.ui.navigator.CommonViewer;
 import org.eclipse.ui.part.Page;
 import org.eclipse.ui.views.contentoutline.IContentOutlinePage;
 
-import tern.eclipse.ide.core.resources.TernDocumentFile;
+import tern.ITernFile;
+import tern.ITernProject;
 import tern.eclipse.ide.ui.TernUIPlugin;
 import tern.eclipse.ide.ui.utils.EditorUtils;
 import tern.server.protocol.outline.JSNode;
 
 public class TernContentOutlinePage extends Page implements IContentOutlinePage {
 
-	private final TernDocumentFile ternFile;
+	private final ITernFile ternFile;
+	private final ITernProject ternProject;
 	private CommonViewer viewer;
 
-	public TernContentOutlinePage(TernDocumentFile ternFile) {
+	public TernContentOutlinePage(ITernFile ternFile, ITernProject project) {
 		this.ternFile = ternFile;
+		this.ternProject = project;
 	}
 
 	@Override
@@ -78,7 +82,10 @@ public class TernContentOutlinePage extends Page implements IContentOutlinePage 
 				if (!selection.isEmpty()) {
 					if (selection.getFirstElement() instanceof JSNode) {
 						JSNode node = (JSNode) selection.getFirstElement();
-						IFile file = ternFile.getFile();
+						IFile file = (IFile) ternFile.getAdapter(IFile.class);
+						if (file == null) {
+							return;
+						}
 						Long start = node.getStart();
 						Long end = node.getEnd();
 						EditorUtils.openInEditor(
@@ -92,7 +99,18 @@ public class TernContentOutlinePage extends Page implements IContentOutlinePage 
 			}
 		});
 		viewer.setAutoExpandLevel(TreeViewer.ALL_LEVELS);
-		viewer.setInput(ternFile);
+		viewer.setInput(new IAdaptable() {
+			@Override
+			public Object getAdapter(Class adapter) {
+				if (adapter == ITernFile.class) {
+					return ternFile;
+				}
+				if (adapter == ITernProject.class) {
+					return ternProject;
+				}
+				return null;
+			}
+		});
 	}
 
 }

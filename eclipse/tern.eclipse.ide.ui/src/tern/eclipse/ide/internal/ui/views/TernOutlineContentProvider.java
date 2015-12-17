@@ -20,6 +20,7 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jface.text.DocumentEvent;
+import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IDocumentListener;
 import org.eclipse.jface.viewers.ITreeContentProvider;
 import org.eclipse.jface.viewers.TreePath;
@@ -28,9 +29,8 @@ import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
 
-import tern.eclipse.ide.core.IIDETernProject;
-import tern.eclipse.ide.core.TernCorePlugin;
-import tern.eclipse.ide.core.resources.TernDocumentFile;
+import tern.ITernFile;
+import tern.ITernProject;
 import tern.eclipse.ide.internal.ui.TernUIMessages;
 import tern.server.TernPlugin;
 import tern.server.protocol.outline.JSNode;
@@ -44,7 +44,10 @@ public class TernOutlineContentProvider implements ITreeContentProvider, IDocume
 	private static final int UPDATE_DELAY = 500;
 	
 	private Viewer viewer;
-	private TernDocumentFile document;
+	private IAdaptable input;
+	private IDocument document;
+	private ITernFile ternFile;
+	private ITernProject ternProject;
 	private Job refreshJob;
 	private boolean parsed = false;
 	private TernOutline outline = null;
@@ -54,16 +57,15 @@ public class TernOutlineContentProvider implements ITreeContentProvider, IDocume
 			@Override
 			protected IStatus run(IProgressMonitor monitor) {
 				parsed = false;
-				if (document == null) {
+				if (input == null) {
 					return Status.OK_STATUS;
 				}
 				try {
-					IIDETernProject ternProject = TernCorePlugin.getTernProject(document.getFile().getProject());
 					if (ternProject != null && ternProject.hasPlugin(TernPlugin.outline)) {
 						// Call tern-outline
-						TernOutlineQuery query = new TernOutlineQuery(document.getFileName());
-						outline = new TernOutline(document);
-						ternProject.request(query, document, outline);
+						TernOutlineQuery query = new TernOutlineQuery(ternFile.getFileName());
+						outline = new TernOutline(ternFile);
+						ternProject.request(query, ternFile, outline);
 						parsed = true;
 						Display.getDefault().syncExec(new Runnable() {
 							@Override
@@ -179,22 +181,31 @@ public class TernOutlineContentProvider implements ITreeContentProvider, IDocume
 	@Override
 	public void dispose() {
 		this.refreshJob.cancel();
-		this.document.getDocument().removeDocumentListener(this);
+		if (this.document != null) {
+			document.removeDocumentListener(this);
+			document = null;
+		}
 	}
 
 	@Override
 	public void inputChanged(Viewer viewer, Object oldInput, Object newInput) {
 		this.viewer = viewer;
 		if (this.document != null) {
-			document.getDocument().removeDocumentListener(this);
+			this.document.removeDocumentListener(this);
 		}
-		if (newInput instanceof TernDocumentFile) {
-			this.document = (TernDocumentFile) newInput;
-		} else if (newInput instanceof IAdaptable) {
-			this.document = (TernDocumentFile) ((IAdaptable)newInput).getAdapter(TernDocumentFile.class);
+		if (newInput instanceof IAdaptable) {
+			this.input = (IAdaptable) newInput;
+			this.ternFile = (ITernFile) input.getAdapter(ITernFile.class);
+			this.ternProject = (ITernProject) input.getAdapter(ITernProject.class);
+			this.document = (IDocument) ternFile.getAdapter(IDocument.class);
+		} else {
+			this.input = null;
+			this.ternFile = null;
+			this.ternProject = null;
+			this.document = null;
 		}
 		if (this.document != null) {
-			document.getDocument().addDocumentListener(this);
+			document.addDocumentListener(this);
 		}
 		this.refreshJob.schedule();
 	}
