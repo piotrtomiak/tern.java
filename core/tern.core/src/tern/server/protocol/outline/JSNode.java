@@ -13,6 +13,8 @@ package tern.server.protocol.outline;
 import java.util.ArrayList;
 import java.util.List;
 
+import tern.utils.StringUtils;
+
 /**
  * JavaScript node used for the Outline.
  *
@@ -22,22 +24,33 @@ public class JSNode {
 	private static final String FN_TYPE = "fn(";
 	private static final String ARRAY_TYPE = "[";
 
+	// ES6 kinds
+	private static final String IMPORT_KIND = "import";
+	private static final String SPECIFIER_KIND = "specifier";
+	private static final String CLASS_KIND = "class";
+	
 	private final String name;
 	private final String type;
 	private final String kind;
 	private final Long start;
 	private final Long end;
+	private final String file;
 	private final JSNode parent;
 	private final List<JSNode> children;
-	private final boolean isClass;
 	private final boolean isFunction;
 	private final boolean isArray;
-
-	public JSNode(String name, String type, String kind, Long start, Long end, JSNode parent) {
+	
+	// ES6
+	private final boolean isClass;
+	private final boolean isImport;
+	private final boolean isSpecifier;
+	
+	public JSNode(String name, String type, String kind, Long start, Long end, String file, JSNode parent) {
 		this.name = name;
 		this.type = type;
 		this.start = start;
 		this.end = end;
+		this.file = file;
 		this.children = new ArrayList<JSNode>();
 		if (parent != null) {
 			this.parent = parent;
@@ -54,14 +67,18 @@ public class JSNode {
 		}
 		this.kind = kind;
 		if (kind != null) {
-			isClass = "class".equals(kind);
+			isClass = CLASS_KIND.equals(kind);
+			isImport = IMPORT_KIND.equals(kind);
+			isSpecifier = SPECIFIER_KIND.equals(kind);
 		} else {
 			isClass = false;
+			isImport = false;
+			isSpecifier = false;
 		}
 	}
 
 	public String getName() {
-		return name;
+		return StringUtils.isEmpty(file) ? name : file;
 	}
 
 	public String getType() {
@@ -106,6 +123,22 @@ public class JSNode {
 
 	public boolean isClass() {
 		return isClass;
+	}
+
+	public boolean isImport() {		
+		return isImport;
+	}
+	
+	public boolean isSpecifier() {
+		return isSpecifier;
+	}
+	
+	public String getFile() {
+		return file;
+	}
+
+	public boolean isFile() {
+		return !StringUtils.isEmpty(file);
 	}
 
 }

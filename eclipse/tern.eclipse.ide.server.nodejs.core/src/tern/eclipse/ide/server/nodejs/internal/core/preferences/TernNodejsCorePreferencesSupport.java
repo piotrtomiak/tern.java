@@ -1,5 +1,5 @@
 /**
- *  Copyright (c) 2013-2015 Angelo ZERR.
+ *  Copyright (c) 2013-2015 Angelo ZERR and Genuitec LLC.
  *  All rights reserved. This program and the accompanying materials
  *  are made available under the terms of the Eclipse Public License v1.0
  *  which accompanies this distribution, and is available at
@@ -7,6 +7,7 @@
  *
  *  Contributors:
  *  Angelo Zerr <angelo.zerr@gmail.com> - initial API and implementation
+ *  Piotr Tomiak <piotr@genuitec.com> - support for tern.js debugging
  */
 package tern.eclipse.ide.server.nodejs.internal.core.preferences;
 
@@ -17,6 +18,8 @@ import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Preferences;
 
+import tern.eclipse.ide.core.IIDETernRepository;
+import tern.eclipse.ide.core.TernCorePlugin;
 import tern.eclipse.ide.core.preferences.PreferencesSupport;
 import tern.eclipse.ide.server.nodejs.core.INodejsInstall;
 import tern.eclipse.ide.server.nodejs.core.TernNodejsCoreConstants;
@@ -28,6 +31,7 @@ import tern.utils.StringUtils;
  * Support for tern core node.js preferences.
  * 
  */
+@SuppressWarnings("deprecation")
 public class TernNodejsCorePreferencesSupport {
 
 	private static final String NODES_QUALIFIER = TernNodejsCorePlugin.PLUGIN_ID;
@@ -169,14 +173,14 @@ public class TernNodejsCorePreferencesSupport {
 	}
 
 	public IFile getTernServerDebugFile() {
-		String fileName = preferencesSupport
-				.getWorkspacePreferencesValue(TernNodejsCoreConstants.NODEJS_TERN_SERVER_DEBUG_FILE);
-		if (fileName != null) {
+		String repositoryName = preferencesSupport
+				.getWorkspacePreferencesValue(TernNodejsCoreConstants.NODEJS_TERN_REPOSITORY);
+		if (repositoryName != null) {
 			try {
-				return ResourcesPlugin.getWorkspace().getRoot()
-						.getFile(new Path(fileName));
+				IIDETernRepository repository =  TernCorePlugin.getTernRepositoryManager().getRepository(repositoryName);
+				return repository != null ? repository.getTernServerFile() : null;
 			} catch (Exception e) {
-				//ignore
+				// ignore
 			}
 		}
 		return null;

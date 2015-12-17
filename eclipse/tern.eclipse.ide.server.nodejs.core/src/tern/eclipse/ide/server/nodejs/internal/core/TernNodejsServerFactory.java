@@ -1,5 +1,5 @@
 /**
- *  Copyright (c) 2013-2015 Angelo ZERR.
+ *  Copyright (c) 2013-2015 Angelo ZERR and Genuitec LLC.
  *  All rights reserved. This program and the accompanying materials
  *  are made available under the terms of the Eclipse Public License v1.0
  *  which accompanies this distribution, and is available at
@@ -7,6 +7,7 @@
  *
  *  Contributors:
  *  Angelo Zerr <angelo.zerr@gmail.com> - initial API and implementation
+ *  Piotr Tomiak <piotr@genuitec.com> - support for tern.js debugging
  */
 package tern.eclipse.ide.server.nodejs.internal.core;
 
@@ -17,8 +18,8 @@ import org.eclipse.core.resources.IProject;
 
 import tern.ITernProject;
 import tern.eclipse.ide.core.ITernServerFactory;
-import tern.eclipse.ide.server.nodejs.core.INodejsDebugger;
-import tern.eclipse.ide.server.nodejs.core.NodejsDebuggersManager;
+import tern.eclipse.ide.server.nodejs.core.debugger.INodejsDebugger;
+import tern.eclipse.ide.server.nodejs.core.debugger.NodejsDebuggersManager;
 import tern.eclipse.ide.server.nodejs.internal.core.preferences.TernNodejsCorePreferencesSupport;
 import tern.server.ITernServer;
 import tern.server.nodejs.NodejsTernServer;
@@ -32,7 +33,12 @@ public class TernNodejsServerFactory implements ITernServerFactory {
 	public ITernServer create(ITernProject project) throws Exception {
 		NodejsTernServer server;
 		if (isRemoteAccess()) {
-			server = new NodejsTernServer(project, getRemotePort());
+			server = new NodejsTernServer(project, getRemotePort()) {
+				@Override
+				protected void onError(String message, Throwable e) {
+					Trace.trace(Trace.SEVERE, message, e);
+				}
+			};
 		} else {
 			INodejsDebugger debugger = NodejsDebuggersManager
 					.getDebugger(getDebugger());
@@ -47,10 +53,20 @@ public class TernNodejsServerFactory implements ITernServerFactory {
 					&& !ternServerFile.getProject().equals(
 							project.getAdapter(IProject.class))) {
 				server = new NodejsTernServer(project, debugger.createProcess(
-						project.getProjectDir(), installPath, ternServerFile));
+						project.getProjectDir(), installPath, ternServerFile)){
+					@Override
+					protected void onError(String message, Throwable e) {
+						Trace.trace(Trace.SEVERE, message, e);
+					}
+				};
 			} else {
-				File ternFile = project.getRepository().getTernBaseDir();
-				server = new NodejsTernServer(project, installPath, ternFile);
+				File ternBaseDir = project.getRepository().getTernBaseDir();
+				server = new NodejsTernServer(project, installPath, ternBaseDir) {
+					@Override
+					protected void onError(String message, Throwable e) {
+						Trace.trace(Trace.SEVERE, message, e);
+					}
+				};
 			}
 		}
 		server.setTimeout(getTimeout());

@@ -1,6 +1,12 @@
-/*
- * Copyright 2015, Genuitec, LLC
- * All Rights Reserved.
+/**
+ *  Copyright (c) 2015 Genuitec LLC.
+ *  All rights reserved. This program and the accompanying materials
+ *  are made available under the terms of the Eclipse Public License v1.0
+ *  which accompanies this distribution, and is available at
+ *  http://www.eclipse.org/legal/epl-v10.html
+ *
+ *  Contributors:
+ *  Piotr Tomiak <piotr@genuitec.com> - initial API and implementation
  */
 package tern.eclipse.ide.server.nodejs.internal.ui.preferences;
 
@@ -18,8 +24,6 @@ import org.eclipse.swt.widgets.Control;
 /**
  * A field editor for a checkboxed combo box that allows the drop-down selection
  * of one of a list of items.
- * 
- * @since 3.3
  */
 public class CheckComboFieldEditor extends FieldEditor {
 
@@ -191,6 +195,14 @@ public class CheckComboFieldEditor extends FieldEditor {
 		}
 		getPreferenceStore().setValue(getPreferenceName(), fValue);
 	}
+	
+	public String getValue() {
+		return fValue;
+	}
+	
+	public int getSelection() {
+		return fCombo.getSelectionIndex();
+	}
 
 	@Override
 	public int getNumberOfControls() {
@@ -251,6 +263,10 @@ public class CheckComboFieldEditor extends FieldEditor {
 			}
 			fCombo.setText(fEntryNamesAndValues[0][0]);
 		}
+		refreshValidState();
+		if (!isValid()) {
+			fireStateChanged(IS_VALID, true, false);
+		}
 	}
 
 	public boolean isCheckboxSelected() {
@@ -280,11 +296,23 @@ public class CheckComboFieldEditor extends FieldEditor {
 			fValue = unselectedValue;
 		}
 		setPresentsDefaultValue(false);
-		fireValueChanged(VALUE, oldValue, fValue);
+		boolean oldState = isValid(); 
+		refreshValidState();
+		if (isValid() != oldState) {
+			fireStateChanged(IS_VALID, oldState, isValid());
+		}
+		if (!fValue.equals(oldValue)) {
+			fireValueChanged(VALUE, oldValue, fValue);
+		}
 	}
 
 	protected void updateComboBoxEnablement(Composite parent, boolean enabled) {
 		getComboBoxControl(parent).setEnabled(enabled);
+		boolean oldState = isValid(); 
+		refreshValidState();
+		if (isValid() != oldState) {
+			fireStateChanged(IS_VALID, oldState, isValid());
+		}
 	}
 
 	private Button getCheckControl(final Composite parent) {

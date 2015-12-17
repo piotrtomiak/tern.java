@@ -4,7 +4,7 @@ Bundle-Name: %pluginName
 Bundle-Vendor: %providerName
 Bundle-Localization: plugin
 Bundle-SymbolicName: tern.core
-Bundle-Version: 1.1.0.qualifier
+Bundle-Version: 1.2.0.qualifier
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Export-Package: tern,
  tern.angular,
@@ -30,11 +30,13 @@ Export-Package: tern,
  tern.server.protocol.html,
  tern.server.protocol.lint,
  tern.server.protocol.outline,
+ tern.server.protocol.push,
  tern.server.protocol.refs,
  tern.server.protocol.type,
  tern.utils
-Import-Package: minimatch;version="[1.1.0,1.1.1)",
- com.eclipsesource.json;version="[0.9.4,0.9.5)",
+Import-Package: com.eclipsesource.json;version="[0.9.4,0.9.5)",
+ javax.websocket;version="1.1.0",
+ minimatch;version="[1.1.0,1.1.1)",
  org.apache.http;version="[4.1.3,5.0.0)";resolution:=optional,
  org.apache.http.client;version="[4.1.3,5.0.0)";resolution:=optional,
  org.apache.http.client.methods;version="[4.1.3,5.0.0)";resolution:=optional,

@@ -111,9 +111,13 @@
               id="tern.eclipse.ide.ui.preferences.development" />
        <page  name="%TernRepositoryPropertyPage.name"
               category="tern.eclipse.ide.ui.preferences.development"
-	          class="tern.eclipse.ide.internal.ui.preferences.TernRepositoryPreferencesPage"
-	          id="tern.eclipse.ide.ui.preferences.repository" />
-<!--	   <page  name="%TernValidationPropertyPage.name"
+              class="tern.eclipse.ide.internal.ui.preferences.TernRepositoryPreferencesPage"
+              id="tern.eclipse.ide.ui.preferences.repository" />
+       <page  name="%TernServerPropertyPage.name"
+              category="tern.eclipse.ide.preferences"
+              class="tern.eclipse.ide.internal.ui.preferences.TernServerPreferencesPage"
+              id="tern.eclipse.ide.ui.preferences.server" />              
+<!--       <page  name="%TernValidationPropertyPage.name"
               category="tern.eclipse.ide.preferences"
               class="tern.eclipse.ide.internal.ui.preferences.TernValidationPreferencesPage"
               id="tern.eclipse.ide.ui.preferences.validation" />-->
@@ -283,5 +287,22 @@
          </includes>
       </viewerContentBinding>
    </extension>
-              	       	 
+
+	<!--======================================================================================-->
+	<!-- .tern-project editor						             -->
+	<!--======================================================================================-->
+        
+   <extension
+         point="org.eclipse.ui.editors">
+      <editor
+            default="true"
+            name="%editors.ternProject.name"
+            icon="icons/full/obj16/logo.png"
+            class="tern.eclipse.ide.internal.ui.editors.TernProjectEditor"
+            contributorClass="tern.eclipse.ide.internal.ui.editors.TernProjectEditorContributor"
+            id="tern.eclipse.ide.ui.editors.TernProjectEditor">
+            <contentTypeBinding contentTypeId="tern.eclipse.ide.core.ternProject"/>            
+      </editor>
+   </extension>
+   
 </plugin>        

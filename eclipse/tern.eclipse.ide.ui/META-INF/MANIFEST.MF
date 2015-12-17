@@ -4,7 +4,7 @@ Bundle-Name: %pluginName
 Bundle-Vendor: %providerName
 Bundle-Localization: plugin
 Bundle-SymbolicName: tern.eclipse.ide.ui;singleton:=true
-Bundle-Version: 1.1.0.qualifier
+Bundle-Version: 1.2.0.qualifier
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Require-Bundle: org.eclipse.ui,
  org.eclipse.core.runtime,
@@ -20,7 +20,8 @@ Require-Bundle: org.eclipse.ui,
  org.eclipse.core.expressions,
  com.genuitec.eclipse.ui.common.platform;bundle-version="13.0.0",
  org.eclipse.ui.views,
- org.eclipse.ui.navigator
+ org.eclipse.ui.navigator,
+ org.eclipse.ui.forms
 Bundle-ActivationPolicy: lazy
 Bundle-Activator: tern.eclipse.ide.ui.TernUIPlugin
 Export-Package: tern.eclipse.ide.internal.ui;x-internal:=true,
@@ -51,5 +52,6 @@ Export-Package: tern.eclipse.ide.internal.ui;x-internal:=true,
  tern.eclipse.ide.ui.properties,
  tern.eclipse.ide.ui.text,
  tern.eclipse.ide.ui.utils,
- tern.eclipse.ide.ui.viewers
+ tern.eclipse.ide.ui.viewers,
+ tern.eclipse.ide.ui.wizards
 Import-Package: com.eclipsesource.json;version="[0.9.4,0.9.5)"

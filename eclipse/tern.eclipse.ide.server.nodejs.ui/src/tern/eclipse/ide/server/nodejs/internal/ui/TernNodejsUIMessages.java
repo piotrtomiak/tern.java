@@ -1,5 +1,5 @@
 /**
- *  Copyright (c) 2013-2015 Angelo ZERR.
+ *  Copyright (c) 2013-2015 Angelo ZERR and Genuitec LLC.
  *  All rights reserved. This program and the accompanying materials
  *  are made available under the terms of the Eclipse Public License v1.0
  *  which accompanies this distribution, and is available at
@@ -7,6 +7,7 @@
  *
  *  Contributors:
  *  Angelo Zerr <angelo.zerr@gmail.com> - initial API and implementation
+ *  Piotr Tomiak <piotr@genuitec.com> - support for tern.js debugging
  */
 package tern.eclipse.ide.server.nodejs.internal.ui;
 
@@ -27,6 +28,16 @@ public final class TernNodejsUIMessages extends NLS {
 
 	// Preferences
 	public static String TernNodejsPreferencesPage_desc;
+
+	public static String TernNodejsPreferencesPage_debugger_err_not_installed;
+	public static String TernNodejsPreferencesPage_debugger_err_not_selected;
+	public static String TernNodejsPreferencesPage_debugger_label;
+	public static String TernNodejsPreferencesPage_debugger_none;
+	public static String TernNodejsPreferencesPage_debugger_not_installed;
+	public static String TernNodejsPreferencesPage_debugger_wiki_link;
+	
+	public static String TernNodejsPreferencesPage_ternRepository_label;
+	
 	public static String TernNodejsPreferencesPage_nodeJSRemoteAccess;
 	public static String TernNodejsPreferencesPage_nodeJSRemotePort;
 	

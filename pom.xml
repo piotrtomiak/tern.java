@@ -7,7 +7,7 @@
 	</parent>
 	<groupId>fr.opensagres.js</groupId>
 	<artifactId>tern.java</artifactId>
-	<version>1.1.0-SNAPSHOT</version>
+	<version>1.2.0-SNAPSHOT</version>
 	<packaging>pom</packaging>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -164,8 +164,8 @@
 		</plugins>
 	</build>
 	<dependencies>
+		<!-- OSGi bundle coming from Maven repo -->	
 		<dependency>
-			<!-- OSGi bundle coming from Maven repo -->
 			<groupId>com.eclipsesource.minimal-json</groupId>
 			<artifactId>minimal-json</artifactId>
 			<version>0.9.4</version>
@@ -173,7 +173,12 @@
 		<dependency>
 			<groupId>fr.opensagres.js</groupId>
 			<artifactId>minimatch.java</artifactId>
-			<version>1.1.0-SNAPSHOT</version>
+			<version>1.1.0</version>
+		</dependency>
+		<dependency>
+			<groupId>javax.websocket</groupId>
+			<artifactId>javax.websocket-api</artifactId>
+			<version>1.1</version>
 		</dependency>
 	</dependencies>
 
@@ -192,11 +197,6 @@
 			<id>license-feature</id>
 			<url>http://download.eclipse.org/cbi/updates/license/</url>
 			<layout>p2</layout>
-		</repository>
-		<!-- only for SNAPSHOT versions of minimatch  -->
-		 <repository>
-			<id>cloudbees</id>
-			<url>http://repository-opensagres.forge.cloudbees.com/snapshot/</url>
 		</repository>
 	</repositories>
 	<scm>

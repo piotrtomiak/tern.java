@@ -1,5 +1,5 @@
 /**
- *  Copyright (c) 2013-2014 Angelo ZERR.
+ *  Copyright (c) 2013-2015 Angelo ZERR and Genuitec LLC.
  *  All rights reserved. This program and the accompanying materials
  *  are made available under the terms of the Eclipse Public License v1.0
  *  which accompanies this distribution, and is available at
@@ -7,6 +7,7 @@
  *
  *  Contributors:
  *  Angelo Zerr <angelo.zerr@gmail.com> - initial API and implementation
+ *  Piotr Tomiak <piotr@genuitec.com> - support for tern.js debugging
  */
 package tern.server.nodejs.process.internal;
 
@@ -250,6 +251,7 @@ public class NodejsProcess extends AbstractNodejsProcess {
 	 * 
 	 * @return
 	 */
+	@Override
 	public boolean isStarted() {
 		return process != null;
 	}
@@ -257,6 +259,7 @@ public class NodejsProcess extends AbstractNodejsProcess {
 	/**
 	 * Kill the process.
 	 */
+	@Override
 	public void kill() {
 		if (process != null) {
 			process.destroy();
