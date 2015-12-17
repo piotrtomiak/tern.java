@@ -19,6 +19,7 @@ import tern.TernException;
 import tern.server.ITernServer;
 import tern.server.ITernServerRequestProcessor;
 import tern.server.protocol.ITernResultsAsyncCollector;
+import tern.server.protocol.ITernResultsAsyncCollectorEx;
 import tern.server.protocol.ITernResultsCollector;
 import tern.server.protocol.TernResultsProcessorsFactory;
 import tern.server.protocol.ITernResultsAsyncCollector.TimeoutReason;
@@ -56,8 +57,12 @@ public class IDETernServerAsyncReqProcessor extends Job implements
 		}
 		ITernResultsAsyncCollector collector = (ITernResultsAsyncCollector) c;
 		long start = System.currentTimeMillis();
+		long timeout = (collector instanceof ITernResultsAsyncCollectorEx) ? 
+				((ITernResultsAsyncCollectorEx)collector).getTimeout()
+				: TIMEOUT;
+		
 		while (this.collector != null
-				&& (System.currentTimeMillis() - start) < TIMEOUT / 2) {
+				&& (System.currentTimeMillis() - start) < timeout / 2) {
 			// completion calculation is still taking place
 			// wait a bit for it to finish
 			try {
@@ -80,7 +85,7 @@ public class IDETernServerAsyncReqProcessor extends Job implements
 			schedule();
 		}
 		while (this.collector == collector
-				&& (System.currentTimeMillis() - start) < TIMEOUT) {
+				&& (System.currentTimeMillis() - start) < timeout) {
 			try {
 				Thread.sleep(25);
 			} catch (InterruptedException e) {
