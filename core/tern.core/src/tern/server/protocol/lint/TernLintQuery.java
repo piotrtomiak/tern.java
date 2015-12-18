@@ -12,6 +12,7 @@ package tern.server.protocol.lint;
 
 import tern.TernException;
 import tern.server.ITernPlugin;
+import tern.server.TernPlugin;
 import tern.server.protocol.JsonHelper;
 import tern.server.protocol.TernQuery;
 import tern.utils.TernModuleHelper;
@@ -48,8 +49,10 @@ public class TernLintQuery extends TernQuery {
 		if (!plugin.isLinter()) {
 			throw new TernException(plugin.getName() + " is not a linter");
 		}
-		TernLintQuery query = new TernLintQuery(plugin.getName(), plugin, full);
-		query.setUseLinterAsSuffix(true);
+		boolean isWebclipse = plugin.getName().equals(TernPlugin.webclipse.getName());
+		TernLintQuery query = new TernLintQuery(
+				isWebclipse ? "syntax-val" : plugin.getName(), plugin, full);
+		query.setUseLinterAsSuffix(!isWebclipse);
 		return query;
 	}
 
