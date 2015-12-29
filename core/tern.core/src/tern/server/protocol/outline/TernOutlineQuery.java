@@ -22,7 +22,7 @@ public class TernOutlineQuery extends TernQuery {
 
 	private static final long serialVersionUID = 1L;
 
-	private static final String OUTLINE_TYPE_QUERY = "outline";
+	private static final String OUTLINE_TYPE_QUERY = "webclipse-outline"; //$NON-NLS-1$
 
 	public TernOutlineQuery(String file) {
 		super(OUTLINE_TYPE_QUERY);
