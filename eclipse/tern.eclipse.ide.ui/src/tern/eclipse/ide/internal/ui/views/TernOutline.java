@@ -11,13 +11,15 @@
 package tern.eclipse.ide.internal.ui.views;
 
 import tern.ITernFile;
+import tern.ITernProject;
 import tern.server.protocol.outline.TernOutlineCollector;
 
 public class TernOutline extends TernOutlineCollector {
 
 	private final ITernFile ternFile;
 
-	public TernOutline(ITernFile ternFile) {
+	public TernOutline(ITernFile ternFile, ITernProject ternProject) {
+		super(ternProject);
 		this.ternFile = ternFile;
 	}
 
