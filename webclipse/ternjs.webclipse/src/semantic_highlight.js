@@ -1,6 +1,6 @@
-var walk = require("acorn/dist/walk");
+import * as walk from "acorn/dist/walk";
 
-module.exports.calculate = function (ast) {
+export function calculate(ast) {
 	var highlights = [];
 	walk.simple(ast, {
 		MethodDefinition: function (node) {

@@ -1,0 +1,22 @@
+{
+  "name": "tern-webclipse",
+  "description": "Webclipse additions to Tern",
+  "main": "dist/webclipse.js",
+  "version": "1.0.4",
+  "engines": {
+    "node": ">=0.4.0"
+  },
+  "scripts": {
+    "prepublish": "node bin/build-webclipse.js"
+  },
+  "dependencies": {
+    "acorn": "^2.6.4"
+  },
+  "devDependencies": {
+    "babel-core": "^5.6.15",
+    "babelify": "^6.1.2",
+    "browserify": "^10.2.4",
+    "browserify-derequire": "^0.9.4",
+    "unicode-7.0.0": "~0.1.5"
+  }
+}

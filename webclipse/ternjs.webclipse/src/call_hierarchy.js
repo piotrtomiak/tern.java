@@ -1,6 +1,6 @@
-var tern = require("tern/lib/tern");
-var infer = require("tern/lib/infer");
-var walk = require("acorn/dist/walk");
+import * as tern from "tern/lib/tern"
+import * as infer from "tern/lib/infer"
+import * as walk from "acorn/dist/walk"
 
 function nodeKey(node) {
   return (node.sourceFile ? node.sourceFile.name : "<no-source>") + "$#" + node.type + "/" + node.start;
@@ -124,14 +124,14 @@ function findCallersOfVariable(srv, query, file, expr) {
   }
 
   var res = {calls: []};
-  for (o in callers) {
+  for (let o in callers) {
     res.calls.push(callers[o]);
   }
   res.calls.reverse();
   return res;
 }
 
-function findCallers(srv, query, expr, prop) {    
+function findCallers_(srv, query, expr, prop) {    
   var exprType = infer.expressionType(expr);
   if (expr.node.type == "MethodDefinition") {
     exprType = exprType.propertyOf;
@@ -147,14 +147,14 @@ function findCallers(srv, query, expr, prop) {
   }
 
   var res = {calls: []};
-  for (o in callers) {
+  for (let o in callers) {
     res.calls.push(callers[o]);
   }
   res.calls.reverse();
   return res;
 }
 
-module.exports.findRoots = function(server, query, file) {
+export function findRoots(server, query, file) {
 	var def = tern.findDef(server, query, file);
 	if (!def) {
 	  return {roots:[]}
@@ -182,28 +182,28 @@ module.exports.findRoots = function(server, query, file) {
   return {roots:[]};	
 }
 
-module.exports.findCallers = function(srv, query, file) {
+export function findCallers(srv, query, file) {
   var expr = tern.findQueryExpr(file, query, true);
   if (expr && expr.node.type == "Identifier") {
     return findCallersOfVariable(srv, query, file, expr);
   } else if (expr && expr.node.type == "MemberExpression" && !expr.node.computed) {
     var p = expr.node.property;
     expr.node = expr.node.object;
-    return findCallers(srv, query, expr, p);
+    return findCallers_(srv, query, expr, p);
   } else if (expr && expr.node.type == "ObjectExpression") {
     var pos = tern.resolvePos(file, query.end);
     for (var i = 0; i < expr.node.properties.length; ++i) {
       var k = expr.node.properties[i].key;
       if (k.start <= pos && k.end >= pos)
-        return findCallers(srv, query, expr, k);
+        return findCallers_(srv, query, expr, k);
     }
   } else if (expr && expr.node.type == "MethodDefinition") {
     var p = expr.node.key;
-    return findCallers(srv, query, expr, p);
+    return findCallers_(srv, query, expr, p);
   }	
 }
 
-module.exports.findCallees = function(server, query, file) {
+export function findCallees(server, query, file) {
 
 	return {
 		calls: [/* {

@@ -1,6 +1,4 @@
-"use strict";
-
-var tern = require("tern/lib/tern");
+import * as tern from "tern/lib/tern";
 
 function processProperty(file, prop, parent, level) {
   if (prop.origin == file.name) {
@@ -38,7 +36,7 @@ function gather(file, node, parent, level) {
   }
 }
 
-module.exports.create = function(query, file) {
+export function create(query, file) {
   try {
     var outline = [], scope = file.scope;
     gather(file, scope, outline, 0);

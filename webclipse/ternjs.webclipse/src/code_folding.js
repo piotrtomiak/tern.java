@@ -1,7 +1,6 @@
-var walk = require("acorn/dist/walk");
-var acorn = require("acorn/dist/acorn");
+import * as walk from "acorn/dist/walk"
 
-module.exports.computeCodeFolding = function(ast) {
+export function computeCodeFolding(ast) {
 	var elements = [];
 	walk.simple(ast, {
 		VariableDeclaration: function (node) {
