@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="tern-webclipse" default="full">
+    <description>
+    	This script builds webclipse.js by firing "npm install" and than
+    	copis that file to "ternjs/node_modules/tern-webclipse".
+    	For subsequent builds, just browserify build is done to speed up the process.
+    </description>
+
+    <target name="full">
+        <exec executable="npm" failonerror="true" >
+        	<arg value="install"/>
+        </exec>
+    	<copy file="./dist/webclipse.js"  todir="../../core/ternjs/node_modules/tern-webclipse/" failonerror="true" overwrite="true"/>
+    </target>
+	
+	<target name="auto">
+	    <exec executable="node" failonerror="true" >
+	    	<arg file="bin/build-webclipse.js"/>
+	    </exec>
+		<copy file="./dist/webclipse.js"  todir="../../core/ternjs/node_modules/tern-webclipse/" failonerror="true" overwrite="true"/>
+	</target>
+	
+	<target name="clean">
+		<delete file="./dist/webclipse.js"/>
+		<delete file="../../core/ternjs/node_modules/tern-webclipse/webclipse.js"/>
+	</target>
+
+</project>
