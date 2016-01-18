@@ -1,7 +1,15 @@
 import * as walk from "acorn/dist/walk"
 
-export function computeCodeFolding(ast) {
+export function computeCodeFolding(ast, comments) {
 	var elements = [];
+	if (comments) { 
+		for (var i in comments) {
+			var comment = comments[i]; 
+			if (comment.type == "Block") {
+				elements.push({type: "comment", start: comment.start, end: comment.end});
+			}
+		}
+	}
 	walk.simple(ast, {
 		VariableDeclaration: function (node) {
 			elements.push({type: "field", start: node.start, end: node.end});

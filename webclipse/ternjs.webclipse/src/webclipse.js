@@ -25,7 +25,7 @@ tern.defineQueryType("semantic-highlight", {
 tern.defineQueryType("code-folding", {
   takesFile: true,
     run: function(server, query, file) {
-      return code_folding.computeCodeFolding(file.ast);
+      return code_folding.computeCodeFolding(file.ast, file.comments);
     }
 });
 
