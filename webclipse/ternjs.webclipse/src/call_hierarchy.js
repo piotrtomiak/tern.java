@@ -204,26 +204,68 @@ export function findCallers(srv, query, file) {
 }
 
 export function findCallees(server, query, file) {
+  var expr = tern.findQueryExpr(file, query, true);
+  var node = expr.node;
+  if (expr && expr.node.type == "Identifier") {
+    node = expr.state.originNode;
+    if (!node) {
+      // find function associated with this identifier
+      var originNode = expr.state.originNode;
+      if (!originNode) {
+        originNode = file.ast;
+      }
+      node = findFunctionByVariableName(originNode, expr.node.name);
+    }
+  } else if (expr && expr.node.type == "MemberExpression" && !expr.node.computed) {
+    node = expr.node.object;
+  }
+  if (node) {
+    return getCallees(node, expr, server, file);
+  } else {
+    return { calls: [] };
+  }
+}
 
-	return {
-		calls: [/* {
-			name: "testCallee",
-			start: 10,
-			end: 20,
-			type: "method",
-			javadoc: "jdoc",
-			returnType: "LObject;",
-			signature: "?fn(String,Array,MyClass",
-			isConstructor: false,
-			params: [
-					    { name: "foo", type: "LString;"},
-					    { name: "bar", type: "[Array"},
-			],
-			positions: [
-					     {start: 6, end: 12, line: 2},
-					     {start: 24, end: 26, line: 4}
-			]
-		}*/]
-	}
-	
+function findFunctionByVariableName(rootNode, name) {
+  var identifier = null;
+  walk.simple(rootNode, {
+    VariableDeclarator: function FunctionDeclaration(node) {
+      if (!identifier && node.id.name == name) {
+        identifier = node.init;
+      }
+    }
+  });
+  return identifier;
+}
+
+function getCallees(rootMethod, expr, server, file) {
+  var res = { calls: [] };
+  walk.simple(rootMethod, {
+    CallExpression: function CallExpression(node) {
+      var callee = node.callee;
+      var query = {};
+      query.end = callee.end;
+      var def = tern.findDef(server, query, file);
+      if (def && def.start) {
+        res.calls.push(createCallee(def, callee.name, "method", callee.start, callee.end));
+      }
+    }
+  });
+  return res;
+}
+  
+function createCallee(def, name, type, start, end) {
+  return {
+    type: type,
+    javadoc: "",
+    key: (def.file ? def.file : "<no-source>") + "$#" + type + "/" + def.start,
+    file: def.file,
+    name: name,
+    start: def.start,
+    end: def.end,
+    returnType: "V",
+    signature: "",
+    isConstructor: name == "constructor",
+    positions: [{ start: start, end: end }]
+  };
 }
