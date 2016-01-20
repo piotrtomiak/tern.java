@@ -1701,8 +1701,16 @@ var _acornDistWalk = _dereq_("acorn/dist/walk");
 
 var walk = _interopRequireWildcard(_acornDistWalk);
 
-function computeCodeFolding(ast) {
+function computeCodeFolding(ast, comments) {
 	var elements = [];
+	if (comments) {
+		for (var i in comments) {
+			var comment = comments[i];
+			if (comment.type == "Block") {
+				elements.push({ type: "comment", start: comment.start, end: comment.end });
+			}
+		}
+	}
 	walk.simple(ast, {
 		VariableDeclaration: function VariableDeclaration(node) {
 			elements.push({ type: "field", start: node.start, end: node.end });
@@ -1892,7 +1900,7 @@ tern.defineQueryType("semantic-highlight", {
 tern.defineQueryType("code-folding", {
   takesFile: true,
   run: function run(server, query, file) {
-    return code_folding.computeCodeFolding(file.ast);
+    return code_folding.computeCodeFolding(file.ast, file.comments);
   }
 });
 
