@@ -61,7 +61,7 @@ public class TernOutlineContentProvider implements ITreeContentProvider, IDocume
 					return Status.OK_STATUS;
 				}
 				try {
-					if (ternProject != null && ternProject.hasPlugin(TernPlugin.outline)) {
+					if (ternProject != null) {
 						// Call tern-outline
 						TernOutlineQuery query = new TernOutlineQuery(ternFile.getFileName());
 						outline = new TernOutline(ternFile, ternProject);

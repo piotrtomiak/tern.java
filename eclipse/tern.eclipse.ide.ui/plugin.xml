@@ -263,7 +263,7 @@
             class="tern.eclipse.ide.internal.ui.views.TernOutlineView"
             id="tern.eclipse.ide.ui.views.TernOutlineView">
       </view>
-  </extension>
+  </extension> -->
    <extension
          point="org.eclipse.ui.navigator.navigatorContent">
       <navigatorContent
@@ -287,7 +287,7 @@
          </includes>
       </viewerContentBinding>
    </extension>
--->
+
 	<!--======================================================================================-->
 	<!-- .tern-project editor						             -->
 	<!--======================================================================================-->
