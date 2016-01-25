@@ -231,7 +231,8 @@ public class TernFileSynchronizer implements ITernFileSynchronizer {
 						String queryType = query.getType();
 						if (TernCompletionsQuery.isQueryType(queryType) ||
 								TernDefinitionQuery.isQueryType(queryType) ||
-								TernTypeQuery.isQueryType(queryType)) {
+								TernTypeQuery.isQueryType(queryType)
+								|| (queryType.equals("syntax-val"))) {
 							addHTMLFile(doc, file);
 							return;
 						}	

@@ -18,9 +18,11 @@
 			</contentTypeIdentifier>
 			<contentTypeIdentifier id="org.eclipse.wst.html.core.htmlsource">
 			    <partitionType id="org.eclipse.wst.html.SCRIPT"/>
+			    <partitionType id="org.eclipse.wst.html.SCRIPT.EVENTHANDLER"/>
 			</contentTypeIdentifier>
 			<contentTypeIdentifier id="org.eclipse.jst.jsp.core.jspsource">
 			    <partitionType id="org.eclipse.wst.html.SCRIPT"/>
+			    <partitionType id="org.eclipse.wst.html.SCRIPT.EVENTHANDLER"/>
 			</contentTypeIdentifier>			
 		</validator>
 	</extension>
