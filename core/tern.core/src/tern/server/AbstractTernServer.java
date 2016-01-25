@@ -246,12 +246,16 @@ public abstract class AbstractTernServer implements ITernServer {
 	}
 
 	protected void fireOnMessage(String type, Object jsonObject) {
+		IMessageHandler[] tmp = null;
 		synchronized (messageListeners) {
 			List<IMessageHandler> handlers = messageListeners.get(type);
 			if (handlers != null) {
-				for (IMessageHandler handler : handlers) {
-					handler.handleMessage(jsonObject, getJSONObjectHelper());
-				}
+				tmp = handlers.toArray(new IMessageHandler[handlers.size()]);
+			}
+		}
+		if (tmp != null) {
+			for (IMessageHandler handler : tmp) {
+				handler.handleMessage(jsonObject, getJSONObjectHelper());
 			}
 		}
 	}
