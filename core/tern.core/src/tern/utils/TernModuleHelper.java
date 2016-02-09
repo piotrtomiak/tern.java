@@ -51,6 +51,12 @@ public class TernModuleHelper {
 		
 		@Override
 		public int compare(String version1, String version2) {
+			if (version1 == null) {
+				version1 = "0"; //$NON-NLS-1$
+			}
+			if (version2 == null) {
+				version2 = "0"; //$NON-NLS-1$
+			}
 			String[] v1 = split(version1);
 			String[] v2 = split(version2);
 			for (int i = 0; i < v1.length || i < v2.length; i++) {

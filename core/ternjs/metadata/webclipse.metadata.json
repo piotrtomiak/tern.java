@@ -1,9 +1,9 @@
 {
  "name": "webclipse",
  "label": "Webclipse",
- "icon": "sytax-val.png",
+ "icon": "webclipse.png",
  "homepage": "",
  "author": "Piotr Tomiak <piotr@genuitec.com>",
- "description": "This plugin provides extensions for JSDT.",
+ "description": "Plugin to provide extended IDE support.",
  "linter": true
 }
