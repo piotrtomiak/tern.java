@@ -61,9 +61,9 @@ public enum TernPlugin implements ITernPlugin {
 	jshint("jshint", true),
 	jscs("jscs", true),
 	eslint("eslint", true),
-	webclipse("webclipse", true),
 
 	// other
+	webclipse("webclipse"),
 	guess_types("guess-types"),
 	outline("outline"),
 	push("push");
