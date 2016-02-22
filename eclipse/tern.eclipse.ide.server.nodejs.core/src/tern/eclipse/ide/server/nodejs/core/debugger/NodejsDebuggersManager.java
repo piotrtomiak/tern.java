@@ -17,6 +17,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.IConfigurationElement;
 import org.eclipse.core.runtime.IExtensionPoint;
 import org.eclipse.core.runtime.Platform;
@@ -44,6 +45,9 @@ public class NodejsDebuggersManager {
 
 		// Make debuggers map unmodifiable
 		debuggers = Collections.unmodifiableMap(debuggers);
+	}
+
+	private NodejsDebuggersManager() {
 	}
 
 	public static Collection<INodejsDebugger> getDebuggers() {
@@ -115,12 +119,15 @@ public class NodejsDebuggersManager {
 		}
 
 		@Override
-		public INodejsProcess createProcess(File projectDir,
-				File nodejsBaseDir, IFile ternServerFile) throws TernException {
-			return delegate.createProcess(projectDir, nodejsBaseDir,
-					ternServerFile);
+		public boolean canSupportDebug() {
+			return delegate.canSupportDebug();
 		}
-
+		
+		@Override
+		public INodejsProcess createProcess(IFile jsFile, IProject workingDir, File nodejsInstallPath)
+				throws TernException {
+			return delegate.createProcess(jsFile, workingDir, nodejsInstallPath);
+		}
 	}
 
 }

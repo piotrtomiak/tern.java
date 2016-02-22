@@ -1,5 +1,5 @@
 /**
- *  Copyright (c) 2013-2015 Angelo ZERR.
+ *  Copyright (c) 2013-2016 Angelo ZERR.
  *  All rights reserved. This program and the accompanying materials
  *  are made available under the terms of the Eclipse Public License v1.0
  *  which accompanies this distribution, and is available at
@@ -46,6 +46,9 @@ import tern.utils.StringUtils;
  *
  */
 public class EditorUtils {
+
+	private EditorUtils() {
+	}
 
 	public static IEditorPart openInEditor(IFile file, int start, int length,
 			boolean activate) {
@@ -99,7 +102,7 @@ public class EditorUtils {
 		}
 	}
 	
-	private static IFile getFile(IJSNode node) {
+	public static IFile getFile(IJSNode node) {
 		IIDETernProject ternProject = (IIDETernProject) node.getTernProject();
 		String file = node.getFile();
 		if (StringUtils.isEmpty(file)) {
@@ -139,7 +142,7 @@ public class EditorUtils {
 	}
 
 	public static IDocument getDocument(ITextEditor editor) {
-		return (editor).getDocumentProvider().getDocument(
+		return editor.getDocumentProvider().getDocument(
 				editor.getEditorInput());
 	}
 

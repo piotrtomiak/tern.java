@@ -1,5 +1,5 @@
 /**
- *  Copyright (c) 2013-2015 Angelo ZERR and Genuitec LLC.
+ *  Copyright (c) 2013-2016 Angelo ZERR and Genuitec LLC.
  *  All rights reserved. This program and the accompanying materials
  *  are made available under the terms of the Eclipse Public License v1.0
  *  which accompanies this distribution, and is available at
@@ -18,12 +18,13 @@ import org.eclipse.core.runtime.jobs.Job;
 import tern.TernException;
 import tern.server.ITernServer;
 import tern.server.ITernServerRequestProcessor;
+import tern.server.TernNoTypeFoundAtPositionException;
 import tern.server.protocol.ITernResultsAsyncCollector;
+import tern.server.protocol.ITernResultsAsyncCollector.TimeoutReason;
 import tern.server.protocol.ITernResultsAsyncCollectorEx;
 import tern.server.protocol.ITernResultsCollector;
-import tern.server.protocol.TernResultsProcessorsFactory;
-import tern.server.protocol.ITernResultsAsyncCollector.TimeoutReason;
 import tern.server.protocol.TernDoc;
+import tern.server.protocol.TernResultsProcessorsFactory;
 
 public class IDETernServerAsyncReqProcessor extends Job implements
 		ITernServerRequestProcessor {
@@ -107,6 +108,12 @@ public class IDETernServerAsyncReqProcessor extends Job implements
 			monitor.beginTask("", IProgressMonitor.UNKNOWN); //$NON-NLS-1$
 			TernResultsProcessorsFactory.makeRequestAndProcess(doc, server,
 					collector);
+		} catch(TernNoTypeFoundAtPositionException e) {
+			// ignore error
+			// case when user open hyperlink on javascript element like 'function'. In this case tern throws the error
+			// tern.TernException: TernError: No type found at the given position.
+			// This error must be ignored.
+			// See https://github.com/angelozerr/tern.java/issues/392
 		} catch (Throwable e) {
 			collector.error(e);
 		}

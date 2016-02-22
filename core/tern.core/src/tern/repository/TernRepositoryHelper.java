@@ -1,5 +1,5 @@
 /**
- *  Copyright (c) 2013-2015 Angelo ZERR.
+ *  Copyright (c) 2013-2016 Angelo ZERR.
  *  All rights reserved. This program and the accompanying materials
  *  are made available under the terms of the Eclipse Public License v1.0
  *  which accompanies this distribution, and is available at
@@ -43,6 +43,9 @@ public class TernRepositoryHelper {
 	 * Default tern repository.json URL
 	 */
 	public static final String DEFAULT_TERN_REPOSITORY_URL = "https://raw.githubusercontent.com/paulvi/tern-plugins/master/plugins.json";
+
+	private TernRepositoryHelper() {
+	}
 
 	/**
 	 * Load tern modules coming from the given repository.json URL.

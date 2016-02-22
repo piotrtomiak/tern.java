@@ -1,5 +1,5 @@
 /**
- *  Copyright (c) 2013-2015 Angelo ZERR and Genuitec LLC.
+ *  Copyright (c) 2013-2016 Angelo ZERR and Genuitec LLC.
  *  All rights reserved. This program and the accompanying materials
  *  are made available under the terms of the Eclipse Public License v1.0
  *  which accompanies this distribution, and is available at
@@ -111,10 +111,13 @@ public class JSTernCompletionCollector implements ITernCompletionCollector {
 			// Add the function reference
 			proposals
 					.add(internalCreateProposal(proposalItem.changeType(TernTypeHelper.FUNCTION_REF)));
-		}
-		proposals.add(proposal);
-
-		if (expandFunction) {
+			if (!proposalItem.isSpecifier) {
+				proposals.add(proposal);
+			}
+		} else {
+			proposals.add(proposal);
+		}	
+		if (!proposalItem.isSpecifier && expandFunction) {
 			// expand functions if the functions contains several "optionnal"
 			// parameters.
 			// ex : the expansion of
@@ -128,7 +131,7 @@ public class JSTernCompletionCollector implements ITernCompletionCollector {
 							.changeType(functions[i])));
 				}
 			}
-		}
+		}		
 	}
 
 	private JSTernCompletionProposal internalCreateProposal(

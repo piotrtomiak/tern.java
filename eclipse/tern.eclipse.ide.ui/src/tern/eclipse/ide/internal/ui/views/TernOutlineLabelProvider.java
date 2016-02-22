@@ -1,5 +1,5 @@
 /**
- *  Copyright (c) 2013-2015 Angelo ZERR.
+ *  Copyright (c) 2013-2016 Angelo ZERR.
  *  All rights reserved. This program and the accompanying materials
  *  are made available under the terms of the Eclipse Public License v1.0
  *  which accompanies this distribution, and is available at
@@ -10,67 +10,68 @@
  */
 package tern.eclipse.ide.internal.ui.views;
 
-import org.eclipse.jface.viewers.DelegatingStyledCellLabelProvider.IStyledLabelProvider;
-import org.eclipse.jface.viewers.LabelProvider;
 import org.eclipse.jface.viewers.StyledString;
 import org.eclipse.swt.graphics.Image;
 
 import tern.eclipse.ide.internal.ui.TernUIMessages;
 import tern.eclipse.ide.ui.ImageResource;
-import tern.eclipse.ide.ui.TernUIPlugin;
+import tern.eclipse.ide.ui.views.AbstractTernOutlineLabelProvider;
 import tern.eclipse.jface.images.TernImagesRegistry;
+import tern.server.protocol.outline.IJSNode;
 import tern.server.protocol.outline.JSNode;
 import tern.utils.StringUtils;
 
-public class TernOutlineLabelProvider extends LabelProvider implements IStyledLabelProvider {
+public class TernOutlineLabelProvider extends AbstractTernOutlineLabelProvider {
 
 	@Override
-	public String getText(Object element) {
-		if (element == TernOutlineContentProvider.COMPUTING_NODE) {
-			return TernUIMessages.TernOutline_computing;
-		}
-		if (element instanceof JSNode) {
-			return ((JSNode) element).getName();
-		}
-		return super.getText(element);
+	protected String getUnavailableText() {
+		return TernUIMessages.TernOutline_unavailable;
+	}
+	
+	@Override
+	protected Image getUnavailableImage() {
+		return ImageResource.getImage(ImageResource.IMG_LOGO);
+	}
+	
+	@Override
+	protected String getComputingText() {
+		return TernUIMessages.TernOutline_computing;
 	}
 
 	@Override
-	public Image getImage(Object element) {
-		if (element == TernOutlineContentProvider.COMPUTING_NODE) {
-			return ImageResource.getImage(ImageResource.IMG_LOGO);
-		}
-		if (element instanceof JSNode) {
-			JSNode jsNode = (JSNode) element;			
-			if (jsNode.isClass()) {
-				return TernImagesRegistry.getImage(TernImagesRegistry.IMG_CLASS);
-			}
-			if (jsNode.isImport()) {
-				return TernImagesRegistry.getImage(TernImagesRegistry.IMG_IMPORT);
-			}
-			boolean isFunction = jsNode.isFunction();
-			boolean isArray = jsNode.isArray();
-			String jsType = jsNode.getType();
-			return TernImagesRegistry.getImage(jsType, isFunction, isArray, false);
-		}
-		return super.getImage(element);
+	protected Image getComputingImage() {
+		return ImageResource.getImage(ImageResource.IMG_LOGO);
 	}
 
 	@Override
-	public StyledString getStyledText(Object element) {
-		if (element == TernOutlineContentProvider.COMPUTING_NODE) {
-			return new StyledString(TernUIMessages.TernOutline_computing);
+	protected String getText(IJSNode element) {
+		return element.getName();
+	}
+
+	@Override
+	protected Image getImage(IJSNode element) {
+		JSNode jsNode = (JSNode) element;
+		if (jsNode.isClass()) {
+			return TernImagesRegistry.getImage(TernImagesRegistry.IMG_CLASS);
 		}
-		if (element instanceof JSNode) {
-			JSNode node = ((JSNode) element);
-			StyledString buff = new StyledString(StringUtils.isEmpty(node.getName()) ? "" : node.getName());
-			String type = node.getType();
-			if (!StringUtils.isEmpty(type)) {
-				buff.append(" : ", StyledString.DECORATIONS_STYLER);
-				buff.append(type, StyledString.DECORATIONS_STYLER);
-			}
-			return buff;
+		if (jsNode.isImport()) {
+			return TernImagesRegistry.getImage(TernImagesRegistry.IMG_IMPORT);
 		}
-		return new StyledString(getText(element));
+		boolean isFunction = jsNode.isFunction();
+		boolean isArray = jsNode.isArray();
+		String jsType = jsNode.getType();
+		return TernImagesRegistry.getImage(jsType, isFunction, isArray, false);
+	}
+
+	@Override
+	protected StyledString getStyledText(IJSNode element) {
+		JSNode node = ((JSNode) element);
+		StyledString buff = new StyledString(StringUtils.isEmpty(node.getName()) ? "" : node.getName());
+		String type = node.getType();
+		if (!StringUtils.isEmpty(type)) {
+			buff.append(" : ", StyledString.DECORATIONS_STYLER);
+			buff.append(type, StyledString.DECORATIONS_STYLER);
+		}
+		return buff;
 	}
 }

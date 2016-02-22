@@ -1,5 +1,5 @@
 /**
- *  Copyright (c) 2013-2015 Angelo ZERR and Genuitec LLC.
+ *  Copyright (c) 2013-2016 Angelo ZERR and Genuitec LLC.
  *  All rights reserved. This program and the accompanying materials
  *  are made available under the terms of the Eclipse Public License v1.0
  *  which accompanies this distribution, and is available at
@@ -50,11 +50,12 @@ public interface ITernLintCollector extends ITernResultsCollector {
 	 *            the owner file name.
 	 * @param messageObject
 	 *            JSON object of message.
+	 * @param query 
 	 * @param helper
 	 *            the JSON Object helper to visit the given JSON message object.            
 	 */
 	void addMessage(String messageId, String message, Long start, Long end, Long lineNumber, String severity,
-			String file, Object messageObject, IJSONObjectHelper helper);
+			String file, Object messageObject, TernLintQuery query, IJSONObjectHelper helper);
 
 	/**
 	 * This method is call when lint end for the given file after calling the

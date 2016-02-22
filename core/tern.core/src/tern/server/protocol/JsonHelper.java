@@ -1,5 +1,5 @@
 /**
- *  Copyright (c) 2013-2015 Angelo ZERR.
+ *  Copyright (c) 2013-2016 Angelo ZERR.
  *  All rights reserved. This program and the accompanying materials
  *  are made available under the terms of the Eclipse Public License v1.0
  *  which accompanies this distribution, and is available at
@@ -13,15 +13,21 @@ package tern.server.protocol;
 import java.io.IOException;
 import java.io.Reader;
 
+import com.eclipsesource.json.Json;
 import com.eclipsesource.json.JsonObject;
 import com.eclipsesource.json.JsonObject.Member;
 import com.eclipsesource.json.JsonValue;
+
+import tern.utils.IOUtils;
 
 /**
  * Helper for minimal-json.
  *
  */
 public class JsonHelper {
+
+	private JsonHelper() {
+	}
 
 	public static String getString(JsonObject json, String name) {
 		JsonValue value = json.get(name);
@@ -88,7 +94,11 @@ public class JsonHelper {
 	 */
 	public static void readFrom(Reader reader, JsonObject to)
 			throws IOException {
-		copy(JsonObject.readFrom(reader), to);
+		try {
+			copy(Json.parse(reader).asObject(), to);
+		} finally {
+			IOUtils.closeQuietly(reader);
+		}
 	}
 
 	/**
@@ -109,7 +119,10 @@ public class JsonHelper {
 		if (value1 == null) {
 			return value2 == null;
 		}
-		return value1.equals(value2);
+		if (value2 == null) {
+			return false;
+		}
+		return value1.toString().equals(value2.toString());
 
 	}
 }

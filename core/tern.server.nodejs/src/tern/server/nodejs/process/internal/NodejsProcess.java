@@ -1,5 +1,5 @@
 /**
- *  Copyright (c) 2013-2015 Angelo ZERR and Genuitec LLC.
+ *  Copyright (c) 2013-2016 Angelo ZERR and Genuitec LLC.
  *  All rights reserved. This program and the accompanying materials
  *  are made available under the terms of the Eclipse Public License v1.0
  *  which accompanies this distribution, and is available at
@@ -69,9 +69,7 @@ public class NodejsProcess extends AbstractNodejsProcess {
 						if (port == null) {
 							// port was not getted, try to get it.
 							if (line.startsWith("Listening on port ")) {
-								port = Integer.parseInt(line.substring(
-										"Listening on port ".length(),
-										line.length()));
+								port = Integer.parseInt(line.substring("Listening on port ".length(), line.length()));
 
 								// port is getted, notify that process is
 								// started.
@@ -131,8 +129,7 @@ public class NodejsProcess extends AbstractNodejsProcess {
 	 *            the project base dir where .tern-project is hosted.
 	 * @throws TernException
 	 */
-	public NodejsProcess(File nodejsTernBaseDir, File projectDir)
-			throws TernException {
+	public NodejsProcess(File nodejsTernBaseDir, File projectDir) throws TernException {
 		this(null, nodejsTernBaseDir, projectDir);
 	}
 
@@ -147,8 +144,7 @@ public class NodejsProcess extends AbstractNodejsProcess {
 	 *            the project base dir where .tern-project is hosted.
 	 * @throws TernException
 	 */
-	public NodejsProcess(File nodejsBaseDir, File nodejsTernBaseDir,
-			File projectDir) throws TernException {
+	public NodejsProcess(File nodejsBaseDir, File nodejsTernBaseDir, File projectDir) throws TernException {
 		super(nodejsBaseDir, projectDir);
 		this.nodejsTernFile = getNodejsTernFile(nodejsTernBaseDir);
 	}
@@ -163,17 +159,14 @@ public class NodejsProcess extends AbstractNodejsProcess {
 	 */
 	private File getNodejsTernFile(File nodejsTernBaseDir) throws TernException {
 		if (nodejsTernBaseDir == null) {
-			throw new TernException(
-					"You must initialize the base dir of the tern node.js server.");
+			throw new TernException("You must initialize the base dir of the tern node.js server.");
 		}
 		File ternServerFile = new File(nodejsTernBaseDir, "bin/tern");
 		if (!ternServerFile.exists()) {
 			try {
-				throw new TernException("Cannot find tern node.js server at "
-						+ ternServerFile.getCanonicalPath());
+				throw new TernException("Cannot find tern node.js server at " + ternServerFile.getCanonicalPath());
 			} catch (IOException e) {
-				throw new TernException("Cannot find tern node.js server at "
-						+ ternServerFile.getPath());
+				throw new TernException("Cannot find tern node.js server at " + ternServerFile.getPath());
 			}
 		}
 		return ternServerFile;
@@ -183,16 +176,16 @@ public class NodejsProcess extends AbstractNodejsProcess {
 	 * Create process commands to start tern with node.js
 	 * 
 	 * @return
+	 * @throws NodejsProcessException 
 	 * @throws IOException
 	 */
-	private List<String> createCommands() {
+	private List<String> createCommands() throws NodejsProcessException {
 		List<String> commands = new LinkedList<String>();
 		if (nodejsBaseDir == null) {
 			// for osx, path of node.js should be setted?
 			if (new File("/usr/local/bin/node").exists()) {
 				commands.add("/usr/local/bin/node");
-			}
-			if (new File("/opt/local/bin/node").exists()) {
+			} else if (new File("/opt/local/bin/node").exists()) {
 				commands.add("/opt/local/bin/node");
 			} else {
 				commands.add("node");
@@ -205,7 +198,7 @@ public class NodejsProcess extends AbstractNodejsProcess {
 		} catch (IOException e) {
 			commands.add(nodejsTernFile.getPath());
 		}
-		commands.addAll(createTernServerArgs());
+		commands.addAll(createNodejsArgs());
 		return commands;
 	}
 
@@ -218,8 +211,7 @@ public class NodejsProcess extends AbstractNodejsProcess {
 	public void start() throws NodejsProcessException {
 		if (isStarted()) {
 			notifyErrorProcess("Nodejs tern Server is already started.");
-			throw new NodejsProcessException(
-					"Nodejs tern Server is already started.");
+			throw new NodejsProcessException("Nodejs tern Server is already started.");
 		}
 
 		try {

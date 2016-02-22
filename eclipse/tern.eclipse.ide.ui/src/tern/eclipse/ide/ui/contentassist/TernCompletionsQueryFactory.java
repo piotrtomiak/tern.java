@@ -1,5 +1,5 @@
 /**
- *  Copyright (c) 2013-2015 Angelo ZERR and Genuitec LLC.
+ *  Copyright (c) 2013-2016 Angelo ZERR and Genuitec LLC.
  *  All rights reserved. This program and the accompanying materials
  *  are made available under the terms of the Eclipse Public License v1.0
  *  which accompanies this distribution, and is available at
@@ -25,7 +25,10 @@ import tern.server.protocol.completions.TernCompletionsQuery;
 
 public class TernCompletionsQueryFactory {
 
-	public static TernCompletionsQuery createQuery(IProject project,
+	private TernCompletionsQueryFactory() {
+	}
+
+	public static TernCompletionsQuery createQuery(IProject project, 
 			String file, int pos) {
 		TernCompletionsQuery query = new TernCompletionsQuery(file, pos);
 

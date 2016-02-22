@@ -1,5 +1,5 @@
 /**
- *  Copyright (c) 2013-2015 Angelo ZERR.
+ *  Copyright (c) 2013-2016 Angelo ZERR.
  *  All rights reserved. This program and the accompanying materials
  *  are made available under the terms of the Eclipse Public License v1.0
  *  which accompanies this distribution, and is available at
@@ -15,6 +15,9 @@ import tern.server.protocol.TernDoc;
 import tern.server.protocol.completions.TernCompletionsQuery;
 
 public class JSDocumentHelper {
+
+	private JSDocumentHelper() {
+	}
 
 	public static TernDoc createDoc(IJSDocument doc) {
 

@@ -53,5 +53,7 @@ Export-Package: tern.eclipse.ide.internal.ui;x-internal:=true,
  tern.eclipse.ide.ui.text,
  tern.eclipse.ide.ui.utils,
  tern.eclipse.ide.ui.viewers,
+ tern.eclipse.ide.ui.views,
+ tern.eclipse.ide.ui.views.actions,
  tern.eclipse.ide.ui.wizards
 Import-Package: com.eclipsesource.json;version="[0.9.4,0.9.5)"

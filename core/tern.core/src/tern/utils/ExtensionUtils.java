@@ -1,5 +1,5 @@
 /**
- *  Copyright (c) 2013-2015 Angelo ZERR and Genuitec LLC.
+ *  Copyright (c) 2013-2016 Angelo ZERR and Genuitec LLC.
  *  All rights reserved. This program and the accompanying materials
  *  are made available under the terms of the Eclipse Public License v1.0
  *  which accompanies this distribution, and is available at
@@ -33,6 +33,9 @@ public class ExtensionUtils {
 	public static final List<String> HTML_EXTENSIONS = Arrays
 			.asList(new String[] { HTM_EXTENSION, HTML_EXTENSION,
 					JSP_EXTENSION, PHP_EXTENSION, JSF_EXTENSION });
+
+	private ExtensionUtils() {
+	}
 
 	public static String getFileExtension(String fileName) {
 		int index = fileName.lastIndexOf('.');

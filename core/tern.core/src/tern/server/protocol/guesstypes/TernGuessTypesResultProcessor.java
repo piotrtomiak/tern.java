@@ -1,5 +1,5 @@
 /**
- *  Copyright (c) 2013-2015 Angelo ZERR and Genuitec LLC.
+ *  Copyright (c) 2013-2016 Angelo ZERR and Genuitec LLC.s
  *  All rights reserved. This program and the accompanying materials
  *  are made available under the terms of the Eclipse Public License v1.0
  *  which accompanies this distribution, and is available at
@@ -46,12 +46,13 @@ public class TernGuessTypesResultProcessor implements ITernResultProcessor<ITern
 				for (int i = 0; i < argTypes.length; i++) {
 					argType= argTypes[i];
 					namesForArg = objectHelper.getList(jsonObject, argType);
+					// It can be null when argument type cannot be guessed. See https://github.com/angelozerr/tern.java/issues/390
 					if (namesForArg != null) {
 						for (Object argValue : namesForArg) {
 							if (objectHelper.isString(argValue)) {
 								collector.addProposal(argIndex,
 										new TernCompletionProposalRec(objectHelper.getText(argValue),
-												objectHelper.getText(argValue), argType, null, null, null, 0, 0, false, false),
+												objectHelper.getText(argValue), argType, null, null, null, 0, 0, false, false, false),
 										argValue, objectHelper);
 							} else {
 								addProposal(argIndex, objectHelper, argValue, collector);
@@ -73,7 +74,7 @@ public class TernGuessTypesResultProcessor implements ITernResultProcessor<ITern
 		String url = objectHelper.getText(completion, URL_PROPERTY);
 		String origin = objectHelper.getText(completion, ORIGIN_PROPERTY);
 		collector.addProposal(argIndex,
-				new TernCompletionProposalRec(name, displayName, type, doc, url, origin, 0, 0, false, false),
+				new TernCompletionProposalRec(name, displayName, type, doc, url, origin, 0, 0, false, false, false),
 				completion, objectHelper);
 	}
 }

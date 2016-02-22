@@ -30,5 +30,15 @@
 		<initializer
 			class="tern.eclipse.ide.server.nodejs.internal.core.preferences.TernNodejsCorePreferenceInitializer" />
 	</extension>
-		 	
+	
+	<!-- Simple Program Run debugger -->	 	
+   <extension
+         point="tern.eclipse.ide.server.nodejs.core.nodeJSDebuggers">
+      <debugger
+            class="tern.eclipse.ide.server.nodejs.internal.core.debugger.ProgramNodejsDebugger"
+            id="ProgramNodejs"
+            name="Start node.js in only run mode">
+      </debugger>
+   </extension>
+   		 	
 </plugin>

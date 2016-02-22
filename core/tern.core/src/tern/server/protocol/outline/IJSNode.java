@@ -10,6 +10,8 @@ public interface IJSNode {
 
 	String getKind();
 
+	String getValue();
+	
 	Long getStart();
 
 	Long getEnd();
@@ -25,4 +27,6 @@ public interface IJSNode {
 	List<IJSNode> getChildren();
 
 	ITernProject getTernProject();
+
+	boolean isContainer();
 }

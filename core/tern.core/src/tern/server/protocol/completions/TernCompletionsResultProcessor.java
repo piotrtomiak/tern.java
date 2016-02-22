@@ -1,5 +1,5 @@
 /**
- *  Copyright (c) 2013-2015 Angelo ZERR and Genuitec LLC.
+ *  Copyright (c) 2013-2016 Angelo ZERR and Genuitec LLC.
  *  All rights reserved. This program and the accompanying materials
  *  are made available under the terms of the Eclipse Public License v1.0
  *  which accompanies this distribution, and is available at
@@ -31,7 +31,8 @@ public class TernCompletionsResultProcessor implements
 	private static final String ORIGIN_PROPERTY = "origin"; //$NON-NLS-1$
 	private static final String IS_PROPERTY_PROPERTY = "isProperty"; //$NON-NLS-1$
 	private static final String IS_OBJECT_KEY_PROPERTY = "isObjectKey"; //$NON-NLS-1$
-
+	private static final String IS_SPECIFIER_PROPERTY = "isSpecifier"; //$NON-NLS-1$
+	
 	public static final TernCompletionsResultProcessor INSTANCE = new TernCompletionsResultProcessor();
 
 	@Override
@@ -48,6 +49,9 @@ public class TernCompletionsResultProcessor implements
 		boolean isObjectKey = StringUtils
 				.asBoolean(objectHelper.getText(jsonObject,
 						IS_OBJECT_KEY_PROPERTY), false);
+		boolean isSpecifier = StringUtils
+				.asBoolean(objectHelper.getText(jsonObject,
+						IS_SPECIFIER_PROPERTY), false);		
 		Iterable<Object> completions = objectHelper.getList(jsonObject,
 				COMPLETIONS_PROPERTY); //$NON-NLS-1$
 		if (completions != null) {
@@ -59,13 +63,13 @@ public class TernCompletionsResultProcessor implements
 									.getText(value), null, null, null, null, 0, false,
 									startCh != null ? startCh.intValue() : 0,
 									endCh != null ? endCh.intValue() : 0,
-									isProperty, isObjectKey), value,
+									isProperty, isObjectKey, isSpecifier), value,
 							objectHelper);
 				} else {
 					addProposal(objectHelper, value,
 							startCh != null ? startCh.intValue() : 0,
 							endCh != null ? endCh.intValue() : 0, isProperty,
-							isObjectKey, collector);
+							isObjectKey, isSpecifier, collector);
 				}
 			}
 		}
@@ -74,7 +78,7 @@ public class TernCompletionsResultProcessor implements
 
 	protected void addProposal(IJSONObjectHelper objectHelper,
 			Object completion, int start, int end, boolean isProperty,
-			boolean isObjectKey, ITernCompletionCollector collector) {
+			boolean isObjectKey, boolean isSpecifier, ITernCompletionCollector collector) {
 		String name = objectHelper.getText(completion, NAME_PROPERTY);
 		String displayName = objectHelper.getText(completion,
 				DISPLAY_NAME_PROPERTY);
@@ -90,7 +94,7 @@ public class TernCompletionsResultProcessor implements
 		}
 		boolean keyword = objectHelper.getBoolean(completion, "isKeyword", false); //$NON-NLS-1$
 		collector.addProposal(new TernCompletionProposalRec(name, displayName,
-				type, doc, url, origin, depth, keyword, start, end, isProperty, isObjectKey),
+				type, doc, url, origin, depth, keyword, start, end, isProperty, isObjectKey, isSpecifier),
 				completion, objectHelper);
 	}
 

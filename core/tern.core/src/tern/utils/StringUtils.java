@@ -1,5 +1,5 @@
 /**
- *  Copyright (c) 2013-2015 Angelo ZERR.
+ *  Copyright (c) 2013-2016 Angelo ZERR.
  *  All rights reserved. This program and the accompanying materials
  *  are made available under the terms of the Eclipse Public License v1.0
  *  which accompanies this distribution, and is available at
@@ -27,6 +27,9 @@ public class StringUtils {
 	public static final String NO = "no";
 
 	public static final String[] EMPTY_ARRAY = new String[0];
+
+	private StringUtils() {
+	}
 
 	public static boolean isEmpty(String str) {
 		return str == null || str.length() == 0;

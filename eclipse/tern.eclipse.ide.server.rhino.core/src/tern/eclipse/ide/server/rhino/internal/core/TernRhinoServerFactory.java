@@ -1,5 +1,5 @@
 /**
- *  Copyright (c) 2013-2015 Angelo ZERR.
+ *  Copyright (c) 2013-2016 Angelo ZERR.
  *  All rights reserved. This program and the accompanying materials
  *  are made available under the terms of the Eclipse Public License v1.0
  *  which accompanies this distribution, and is available at
@@ -10,7 +10,7 @@
  */
 package tern.eclipse.ide.server.rhino.internal.core;
 
-import tern.ITernProject;
+import tern.eclipse.ide.core.IIDETernProject;
 import tern.eclipse.ide.core.ITernServerFactory;
 import tern.server.ITernServer;
 import tern.server.rhino.RhinoTernServer;
@@ -18,7 +18,7 @@ import tern.server.rhino.RhinoTernServer;
 public class TernRhinoServerFactory implements ITernServerFactory {
 
 	@Override
-	public ITernServer create(ITernProject project) throws Exception {
+	public ITernServer create(IIDETernProject project) throws Exception {
 		return new RhinoTernServer(project);
 	}
 

@@ -1,5 +1,5 @@
 /**
- *  Copyright (c) 2013-2015 Angelo ZERR.
+ *  Copyright (c) 2013-2016 Angelo ZERR.
  *  All rights reserved. This program and the accompanying materials
  *  are made available under the terms of the Eclipse Public License v1.0
  *  which accompanies this distribution, and is available at
@@ -10,7 +10,6 @@
  */
 package tern.eclipse.ide.core;
 
-import tern.ITernProject;
 import tern.server.ITernServer;
 
 /**
@@ -46,7 +45,7 @@ public interface ITernServerType {
 	 * @return an instance of tern server by using the given tern project.
 	 * @throws Exception
 	 */
-	ITernServer createServer(ITernProject project) throws Exception;
+	ITernServer createServer(IIDETernProject project) throws Exception;
 
 	/**
 	 * Dispose the whole tern server created.

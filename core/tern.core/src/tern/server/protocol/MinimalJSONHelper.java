@@ -1,5 +1,5 @@
 /**
- *  Copyright (c) 2013-2015 Angelo ZERR.
+ *  Copyright (c) 2013-2016 Angelo ZERR.
  *  All rights reserved. This program and the accompanying materials
  *  are made available under the terms of the Eclipse Public License v1.0
  *  which accompanies this distribution, and is available at
@@ -34,13 +34,13 @@ public class MinimalJSONHelper implements IJSONObjectHelper {
 	@Override
 	public Long getCh(Object jsonObj, String name) {
 		JsonValue loc = ((JsonObject) jsonObj).get(name);
-		if (loc == null) {
+		if (loc == null || loc.isNull()) {
 			return null;
 		}
 		if (loc.isNumber()) {
 			return loc.asLong();
 		}
-		return loc != null ? JsonHelper.getLong((JsonObject) loc, "ch") : null;
+		return JsonHelper.getLong((JsonObject) loc, "ch");
 	}
 
 	@Override
@@ -66,5 +66,13 @@ public class MinimalJSONHelper implements IJSONObjectHelper {
 	@Override
 	public Long getLong(Object jsonObject, String name) {
 		return JsonHelper.getLong((JsonObject) jsonObject, name);
+	}
+
+	@Override
+	public Object getObject(Object jsonObj, String name) {
+		if (jsonObj == null) {
+			return null;
+		}
+		return ((JsonObject) jsonObj).get(name);
 	}
 }

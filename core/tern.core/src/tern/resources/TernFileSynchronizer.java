@@ -1,5 +1,5 @@
 /**
- *  Copyright (c) 2013-2015 Angelo ZERR and Genuitec LLC.
+ *  Copyright (c) 2013-2016 Angelo ZERR and Genuitec LLC.
  *  All rights reserved. This program and the accompanying materials
  *  are made available under the terms of the Eclipse Public License v1.0
  *  which accompanies this distribution, and is available at
@@ -35,6 +35,7 @@ import tern.server.protocol.TernFile.FileType;
 import tern.server.protocol.TernQuery;
 import tern.server.protocol.completions.TernCompletionsQuery;
 import tern.server.protocol.definition.TernDefinitionQuery;
+import tern.server.protocol.lint.TernLintQuery;
 import tern.server.protocol.type.TernTypeQuery;
 import tern.utils.StringUtils;
 
@@ -188,7 +189,7 @@ public class TernFileSynchronizer implements ITernFileSynchronizer {
 
 			toRefreshLocal.removeAll(synced);
 			for (String toRemove : toRefreshLocal) {
-				doc.delFile(toRemove); //$NON-NLS-1$
+				doc.delFile(toRemove);
 			}
 
 			// perform actual synchronization with the server
@@ -231,8 +232,7 @@ public class TernFileSynchronizer implements ITernFileSynchronizer {
 						String queryType = query.getType();
 						if (TernCompletionsQuery.isQueryType(queryType) ||
 								TernDefinitionQuery.isQueryType(queryType) ||
-								TernTypeQuery.isQueryType(queryType)
-								|| (queryType.equals("syntax-val"))) {
+								query instanceof TernLintQuery ) {
 							addHTMLFile(doc, file);
 							return;
 						}	
@@ -290,7 +290,7 @@ public class TernFileSynchronizer implements ITernFileSynchronizer {
 			Set<String> perPath = new HashSet<String>();
 			syncedFilesPerPath.put(path, perPath);
 
-			requestedFiles.remove(Arrays.asList(forced));
+			requestedFiles.removeAll(Arrays.asList(forced));
 
 			for (ITernScriptResource resource : path.getScriptResources()) {
 				ITernFile file = resource.getFile();
@@ -338,6 +338,15 @@ public class TernFileSynchronizer implements ITernFileSynchronizer {
 			updateSentFiles(doc);
 			// sync is performed asynchronously
 			uploader.request(doc);
+		}
+	}
+	
+	protected String getSentFileContent(String file) {
+		readLock.lock();
+		try {
+			return sentFiles.get(file);
+		} finally {
+			readLock.unlock();
 		}
 	}
 

@@ -1,5 +1,5 @@
 /**
- *  Copyright (c) 2013-2015 Angelo ZERR.
+ *  Copyright (c) 2013-2016 Angelo ZERR.
  *  All rights reserved. This program and the accompanying materials
  *  are made available under the terms of the Eclipse Public License v1.0
  *  which accompanies this distribution, and is available at
@@ -154,6 +154,7 @@ public final class TernUIMessages extends NLS {
 
 	// Refresh outline
 	public static String refreshOutline;
+	public static String TernOutline_unavailable;
 	public static String TernOutline_computing;
 
 	// Wizards
@@ -164,6 +165,15 @@ public final class TernUIMessages extends NLS {
 	public static String ImportTernRepositoryWizardPage_errorMessage;
 	public static String ImportTernRepositoryWizardPage_title;
 	public static String ImportTernRepositoryWizardPage_description;
+
+	// Actions
+	public static String LexicalSortingAction_text;
+	public static String LexicalSortingAction_tooltip;
+	public static String LexicalSortingAction_description;
+
+	public static String Link_With_Editor_Job_;
+	public static String LinkEditorActionDelegate_0;
+	public static String LinkEditorActionDelegate_1;
 	
 	private TernUIMessages() {
 	}

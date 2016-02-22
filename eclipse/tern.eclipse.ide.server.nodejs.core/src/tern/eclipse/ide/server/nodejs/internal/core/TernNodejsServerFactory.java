@@ -1,5 +1,5 @@
 /**
- *  Copyright (c) 2013-2015 Angelo ZERR and Genuitec LLC.
+ *  Copyright (c) 2013-2016 Angelo ZERR and Genuitec LLC.
  *  All rights reserved. This program and the accompanying materials
  *  are made available under the terms of the Eclipse Public License v1.0
  *  which accompanies this distribution, and is available at
@@ -16,11 +16,10 @@ import java.io.File;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 
-import tern.ITernProject;
+import tern.eclipse.ide.core.IIDETernProject;
 import tern.eclipse.ide.core.ITernServerFactory;
 import tern.eclipse.ide.server.nodejs.core.debugger.INodejsDebugger;
 import tern.eclipse.ide.server.nodejs.core.debugger.NodejsDebuggersManager;
-import tern.eclipse.ide.server.nodejs.internal.core.preferences.TernNodejsCorePreferencesSupport;
 import tern.server.ITernServer;
 import tern.server.nodejs.NodejsTernServer;
 
@@ -30,7 +29,7 @@ import tern.server.nodejs.NodejsTernServer;
 public class TernNodejsServerFactory implements ITernServerFactory {
 
 	@Override
-	public ITernServer create(ITernProject project) throws Exception {
+	public ITernServer create(IIDETernProject project) throws Exception {
 		NodejsTernServer server;
 		if (isRemoteAccess()) {
 			server = new NodejsTernServer(project, getRemotePort()) {
@@ -53,12 +52,14 @@ public class TernNodejsServerFactory implements ITernServerFactory {
 					&& !ternServerFile.getProject().equals(
 							project.getAdapter(IProject.class))) {
 				server = new NodejsTernServer(project, debugger.createProcess(
-						project.getProjectDir(), installPath, ternServerFile)){
+						ternServerFile, project.getProject(), installPath)){
 					@Override
 					protected void onError(String message, Throwable e) {
 						Trace.trace(Trace.SEVERE, message, e);
 					}
 				};
+				server.setDebugLaunch(true);
+				server.setSaveLaunch(false);
 			} else {
 				File ternBaseDir = project.getRepository().getTernBaseDir();
 				server = new NodejsTernServer(project, installPath, ternBaseDir) {

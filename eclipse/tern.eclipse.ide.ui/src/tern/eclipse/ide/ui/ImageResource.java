@@ -1,5 +1,5 @@
 /**
- *  Copyright (c) 2013-2015 Angelo ZERR.
+ *  Copyright (c) 2013-2016 Angelo ZERR.
  *  All rights reserved. This program and the accompanying materials
  *  are made available under the terms of the Eclipse Public License v1.0
  *  which accompanies this distribution, and is available at
@@ -48,6 +48,10 @@ public class ImageResource {
 	public static final String IMG_STOP_ENABLED = "stop_enabled";
 	public static final String IMG_STOP_DISABLED = "stop_disabled";
 
+	// Outline
+	public static final String IMG_ELCL_SORT = "alphab_sort_co";
+	public static final String IMG_ELCL_SYNCED = "synced";
+	
 	static {
 		try {
 			String pathSuffix = "icons/";
@@ -136,6 +140,8 @@ public class ImageResource {
 
 		registerImage(IMG_STOP_ENABLED, URL_ELCL + "launch_stop.gif");
 		registerImage(IMG_STOP_DISABLED, URL_DLCL + "launch_stop.gif");
+		registerImage(IMG_ELCL_SORT, URL_ELCL + "alphab_sort_co.png");
+		registerImage(IMG_ELCL_SYNCED, URL_ELCL + "synced.gif");
 	}
 
 	/**

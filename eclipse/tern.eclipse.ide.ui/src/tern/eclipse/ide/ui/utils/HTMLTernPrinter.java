@@ -1,5 +1,5 @@
 /**
- *  Copyright (c) 2013-2015 Angelo ZERR.
+ *  Copyright (c) 2013-2016 Angelo ZERR.
  *  All rights reserved. This program and the accompanying materials
  *  are made available under the terms of the Eclipse Public License v1.0
  *  which accompanies this distribution, and is available at
@@ -23,6 +23,7 @@ import org.eclipse.jface.internal.text.html.HTMLPrinter;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.resource.JFaceResources;
 import org.eclipse.swt.graphics.FontData;
+import org.eclipse.swt.graphics.RGB;
 import org.osgi.framework.Bundle;
 
 import tern.eclipse.ide.internal.ui.TernUIMessages;
@@ -45,6 +46,20 @@ public class HTMLTernPrinter {
 	 */
 	private static String fgStyleSheet;
 
+	private static RGB colorInfoBackround = null;
+	private static RGB colorInfoForeground = null;
+
+	private HTMLTernPrinter() {
+	}
+
+	public static void setColorInfoBackround(RGB colorInfoBackround) {
+		HTMLTernPrinter.colorInfoBackround = colorInfoBackround;
+	}
+	
+	public static void setColorInfoForeground(RGB colorInfoForeground) {
+		HTMLTernPrinter.colorInfoForeground = colorInfoForeground;
+	}
+	
 	public static String getAdditionalProposalInfo(TernCompletionItem item,
 			Boolean guess) {
 		StringBuffer buffer = new StringBuffer();
@@ -128,7 +143,7 @@ public class HTMLTernPrinter {
 
 	public static void endPage(StringBuffer buffer) {
 		HTMLPrinter
-				.insertPageProlog(buffer, 0, HTMLTernPrinter.getStyleSheet());
+				.insertPageProlog(buffer, 0, colorInfoForeground, colorInfoBackround, HTMLTernPrinter.getStyleSheet());
 		HTMLPrinter.addPageEpilog(buffer);
 	}
 

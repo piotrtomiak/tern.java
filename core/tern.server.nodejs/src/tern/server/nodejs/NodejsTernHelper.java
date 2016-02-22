@@ -32,6 +32,7 @@ import com.eclipsesource.json.ParseException;
 import tern.TernException;
 import tern.server.IInterceptor;
 import tern.server.ITernServer;
+import tern.server.TernExceptionFactory;
 import tern.server.protocol.TernDoc;
 import tern.server.protocol.TernQuery;
 import tern.utils.IOUtils;
@@ -58,8 +59,11 @@ public class NodejsTernHelper {
 
 	// tern uses UTF-8 encoding
 	private static final String UTF_8 = "UTF-8";
-	
-	public static JsonObject makeRequest(String baseURL, TernDoc doc,
+
+	public NodejsTernHelper() {
+	}
+
+	public static JsonObject makeRequest(String baseURL, TernDoc doc, 
 			boolean silent, List<IInterceptor> interceptors, ITernServer server)
 			throws IOException, TernException {
 		TernQuery query = doc.getQuery();
@@ -87,7 +91,7 @@ public class NodejsTernHelper {
 				if (StringUtils.isEmpty(message)) {
 					throw new TernException(statusLine.toString());
 				}
-				throw new TernException(message);
+				throw TernExceptionFactory.create(message);
 			}
 
 			try {

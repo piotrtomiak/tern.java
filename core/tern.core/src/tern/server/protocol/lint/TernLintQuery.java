@@ -1,5 +1,5 @@
 /**
- *  Copyright (c) 2013-2015 Angelo ZERR.
+ *  Copyright (c) 2013-2016 Angelo ZERR.
  *  All rights reserved. This program and the accompanying materials
  *  are made available under the terms of the Eclipse Public License v1.0
  *  which accompanies this distribution, and is available at
@@ -31,6 +31,7 @@ public class TernLintQuery extends TernQuery {
 	private static final String FULL_EXTENSION = "-full";
 	private static final String GROUP_BY_FILES_NAME = "groupByFiles";
 	private static final String LINE_NUMBER_NAME = "lineNumber";
+	private static final String FIX_NAME = "fix";
 	private final ITernPlugin linter;
 	private boolean useLinterAsSuffix;
 
@@ -69,6 +70,13 @@ public class TernLintQuery extends TernQuery {
 		return JsonHelper.getBoolean(this, LINE_NUMBER_NAME, false);
 	}
 
+	public void setFix(boolean fix) {
+		super.set(FIX_NAME, fix);
+	}
+
+	public boolean isFix() {
+		return JsonHelper.getBoolean(this, FIX_NAME, false);
+	}
 	/**
 	 * Set true if the message returned by the linter must add the linter name
 	 * as suffix and false otherwise.
@@ -103,6 +111,10 @@ public class TernLintQuery extends TernQuery {
 					.append(": ").append(message).toString();
 		}
 		return message;
+	}
+	
+	public ITernPlugin getLinter() {
+		return linter;
 	}
 
 }

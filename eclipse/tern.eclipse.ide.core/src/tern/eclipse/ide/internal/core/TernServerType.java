@@ -1,5 +1,5 @@
 /**
- *  Copyright (c) 2013-2015 Angelo ZERR.
+ *  Copyright (c) 2013-2016 Angelo ZERR.
  *  All rights reserved. This program and the accompanying materials
  *  are made available under the terms of the Eclipse Public License v1.0
  *  which accompanies this distribution, and is available at
@@ -16,7 +16,7 @@ import java.util.List;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IConfigurationElement;
 
-import tern.ITernProject;
+import tern.eclipse.ide.core.IIDETernProject;
 import tern.eclipse.ide.core.ITernServerFactory;
 import tern.eclipse.ide.core.ITernServerType;
 import tern.server.ITernServer;
@@ -86,7 +86,7 @@ public class TernServerType implements ITernServerType {
 	}
 
 	@Override
-	public ITernServer createServer(ITernProject project) throws Exception {
+	public ITernServer createServer(IIDETernProject project) throws Exception {
 		ITernServer server = getFactory().create(project);
 		server.addServerListener(serverListener);
 		return server;
