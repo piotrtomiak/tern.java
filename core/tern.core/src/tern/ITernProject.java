@@ -26,6 +26,7 @@ import tern.scriptpath.ITernScriptPath;
 import tern.server.ITernDef;
 import tern.server.ITernPlugin;
 import tern.server.ITernServer;
+import tern.server.ITernServerListener;
 import tern.server.protocol.ITernResultsCollector;
 import tern.server.protocol.TernQuery;
 import tern.server.protocol.lint.ITernLintCollector;
@@ -54,6 +55,16 @@ public interface ITernProject extends ITernAdaptable {
 	 * @return
 	 */
 	ITernServer getTernServer();
+
+	// -------------- Tern server.
+
+	void addServerListener(ITernServerListener listener);
+
+	void removeServerListener(ITernServerListener listener);
+
+	void disposeServer();
+
+	boolean isServerDisposed();
 
 	/**
 	 * Convenience method for handling exceptions.

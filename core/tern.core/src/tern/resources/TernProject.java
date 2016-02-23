@@ -50,6 +50,7 @@ import tern.scriptpath.impl.dom.DOMElementsScriptPath;
 import tern.server.ITernDef;
 import tern.server.ITernPlugin;
 import tern.server.ITernServer;
+import tern.server.ITernServerListener;
 import tern.server.TernDef;
 import tern.server.protocol.ITernResultsCollector;
 import tern.server.protocol.JsonHelper;
@@ -556,6 +557,24 @@ public class TernProject extends JsonObject implements ITernProject {
 	@Override
 	public ITernServer getTernServer() {
 		return null;
+	}
+	
+	@Override
+	public void addServerListener(ITernServerListener listener) {		
+	}
+	
+	@Override
+	public boolean isServerDisposed() {
+		return true;
+	}
+	
+	@Override
+	public void removeServerListener(ITernServerListener listener) {
+	}
+	
+	@Override
+	public void disposeServer() {
+		
 	}
 
 	@Override
