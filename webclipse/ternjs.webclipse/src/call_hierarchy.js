@@ -98,10 +98,13 @@ function storeCaller(query, file, callers) {
   return function(node, scope) {
     var caller = getCaller(node, scope);
     if (caller) {
-      caller.positions.push({
-        start: tern.outputPos(query, file, node.start), 
-        end: tern.outputPos(query, file, node.end)
-      })
+      var start = tern.outputPos(query, file, node.start);
+      if (start != caller.start) {
+        caller.positions.push({
+          start: start,
+          end: tern.outputPos(query, file, node.end)
+        });
+      }
     }
   };
 }
@@ -123,7 +126,10 @@ function findCallersOfVariable(srv, query, file, state, name) {
 
   var res = {calls: []};
   for (let o in callers) {
-    res.calls.push(callers[o]);
+    var caller = callers[o];
+    if (caller.positions.length != 0) {
+      res.calls.push(callers[o]);
+    }
   }
   res.calls.reverse();
   return res;
