@@ -106,10 +106,8 @@ function storeCaller(query, file, callers) {
   };
 }
 
-function findCallersOfVariable(srv, query, file, expr) {
-  var name = expr.node.name;
-
-  for (var scope = expr.state; scope && !(name in scope.props); scope = scope.prev) {}
+function findCallersOfVariable(srv, query, file, state, name) {
+  for (var scope = state; scope && !(name in scope.props); scope = scope.prev) {}
   if (!scope) throw ternError("Could not find a definition for " + name);
   
   var callers = {};
@@ -129,6 +127,18 @@ function findCallersOfVariable(srv, query, file, expr) {
   }
   res.calls.reverse();
   return res;
+}
+
+function findVariableByFnExpr(ast, start) {
+  var id;
+  walk.simple(ast, {
+    VariableDeclarator: function (node) {
+      if (node.init && node.init.type == "FunctionExpression" && node.init.start == start) {
+        id = node.id;
+      }
+    }
+  });
+  return id;
 }
 
 function findCallers_(srv, query, expr, prop) {    
@@ -184,8 +194,13 @@ export function findRoots(server, query, file) {
 
 export function findCallers(srv, query, file) {
   var expr = tern.findQueryExpr(file, query, true);
-  if (expr && expr.node.type == "Identifier") {
-    return findCallersOfVariable(srv, query, file, expr);
+  if (expr && expr.node.type == "FunctionExpression") {
+    var id = findVariableByFnExpr(file.ast, expr.node.start);
+    if (id) {
+      return findCallersOfVariable(srv, query, file, expr.state, id.name);
+    }
+  } else if (expr && expr.node.type == "Identifier") {
+    return findCallersOfVariable(srv, query, file, expr.state, expr.node.name);
   } else if (expr && expr.node.type == "MemberExpression" && !expr.node.computed) {
     var p = expr.node.property;
     expr.node = expr.node.object;
@@ -200,7 +215,8 @@ export function findCallers(srv, query, file) {
   } else if (expr && expr.node.type == "MethodDefinition") {
     var p = expr.node.key;
     return findCallers_(srv, query, expr, p);
-  }	
+  }
+  return { calls: [] };
 }
 
 export function findCallees(server, query, file) {
