@@ -13,7 +13,6 @@
 		<module>tern.eclipse.ide.ui</module>
 		<module>tern.eclipse.ide.server.nodejs.core</module>
 		<module>tern.eclipse.ide.server.nodejs.ui</module>
-		<module>tern.eclipse.ide.server.rhino.core</module>
 		<module>tern.eclipse.ide.tools.core</module>
 		<module>tern.eclipse.ide.tools.ui</module>
 		<module>jsdt</module>
