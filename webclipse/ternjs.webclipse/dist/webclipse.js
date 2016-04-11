@@ -327,6 +327,7 @@ function processProperty(file, prop, parent, level) {
   if (prop.origin == file.name) {
     var child = {
       name: prop.propertyName,
+      file: prop.origin,
       type: prop.types.length > 0 ? prop.types.join('|') : "?",
       start: prop.originNode ? prop.originNode.start : -1,
       end: prop.originNode ? prop.originNode.end : -1
