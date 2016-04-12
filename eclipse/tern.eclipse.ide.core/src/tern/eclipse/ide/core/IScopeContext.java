@@ -22,4 +22,8 @@ public interface IScopeContext {
 
 	boolean isInclude(IContainer container);
 
+	void addAcceptedExtension(String ext);
+	
+	boolean isAcceptedExtension(String ext);
+	
 }

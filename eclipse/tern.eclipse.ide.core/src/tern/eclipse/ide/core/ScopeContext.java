@@ -39,14 +39,25 @@ public class ScopeContext implements IScopeContext {
 		public void addExclude(IContainer container) {
 
 		}
+
+		@Override
+		public void addAcceptedExtension(String ext) {
+		}
+
+		@Override
+		public boolean isAcceptedExtension(String ext) {
+			return false;
+		}
 	};
 
 	private final List<IResource> includes;
 	private final List<IResource> excludes;
+	private final List<String> acceptedExtensions;
 
 	public ScopeContext() {
 		this.includes = new ArrayList<IResource>();
 		this.excludes = new ArrayList<IResource>();
+		this.acceptedExtensions = new ArrayList<String>();
 	}
 
 	@Override
@@ -68,4 +79,15 @@ public class ScopeContext implements IScopeContext {
 	public boolean isInclude(IContainer container) {
 		return includes.contains(container);
 	}
+
+	@Override
+	public void addAcceptedExtension(String ext) {
+		acceptedExtensions.add(ext);
+	}
+
+	@Override
+	public boolean isAcceptedExtension(String ext) {
+		return acceptedExtensions.contains(ext);
+	}
+	
 }
