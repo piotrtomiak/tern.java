@@ -27,7 +27,7 @@ tern.defineQueryType("call-hierarchy-callees", {
 tern.defineQueryType("webclipse-outline", {
   takesFile: true,
   run: function(server, query, file) {
-    return outline.create(query, file);
+    return outline.create(server, query, file);
   }
 });
 

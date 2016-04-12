@@ -323,48 +323,51 @@ var _ternLibTern = _dereq_("tern/lib/tern");
 
 var tern = _interopRequireWildcard(_ternLibTern);
 
-function processProperty(file, prop, parent, level) {
-  if (prop.origin == file.name) {
-    var child = {
-      name: prop.propertyName,
-      file: prop.origin,
-      type: prop.types.length > 0 ? prop.types.join('|') : "?",
-      start: prop.originNode ? prop.originNode.start : -1,
-      end: prop.originNode ? prop.originNode.end : -1
-    };
-    for (var typeNr in prop.types) {
-      var type = prop.types[typeNr];
-      gather(file, type, child, level);
-    }
-
-    var children = parent;
-    if (!(children instanceof Array)) {
-      if (children.children) {
-        children = children.children;
-      } else {
-        children = children.children = [];
+function processProperty(server, file, prop, parent, level) {
+  if (prop.origin) {
+    var propFile = server.fileMap[prop.origin];
+    if (propFile) {
+      var child = {
+        name: prop.propertyName,
+        file: propFile.name,
+        value: propFile.name != file.name,
+        type: prop.types.length > 0 ? prop.types.join('|') : "?",
+        start: prop.originNode ? prop.originNode.start : -1,
+        end: prop.originNode ? prop.originNode.end : -1
+      };
+      for (var typeNr in prop.types) {
+        var type = prop.types[typeNr];
+        gather(server, file, type, child, level);
       }
-    }
 
-    children.push(child);
+      var children = parent;
+      if (!(children instanceof Array)) {
+        if (children.children) {
+          children = children.children;
+        } else {
+          children = children.children = [];
+        }
+      }
+      children.push(child);
+    }
   }
 }
 
-function gather(file, node, parent, level) {
+function gather(server, file, node, parent, level) {
   if (level++ > 10) return;
   for (var propName in node.props) {
-    processProperty(file, node.props[propName], parent, level);
+    processProperty(server, file, node.props[propName], parent, level);
   }
   for (var propName in node.maybeProps) {
-    processProperty(file, node.maybeProps[propName], parent, level);
+    processProperty(server, file, node.maybeProps[propName], parent, level);
   }
 }
 
-function create(query, file) {
+function create(server, query, file) {
   try {
     var outline = [],
         scope = file.scope;
-    gather(file, scope, outline, 0);
+    gather(server, file, scope, outline, 0);
     return { outline: outline };
   } catch (err) {
     console.error(err, err.stack);
@@ -725,7 +728,7 @@ tern.defineQueryType("call-hierarchy-callees", {
 tern.defineQueryType("webclipse-outline", {
   takesFile: true,
   run: function run(server, query, file) {
-    return outline.create(query, file);
+    return outline.create(server, query, file);
   }
 });
 
