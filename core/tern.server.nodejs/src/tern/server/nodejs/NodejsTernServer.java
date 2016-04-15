@@ -101,11 +101,6 @@ public class NodejsTernServer extends AbstractTernServer implements INodejsLaunc
 	 * value in range 0-5 specifying level of proposals quality vs performance
 	 */
 	private Integer qualityLevel;
-	
-	/**
-	 * Location of default props file
-	 */
-	private String defaultOptsFileLocation;
 
 	private boolean isDebugLaunch;
 
@@ -495,16 +490,6 @@ public class NodejsTernServer extends AbstractTernServer implements INodejsLaunc
 		return qualityLevel == null ? 4 : qualityLevel;
 	}
 	
-	@Override
-	public void setDefaultOptionsFile(String defaultOptionsFile) {
-		this.defaultOptsFileLocation = defaultOptionsFile;
-	}
-	
-	@Override
-	public String getDefaultOptionsFile() {
-		return defaultOptsFileLocation;
-	}
-	
 	protected void onError(String message, Throwable e) {
 		e.printStackTrace();
 	}
@@ -534,9 +519,9 @@ public class NodejsTernServer extends AbstractTernServer implements INodejsLaunc
 			args.add("--quality");
 			args.add(qualityLevel.toString());
 		}
-		if (defaultOptsFileLocation != null) {
+		if (getDefaultOptionsFile() != null) {
 			args.add("--default-options-file");
-			args.add(defaultOptsFileLocation);
+			args.add(getDefaultOptionsFile());
 		}
 		return args;
 	}

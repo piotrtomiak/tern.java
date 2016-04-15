@@ -40,6 +40,10 @@ public abstract class AbstractTernServer implements ITernServer {
 	private boolean dispose;
 	private boolean loadingLocalPlugins;
 	private int qualityLevel;
+	/**
+	 * Location of default props file
+	 */
+	private String defaultOptsFileLocation;
 	private int requestTimeout;
 
 	private ITernServerRequestProcessor reqProcessor;
@@ -181,6 +185,16 @@ public abstract class AbstractTernServer implements ITernServer {
 	@Override
 	public int getQualityLevel() {
 		return qualityLevel;
+	}
+	
+	@Override
+	public void setDefaultOptionsFile(String defaultOptionsFile) {
+		this.defaultOptsFileLocation = defaultOptionsFile;
+	}
+	
+	@Override
+	public String getDefaultOptionsFile() {
+		return defaultOptsFileLocation;
 	}
 	
 	@Override
