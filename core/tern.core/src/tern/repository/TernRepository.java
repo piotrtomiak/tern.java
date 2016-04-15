@@ -15,6 +15,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -122,7 +123,7 @@ public class TernRepository implements ITernRepository {
 		// plugin
 		loadModules(modules, modulesByOrigin, new File(getTernBaseDir(), PLUGIN_FOLDER), IGNORE_PLUGINS);
 		// node_modules
-		loadModules(modules, modulesByOrigin, getNodeModulesDir(), null);
+		loadModules(modules, modulesByOrigin, getNodeModulesDir(), Collections.singletonList("webclipse")); //$NON-NLS-1$
 	}
 
 	private void loadModules(Map<String, ITernModule> modules, Map<String, ITernModule> modulesByOrigin, File baseDir,

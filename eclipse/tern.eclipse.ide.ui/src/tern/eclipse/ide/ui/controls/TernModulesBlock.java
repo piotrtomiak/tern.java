@@ -62,6 +62,7 @@ import tern.repository.ITernRepository;
 import tern.server.ITernModule;
 import tern.server.ITernModuleConfigurable;
 import tern.server.TernDef;
+import tern.server.TernPlugin;
 import tern.utils.StringUtils;
 import tern.utils.TernModuleHelper;
 
@@ -505,8 +506,8 @@ public class TernModulesBlock extends AbstractTableBlock {
 						.groupByType(allModules);
 				
 				checkedModules = TernCorePlugin.getTernRepositoryManager()
-						.getCheckedModules(new String[] { TernDef.ecma5.getName(), TernDef.browser.getName()}, 
-								allModules, groupedModules);
+						.getCheckedModules(new String[] { TernDef.browser.getName(), 
+								TernPlugin.guess_types.getName() }, allModules, groupedModules);
 				
 				allModules = groupedModules;
 			}

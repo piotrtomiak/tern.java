@@ -63,7 +63,6 @@ public enum TernPlugin implements ITernPlugin {
 	eslint("eslint", true),
 
 	// other
-	webclipse("webclipse"),
 	guess_types("guess-types"),
 	outline("outline"),
 	push("push");

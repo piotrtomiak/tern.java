@@ -1,9 +1,0 @@
-{
- "name": "webclipse",
- "label": "Webclipse",
- "icon": "webclipse.png",
- "homepage": "",
- "author": "Piotr Tomiak <piotr@genuitec.com>",
- "description": "Plugin to provide extended IDE support.",
- "linter": true
-}

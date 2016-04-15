@@ -11,8 +11,10 @@
  */
 package tern.eclipse.ide.internal.core.resources;
 
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -25,7 +27,9 @@ import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IResourceVisitor;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.QualifiedName;
+import org.eclipse.core.runtime.Status;
 
 import com.eclipsesource.json.JsonObject;
 import com.eclipsesource.json.WriterConfig;
@@ -159,6 +163,7 @@ public class IDETernProject extends TernProject implements IIDETernProject, ITer
 							getFileSynchronizer().cleanIndexedFiles();
 						}
 					});
+					this.ternServer.setDefaultOptionsFile(getDefaultOptionsFile());
 					if (!TernCorePreferencesSupport.getInstance().isDisableAsynchronousReques(project)) {
 						this.ternServer.setRequestProcessor(new IDETernServerAsyncReqProcessor(ternServer));
 					}
@@ -173,6 +178,11 @@ public class IDETernProject extends TernProject implements IIDETernProject, ITer
 			}
 			return ternServer;
 		}
+	}
+
+	private String getDefaultOptionsFile() {
+		return TernCorePlugin.getDefault().getStateLocation().append(
+				getName() + ".tern-project").toOSString(); //$NON-NLS-1$
 	}
 
 	public boolean isServerDisposed() {
@@ -245,6 +255,24 @@ public class IDETernProject extends TernProject implements IIDETernProject, ITer
 			return;
 		}
 
+		if (!ternProjectFile.isFile()) {
+			//store default file contents in a .metadata folder
+			getProjectDir().mkdirs();
+			Writer writer = null;
+			try {
+				writer = new FileWriter(getDefaultOptionsFile());
+				super.writeTo(writer, WriterConfig.PRETTY_PRINT);
+			} catch (IOException ex) {
+				TernCorePlugin.getDefault().getLog().log(new Status(
+						IStatus.ERROR, TernCorePlugin.PLUGIN_ID, ex.getMessage(), ex));
+			} finally {
+				if (writer != null) {
+					IOUtils.closeQuietly(writer);
+				}
+			}
+			reset();
+			return;
+		}
 		try {
 			save();
 		} catch (IOException e) {

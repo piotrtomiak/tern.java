@@ -103,6 +103,10 @@ public interface ITernServer {
 	
 	void setQualityLevel(int level);
 	
+	void setDefaultOptionsFile(String defaultOptionsFile);
+	
+	String getDefaultOptionsFile();
+	
 	int getRequestTimeout();
 	
 	void setRequestTimeout(int timeout);
@@ -128,4 +132,5 @@ public interface ITernServer {
 	 * @param listener
 	 */
 	void off(String type, IMessageHandler listener);
+
 }

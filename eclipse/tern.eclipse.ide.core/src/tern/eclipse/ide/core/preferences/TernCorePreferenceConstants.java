@@ -54,7 +54,7 @@ public class TernCorePreferenceConstants {
 	 * tern project.
 	 */
 	public static final String DEFAULT_ECMA_VERSION = "ecmaVersion"; //$NON-NLS-1$
-	public static final int DEFAULT_ECMA_VERSION_VALUE = EcmaVersion.ES5.getVersion(); //$NON-NLS-1$
+	public static final int DEFAULT_ECMA_VERSION_VALUE = EcmaVersion.ES6.getVersion();
 
 	/**
 	 * Default tern modules to add to .tern-project when project is converted to
@@ -79,7 +79,6 @@ public class TernCorePreferenceConstants {
 	 *         converted to tern project.
 	 */
 	private static String getDefaultModules() {
-		return TernModuleHelper.getModulesAsString(TernPlugin.guess_types,
-				TernPlugin.outline);
+		return TernModuleHelper.getModulesAsString(TernPlugin.guess_types);
 	}
 }
