@@ -126,10 +126,9 @@
     <extension
          point="org.eclipse.ui.propertyPages">
       <page
-            name="%TernMainPropertyPage.name"        
+            name="JavaScript"        
             class="tern.eclipse.ide.ui.properties.TernMainPropertyPage"
-            id="tern.eclipse.ide.ui.properties"
-            category="org.eclipse.wst.jsdt.internal.ui.preferences.JavaScriptMainPage" >
+            id="org.eclipse.wst.jsdt.internal.ui.preferences.JavaScriptMainPage">
          <enabledWhen>
              <adapt type="org.eclipse.core.resources.IProject">
                   <test property="tern.eclipse.ide.ui.isTernProject" />
@@ -138,7 +137,7 @@
       </page>
       <page
             name="%TernContentAssistPropertyPage.name"
-            category="tern.eclipse.ide.ui.properties"        
+            category="org.eclipse.wst.jsdt.ui.propertyPages.JavaEditorPropertyPage"        
             class="tern.eclipse.ide.internal.ui.preferences.TernContentAssistPreferencesPage"
             id="tern.eclipse.ide.ui.properties.contentassist">
          <enabledWhen>
@@ -174,7 +173,7 @@
       -->
       <page
             name="%TernDevelopmentPropertyPage.name"
-            category="tern.eclipse.ide.ui.properties"        
+            category="org.eclipse.wst.jsdt.internal.ui.preferences.JavaScriptMainPage"        
             class="tern.eclipse.ide.internal.ui.preferences.TernDevelopmentPreferencesPage"
             id="tern.eclipse.ide.ui.properties.development">
          <enabledWhen>
@@ -196,7 +195,7 @@
       </page>      
       <page
             name="%TernValidationPropertyPage.name"
-            category="tern.eclipse.ide.ui.properties"        
+            category="org.eclipse.wst.jsdt.internal.ui.preferences.JavaScriptMainPage"        
             class="tern.eclipse.ide.internal.ui.preferences.TernValidationPreferencesPage"
             id="tern.eclipse.ide.ui.properties.validation">
          <enabledWhen>

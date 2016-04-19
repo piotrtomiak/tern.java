@@ -67,8 +67,8 @@ public class TernModuleInfo implements ITernModuleInfo {
 	public boolean equals(Object o) {
 		if ((o instanceof ITernModuleInfo)) {
 			ITernModuleInfo module = (ITernModuleInfo) o;
-			return (equals(name, module.getName()) && equals(type, module.getType())
-					&& equals(version, module.getVersion()));
+			return (equals(getName(), module.getName()) && equals(getType(), module.getType())
+					&& equals(getVersion(), module.getVersion()));
 		}
 		return false;
 	}

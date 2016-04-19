@@ -58,7 +58,7 @@ public class TernMainPropertyPage extends AbstractTernPropertyPage implements IW
 
 	public static final String PROP_ID = "tern.eclipse.ide.ui.properties";
 
-	private Button useESModules;
+//	private Button useESModules;
 	private Button useJSDoc;
 	private Button jsdocStrong;
 	private ComboViewer ecmaVersionViewer;
@@ -114,33 +114,33 @@ public class TernMainPropertyPage extends AbstractTernPropertyPage implements IW
 		});
 
 		// Use ES modules?
-		useESModules = new Button(ecmaGroup, SWT.CHECK);
-		useESModules.setText(TernUIMessages.TernMainPropertyPage_useESModules);
-		useESModules.setEnabled(false);
+//		useESModules = new Button(ecmaGroup, SWT.CHECK);
+//		useESModules.setText(TernUIMessages.TernMainPropertyPage_useESModules);
+//		useESModules.setEnabled(false);
 		
 		// Update ES version
 		ecmaVersionViewer.setSelection(new StructuredSelection(workingCopy.getEcmaVersion()));
 		// Update use ES modules?
-		useESModules.setSelection(workingCopy.hasCheckedTernModule(TernPlugin.es_modules.getName()));
-		useESModules.addSelectionListener(new SelectionAdapter() {
-			@Override
-			public void widgetSelected(SelectionEvent e) {
-				ITernModule esModules = getESModules(workingCopy);
-				if (useESModules.getSelection()) {
-					workingCopy.getCheckedModules().add(esModules);
-				} else {
-					workingCopy.getCheckedModules().remove(esModules);
-				}
-			}
-		});
+//		useESModules.setSelection(workingCopy.hasCheckedTernModule(TernPlugin.es_modules.getName()));
+//		useESModules.addSelectionListener(new SelectionAdapter() {
+//			@Override
+//			public void widgetSelected(SelectionEvent e) {
+//				ITernModule esModules = getESModules(workingCopy);
+//				if (useESModules.getSelection()) {
+//					workingCopy.getCheckedModules().add(esModules);
+//				} else {
+//					workingCopy.getCheckedModules().remove(esModules);
+//				}
+//			}
+//		});
 	}
 
 	private void updateUseESModules(IWorkingCopy workingCopy) {
 		EcmaVersion ecmaVersion = getEcmaVersion();
-		useESModules.setEnabled(ecmaVersion.getVersion() >= 6);
-		if (!useESModules.isEnabled()) {
-			useESModules.setSelection(false);
-		}
+//		useESModules.setEnabled(ecmaVersion.getVersion() >= 6);
+//		if (!useESModules.isEnabled()) {
+//			useESModules.setSelection(false);
+//		}
 		workingCopy.setEcmaVersion(ecmaVersion);
 
 	}
@@ -244,7 +244,7 @@ public class TernMainPropertyPage extends AbstractTernPropertyPage implements IW
 		if (TernPlugin.doc_comment.getName().equals(module.getName())) {
 			useJSDoc.setSelection(selected);
 		} else if (TernPlugin.es_modules.getName().equals(module.getName())) {
-			useESModules.setSelection(selected);
+//			useESModules.setSelection(selected);
 		}
 	}
 

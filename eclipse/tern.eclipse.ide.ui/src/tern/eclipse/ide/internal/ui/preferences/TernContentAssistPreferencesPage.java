@@ -174,11 +174,13 @@ public class TernContentAssistPreferencesPage extends PropertyPreferencePage {
 
 	private void createObjLitInsertionContents(Composite parent,
 			IScopeContext[] preferenceScopes) {
+		/*
 		Group insertionGroup = new Group(parent, SWT.SHADOW_ETCHED_IN);
 		insertionGroup
 				.setText(TernUIMessages.TernContentAssistPreferencesPage_objLitInsertionGroup_label);
 		insertionGroup.setLayout(new GridLayout());
 		insertionGroup.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+		*/
 	}
 
 	private ComboViewer createComboViewer(Composite ancestor,
