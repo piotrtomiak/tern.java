@@ -465,22 +465,27 @@ function getTypeHierarchy(server, query, file) {
       rootDef.name = root.originNode.name;
       rootDef.start = root.originNode.start;
       rootDef.end = root.originNode.end;
+    } else {
+      rootDef.name = root.propertyName;
     }
     var type = root.getType();
     var rootProto;
     if (type && type.props.prototype) {
       var prototypes = type.props.prototype.types;
       if (prototypes && prototypes.length > 0) {
-        var rootProto = prototypes[0];
+        rootProto = prototypes[0];
+        rootDef.props = collectProperties(type, rootDef.name, true);
       }
-    } else {
+    }
+    if (!rootProto) {
       rootProto = type;
+      rootDef.props = [];
     }
     if (rootProto && rootProto.name) {
       if (!rootProto.name.endsWith(".prototype")) {
         rootProto.name = rootDef.name + ".prototype";
       }
-      rootDef.props = collectProperties(rootProto, rootDef.name, true);
+      rootDef.props = rootDef.props.concat(collectProperties(rootProto, rootDef.name, true));
       var typeCtor = getConstructor(rootProto, rootDef.name);
       if (typeCtor) {
         rootDef.props.push(typeCtor);
@@ -695,22 +700,24 @@ function getProperties(proto) {
   var props = props = [];
   for (var propName in proto.props) {
     var prop = proto.props[propName];
-    var propType;
-    if (prop.types.length > 0) {
-      propType = isFunction(prop.types[0]) ? "function" : "field";
-    } else {
-      propType = "field";
+    if (prop.propertyName != "prototype") {
+      var propType;
+      if (prop.types.length > 0) {
+        propType = isFunction(prop.types[0]) ? "function" : "field";
+      } else {
+        propType = "field";
+      }
+      var child = {
+        name: prop.propertyName,
+        type: propType,
+        start: prop.originNode ? prop.originNode.start : -1,
+        end: prop.originNode ? prop.originNode.end : -1
+      };
+      if (prop.originNode) {
+        child.file = prop.originNode.sourceFile.name;
+      }
+      props.push(child);
     }
-    var child = {
-      name: prop.propertyName,
-      type: propType,
-      start: prop.originNode ? prop.originNode.start : -1,
-      end: prop.originNode ? prop.originNode.end : -1
-    };
-    if (prop.originNode) {
-      child.file = prop.originNode.sourceFile.name;
-    }
-    props.push(child);
   }
   return props;
 }
