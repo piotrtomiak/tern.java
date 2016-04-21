@@ -103,7 +103,7 @@
     </extension>			          		
         
 	<!-- Hyperlink for JavaScript (inside JavaScript file) -->
-        
+    <!-- Moved to JSJet     
    <extension
          point="org.eclipse.ui.workbench.texteditor.hyperlinkDetectors">
       <hyperlinkDetector
@@ -114,7 +114,8 @@
             targetId="org.eclipse.wst.jsdt.ui.javaCode">
       </hyperlinkDetector>
    </extension>
-           
+   -->
+   
 	<!-- Hyperlink for JavaScript (inside HTML file) -->
 	<!-- more efficient code in MyEclipse        
     <extension
