@@ -356,16 +356,18 @@ function processProperty(server, file, prop, parent, level, resolvedTypes) {
     parent.kind = "prototype";
   }
   // process property only if it is not a constructor
-  if (prop.propertyName != "constructor") {
+  if (prop.propertyName != "constructor" && (child || parent.kind == "prototype")) {
     for (var typeNr in prop.types) {
       var type = prop.types[typeNr];
       if (type) {
         if (!child || child.type.startsWith("fn(") || resolvedTypes.indexOf(type.name) == -1) {
           if (parent && parent.kind == "prototype" && resolvedTypes.indexOf(parent.name) == -1) {
             resolvedTypes.push(parent.name);
+            resolvedTypes.push(parent.name + ".prototype");
           }
           gather(server, file, type, child ? child : parent, level, resolvedTypes);
-          if (type.originNode && (type.originNode.type == "FunctionExpression" || type.originNode.type == "FunctionDeclaration")) {
+          // process possible scope only if type is from a current file
+          if (type.originNode && type.originNode.sourceFile == file && (type.originNode.type == "FunctionExpression" || type.originNode.type == "FunctionDeclaration")) {
             var scope = infer.scopeAt(file.ast, type.originNode.end);
             if (scope && (scope.isBlock || scope.fnType)) {
               gather(server, file, scope, child ? child : parent, level, resolvedTypes);
