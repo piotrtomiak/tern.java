@@ -119,9 +119,9 @@ public class IDETernServerAsyncReqProcessor extends Job implements
 		}
 		// mark collection as done if not timed out earlier
 		synchronized (this) {
-			if (!timedOut) {
+//			if (!timedOut) {
 				collector.done();
-			}
+//			}
 			collector = null;
 		}
 		return Status.OK_STATUS;

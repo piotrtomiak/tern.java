@@ -30,9 +30,11 @@ public class JSTernCompletionAsyncCollector extends JSTernCompletionCollector
 		implements ITernResultsAsyncCollector {
 
 	private boolean timedOut;
+	private boolean done;
 	private boolean contentAdded;
 
 	private int startOffset;
+	private TimeoutReason reason;
 
 	public JSTernCompletionAsyncCollector(List<ICompletionProposal> proposals,
 			int startOffset, ITernFile ternFile, ITernProject project) {
@@ -46,13 +48,20 @@ public class JSTernCompletionAsyncCollector extends JSTernCompletionCollector
 		if (!timedOut) {
 			contentAdded = true;
 			super.addProposal(proposal, completion, jsonObjectHelper);
+		} else {
+			synchronized (proposals) {
+				super.addProposal(proposal, completion, jsonObjectHelper);
+			}
 		}
 	}
 
 	@Override
 	public void done() {
-		if (!timedOut) {
-			contentAdded = true;
+		synchronized (this) {
+			this.done = true;
+			if (!timedOut) {
+				contentAdded = true;
+			}
 		}
 	}
 	
@@ -69,11 +78,26 @@ public class JSTernCompletionAsyncCollector extends JSTernCompletionCollector
 	public String getRequestDisplayName() {
 		return "Calculating completion proposals...";
 	}
+	
+	public boolean isTimedOut() {
+		return timedOut;
+	}
+	
+	public TimeoutReason getTimedOutReason() {
+		return reason;
+	}
+	
+	public boolean isDone() {
+		synchronized (this) {
+			return done;
+		}
+	}
 
 	public void timeout(final TimeoutReason reason) {
 		timedOut = true;
+		this.reason = reason;
 		if (!contentAdded) {
-			proposals.add(createTimeoutProposal(startOffset, reason));
+			//proposals.add(createTimeoutProposal(startOffset, reason));
 		}
 	}
 

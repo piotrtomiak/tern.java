@@ -41,7 +41,7 @@ public class JSDTTernContextProvider implements ITernContextProvider {
 					IFile scriptFile = (IFile) resource;
 	
 					ITernFile tf = new TernDocumentFile(scriptFile, document);
-					return new TernContext(ternProject, tf, javaContext.getInvocationOffset());
+					return new TernContext(ternProject, tf, javaContext.getInvocationOffset(), javaContext.getViewer());
 				}
 			}
 		} else if (context instanceof CompletionProposalInvocationContext) {
@@ -53,7 +53,7 @@ public class JSDTTernContextProvider implements ITernContextProvider {
 				if (ternProject != null) {
 					IDocument document = htmlContext.getDocument();
 					ITernFile tf = new TernDocumentFile(file, document);
-					return new TernContext(ternProject, tf, htmlContext.getInvocationOffset());
+					return new TernContext(ternProject, tf, htmlContext.getInvocationOffset(), htmlContext.getViewer());
 				}
 			}
 		}

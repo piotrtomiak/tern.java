@@ -10,6 +10,8 @@
  */
 package tern.eclipse.ide.jsdt.internal.ui.contentassist;
 
+import org.eclipse.jface.text.ITextViewer;
+
 import tern.ITernFile;
 import tern.ITernProject;
 
@@ -22,12 +24,14 @@ public interface ITernContextProvider {
 		public final ITernFile file;
 		public final ITernProject project;
 		public final int invocationOffset;
+		public final ITextViewer viewer;
 
 		public TernContext(ITernProject project, ITernFile file,
-				int invocationOffset) {
+				int invocationOffset, ITextViewer viewer) {
 			this.project = project;
 			this.file = file;
 			this.invocationOffset = invocationOffset;
+			this.viewer = viewer;
 		}
 
 	}

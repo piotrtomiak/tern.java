@@ -22,6 +22,7 @@
 	   <proposalCategory icon="icons/full/obj16/logo.png" />
 	 </extension>
 
+	<!-- redefined in MyEclipse
 	<extension point="org.eclipse.wst.jsdt.ui.javaCompletionProposalComputer"
 	   id="TernCompletionProposalComputer">
 	   <javaCompletionProposalComputer
@@ -29,6 +30,7 @@
 	      categoryId="tern.eclipse.ide.jsdt.ui.TernCompletionProposalCategory">
 	   </javaCompletionProposalComputer>
 	 </extension>
+	-->
 
 	<!-- Completion Proposal for JavaScript (inside HTML) -->
 	 
@@ -38,6 +40,7 @@
 	      name="%TernCompletionProposalCategory.name"
 	      icon="icons/full/obj16/logo.png">
 	  </proposalCategory>
+	  <!-- redefined in MyEclipse
 	  <proposalComputer
 	      activate="true"
 	      categoryId="tern.eclipse.ide.jsdt.ui.contentassist.TernContentAssistProcessor"
@@ -55,6 +58,7 @@
 	      </partitionType>
 	    </contentType>
 	  </proposalComputer>
+	  -->
 	</extension>
 	 
 	<extension
