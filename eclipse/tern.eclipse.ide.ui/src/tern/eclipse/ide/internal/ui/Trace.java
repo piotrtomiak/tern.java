@@ -75,19 +75,21 @@ public class Trace {
 		if (s == null)
 			return;
 
-		if (level == SEVERE) {
-			if (!logged.contains(s)) {
-				TernUIPlugin
-						.getDefault()
-						.getLog()
-						.log(new Status(IStatus.ERROR, TernUIPlugin.PLUGIN_ID,
-								s, t));
-				logged.add(s);
+		if (TernUIPlugin.getDefault() != null) {
+			if (level == SEVERE) {
+				if (!logged.contains(s)) {
+					TernUIPlugin
+							.getDefault()
+							.getLog()
+							.log(new Status(IStatus.ERROR, TernUIPlugin.PLUGIN_ID,
+									s, t));
+					logged.add(s);
+				}
 			}
+		
+			if (!TernUIPlugin.getDefault().isDebugging())
+				return;
 		}
-
-		if (!TernUIPlugin.getDefault().isDebugging())
-			return;
 
 		StringBuilder sb = new StringBuilder(TernUIPlugin.PLUGIN_ID);
 		sb.append(" ");
