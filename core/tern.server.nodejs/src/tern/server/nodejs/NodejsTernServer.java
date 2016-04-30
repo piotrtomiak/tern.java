@@ -14,6 +14,7 @@ package tern.server.nodejs;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.ConnectException;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -215,6 +216,9 @@ public class NodejsTernServer extends AbstractTernServer implements INodejsLaunc
 			JsonObject json = makeRequest(doc);
 			handler.onSuccess(json, handler.isDataAsJsonString() ? json.toString() : null);
 		} catch (Exception e) {
+			if (e instanceof ConnectException) {
+				dispose();
+			}
 			handler.onError(e.getMessage(), e);
 		}
 	}
