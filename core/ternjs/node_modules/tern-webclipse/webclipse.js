@@ -360,12 +360,9 @@ function processProperty(server, file, prop, parent, level, resType, resolvedTyp
   if (prop.propertyName != "constructor" && (child || parent.kind == "prototype")) {
     for (var typeNr in prop.types) {
       var type = prop.types[typeNr];
-      if (type) {
-        if (!child || child.type.startsWith("fn(") || resolvedTypes.indexOf(type.name) == -1) {
-          if (parent && parent.kind == "prototype" && resolvedTypes.indexOf(parent.name) == -1) {
-            resolvedTypes.push(parent.name);
-            resolvedTypes.push(parent.name + ".prototype");
-          }
+      if (type && (type.originNode || type.instances || !type.name)) {
+        var shouldResolve = resolveType(type.name, type.originNode ? type.originNode.start : "none", resolvedTypes);
+        if (shouldResolve) {
           gather(server, file, type, child ? child : parent, level, "proto", resolvedTypes);
           // process possible scope only if type is from a current file
           if (type.originNode && type.originNode.sourceFile == file && (type.originNode.type == "FunctionExpression" || type.originNode.type == "FunctionDeclaration")) {
@@ -396,8 +393,20 @@ function processProperty(server, file, prop, parent, level, resType, resolvedTyp
   }
 }
 
+function resolveType(name, start, resolvedTypes) {
+  if (name) {
+    var loc = resolvedTypes[name];
+    if (!loc) {
+      resolvedTypes[name] = start;
+    } else if (loc == start || loc == "basic" || loc == "none") {
+      return false;
+    }
+  }
+  return true;
+}
+
 function gather(server, file, node, parent, level, resType, resolvedTypes) {
-  if (level++ > 6) return;
+  if (level++ > 20) return;
   if (node.instances && node.instances.length > 0) {
     var instance = node.instances[0].instance;
     if (instance) {
@@ -422,7 +431,13 @@ function create(server, query, file, resolvedTypes) {
   try {
     var outline = [],
         scope = file.scope;
-    var resolvedTypes = ["boolean", "number", "string", "symbol", "Array"];
+    var resolvedTypes = {
+      "boolean": "basic",
+      "number": "basic",
+      "string": "basic",
+      "symbol": "basic",
+      "Array": "basic"
+    };
     gather(server, file, scope, outline, 0, "scope", resolvedTypes);
     return { outline: outline };
   } catch (err) {
