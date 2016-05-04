@@ -36,7 +36,7 @@ export function getTypeHierarchy(server, query, file) {
       rootDef.props = [];
     }
     if (rootProto && rootProto.name) {
-      if (!rootProto.name.endsWith(".prototype")) {
+      if (rootProto.name.indexOf(".prototype") != rootProto.name.length - 10) {
         rootProto.name = rootDef.name + ".prototype";
       }
       rootDef.props = rootDef.props.concat(collectProperties(rootProto, rootDef.name, true));
@@ -64,7 +64,7 @@ function processType(proto, supertypes, server) {
   };
   // set prototype name
   if (proto.name) {
-    if (proto.name.endsWith(".prototype")) {
+    if (proto.name.indexOf(".prototype") == proto.name.length - 10) {
       protoDef.name = proto.name.substring(0, proto.name.length - 10);
     } else {
       protoDef.name = proto.name;
