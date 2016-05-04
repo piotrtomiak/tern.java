@@ -341,7 +341,7 @@ function processProperty(server, file, prop, parent, level, resType, resolvedTyp
   // create child node only if this is not a prototype
   if (prop.propertyName != "prototype") {
     var nodeType = prop.types.length > 0 ? prop.types.join('|') : "?";
-    if (!parent.name || parent.kind == "prototype" || nodeType.startsWith("fn(")) {
+    if (!parent.name || parent.kind == "prototype" || nodeType.indexOf("fn(") == 0) {
       child = {
         name: prop.propertyName,
         file: originFile,
