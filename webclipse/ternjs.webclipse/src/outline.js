@@ -15,7 +15,7 @@ function processProperty(server, file, prop, parent, level, resType, resolvedTyp
   // create child node only if this is not a prototype
   if (prop.propertyName != "prototype") {
     var nodeType = prop.types.length > 0 ? prop.types.join('|') : "?";
-    if (!parent.name || parent.kind == "prototype" || nodeType.indexOf("fn(") == 0) {
+    if (!parent.name || nodeType.indexOf("fn(") == 0 || resType == "proto") {
       child = {
           name: prop.propertyName,
           file: originFile,
@@ -41,8 +41,17 @@ function processProperty(server, file, prop, parent, level, resType, resolvedTyp
           // process possible scope only if type is from a current file
           if (type.originNode && type.originNode.sourceFile == file && (type.originNode.type == "FunctionExpression" || type.originNode.type == "FunctionDeclaration")) {
             var scope = infer.scopeAt(file.ast, type.originNode.end);
-            if (scope && (scope.isBlock || scope.fnType)) {
-              gather(server, file, scope, child ? child : parent, level, "scope", resolvedTypes);
+            if (scope) {
+              // check if it is a block statement
+              if (scope.isBlock) {
+                gather(server, file, scope, child ? child : parent, level, "scope", resolvedTypes);
+                // if this is a block statement previous scope should be also resolved
+                scope = scope.prev;
+              }
+              // check if it is a function expression
+              if (scope.fnType) {
+                gather(server, file, scope, child ? child : parent, level, "scope", resolvedTypes);
+              }
             }
           }
         }
@@ -80,7 +89,7 @@ function resolveType(name, start, resolvedTypes) {
 }
 
 function gather(server, file, node, parent, level, resType, resolvedTypes) {
-  if (level++ > 20) return;
+  if (level++ > 10) return;
   if (node.instances && node.instances.length > 0) {
     var instance = node.instances[0].instance;
     if (instance) {
@@ -113,9 +122,75 @@ export function create(server, query, file, resolvedTypes) {
             "Array": "basic"
     };
     gather(server, file, scope, outline, 0, "scope", resolvedTypes);
+    var body = file.ast.body;
+    for (var elementNr in body) {
+      var element = body[elementNr];
+      if (element.type == "ExpressionStatement") {
+        var fns = findFnExpressions(element.expression);
+        for (var fnNr in fns) {
+          var fnExpr = fns[fnNr];
+          if (!fnExpr.name) {
+            var child = {
+                name : "<anonymous>",
+                file : file.name,
+                value : false,
+                type : "fn()",
+                resType : "scope",
+                start : fnExpr.start,
+                end : fnExpr.start + 8
+            };
+            if (fnExpr.scope) {
+              gather(server, file, fnExpr.scope, child, 0, "proto", resolvedTypes);
+            }
+            if (fnExpr.body.scope) {
+              gather(server, file, fnExpr.body.scope, child, 0, "proto", resolvedTypes);
+            }
+            if (child.children && child.children.length > 0) {
+              for (var childNr in outline) {
+                if (outline[childNr].start > child.start) {
+                  outline.splice(childNr, 0, child);
+                  child = null;
+                  break;
+                }
+              }
+              if (child) {
+                outline.push(child);
+              }
+            }
+          }
+        }
+      }
+    }
     return { outline: outline };
   } catch (err) {
     console.error(err, err.stack);
     return { outline: [] };
   }
+}
+
+function findFnExpressions(expression) {
+  var fns = [];
+  if (expression.type == "UnaryExpression") {
+    var expr = expression.argument;
+    if (expr) {
+      if (expr.type == "FunctionExpression") {
+        fns.push(expr);
+      }
+      else if (expr.type == "CallExpression") {
+        expression = expr;
+      }
+    }
+  }
+  if (expression.type == "CallExpression") {
+    for (var argNr in expression.arguments) {
+      var arg = expression.arguments[argNr];
+      if (arg && arg.type == "FunctionExpression") {
+        fns.push(arg);
+      }
+    }
+    if (expression.callee && expression.callee.type == "FunctionExpression") {
+      fns.push(expression.callee);
+    }
+  }
+  return fns;
 }
