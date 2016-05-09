@@ -40,6 +40,7 @@ public class WorkingCopy implements IWorkingCopy {
 	private List<ITernModule> workingCopyModules;
 	private EcmaVersion ecmaVersion;
 	private List<ITernModule> filteredModules;
+	private Object dataLock = new Object();
 
 	public WorkingCopy(IIDETernProject project) {
 		this.project = project;
@@ -48,25 +49,28 @@ public class WorkingCopy implements IWorkingCopy {
 	}
 
 	public void initialize() throws TernException {
-		clear();
 		// Get local and global tern modules
 		List<ITernModule> allModules = project.getAllModules();
-		// Group by type
-		workingCopyModules = TernModuleHelper.groupByType(allModules);
-		// Filtered modules
-		filteredModules = new ArrayList<ITernModule>();
-		for (ITernModule module : workingCopyModules) {
-			if (!(isIgnoreModule(module, TernDef.ecma5.getType())
-					|| isIgnoreModule(module, TernPlugin.es_modules.getType())
-					|| isIgnoreModule(module, TernPlugin.doc_comment.getType()))) {
-				filteredModules.add(module);
+		
+		synchronized(dataLock) {
+			clear();
+			// Group by type
+			workingCopyModules = TernModuleHelper.groupByType(allModules);
+			// Filtered modules
+			filteredModules = new ArrayList<ITernModule>();
+			for (ITernModule module : workingCopyModules) {
+				if (!(isIgnoreModule(module, TernDef.ecma5.getType())
+						|| isIgnoreModule(module, TernPlugin.es_modules.getType())
+						|| isIgnoreModule(module, TernPlugin.doc_comment.getType()))) {
+					filteredModules.add(module);
+				}
 			}
+			// checked modules
+			List<ITernModule> checkedModules = new WorkingCopyModuleList(this,
+					TernCorePlugin.getTernRepositoryManager().getCheckedModules(project, workingCopyModules));
+			this.setCheckedModules(checkedModules);
+			setEcmaVersion(project.getEcmaVersion());
 		}
-		// checked modules
-		List<ITernModule> checkedModules = new WorkingCopyModuleList(this,
-				TernCorePlugin.getTernRepositoryManager().getCheckedModules(project, workingCopyModules));
-		this.setCheckedModules(checkedModules);
-		setEcmaVersion(project.getEcmaVersion());
 	}
 	
 	private boolean isIgnoreModule(ITernModule module, String type) {
@@ -74,27 +78,36 @@ public class WorkingCopy implements IWorkingCopy {
 	}
 
 	public List<ITernModule> getCheckedModules() {
-		return checkedModules;
+		synchronized (dataLock) {
+			return checkedModules;
+		}
 	}
 
 	private void setCheckedModules(List<ITernModule> checkedModules) {
-		this.checkedModules = checkedModules;
+		synchronized (dataLock) {
+			this.checkedModules = checkedModules;
+		}
 	}
 
 	@Override
 	public void call(Object caller) {
-		if (!callers.contains(caller)) {
-			callers.add(caller);
+		synchronized (dataLock) {
+			if (!callers.contains(caller)) {
+				callers.add(caller);
+			}
 		}
 	}
 
 	@Override
 	public boolean isDirty() {
-		return callers.size() == 0;
+		synchronized (dataLock) {
+			return callers.size() == 0;
+		}
 	}
 
 	@Override
-	public void commit(Object caller) throws IOException {
+	public void commit(Object caller) throws IOException, TernException {
+	  synchronized (dataLock) {
 		removeCaller(caller);
 		if (isDirty()) {
 			try {
@@ -136,17 +149,23 @@ public class WorkingCopy implements IWorkingCopy {
 				project.save();
 
 			} finally {
-				clear();
+				//ensure that working copy is up to date after committing
+				initialize();
 			}
 		}
+	  }
 	}
 
 	@Override
 	public void clear() {
-		this.callers.clear();
-		this.listeners.clear();
-		if (checkedModules != null) {
-			checkedModules.clear();
+	    synchronized (listeners) {
+			this.listeners.clear();
+		}
+		synchronized (dataLock) {
+			this.callers.clear();
+			if (checkedModules != null) {
+				checkedModules.clear();
+			}
 		}
 	}
 
@@ -155,25 +174,29 @@ public class WorkingCopy implements IWorkingCopy {
 	}
 
 	public boolean hasCheckedTernModule(String moduleName) {
-		for (ITernModule checkedModule : checkedModules) {
-			if (moduleName.equals(checkedModule.getName())) {
-				return true;
+		synchronized (dataLock) {
+			for (ITernModule checkedModule : checkedModules) {
+				if (moduleName.equals(checkedModule.getName())) {
+					return true;
+				}
 			}
 		}
 		return false;
 	}
 
 	public ITernModule getTernModule(String moduleName) throws TernException {
-		for (ITernModule module : workingCopyModules) {
-			if (moduleName.equals(module.getName())) {
-				return module;
+		synchronized (dataLock) {
+			for (ITernModule module : workingCopyModules) {
+				if (moduleName.equals(module.getName())) {
+					return module;
+				}
 			}
 		}
 		return null;
 	}
 
 	public void addWorkingCopyListener(IWorkingCopyListener listener) {
-		synchronized (listener) {
+		synchronized (listeners) {
 			if (!listeners.contains(listener)) {
 				listeners.add(listener);
 			}
@@ -181,7 +204,7 @@ public class WorkingCopy implements IWorkingCopy {
 	}
 
 	public void removeWorkingCopyListener(IWorkingCopyListener listener) {
-		synchronized (listener) {
+		synchronized (listeners) {
 			listeners.remove(listener);
 		}
 	}
@@ -195,12 +218,16 @@ public class WorkingCopy implements IWorkingCopy {
 	}
 
 	public List<ITernModule> getAllModules() {
-		return workingCopyModules;
+		synchronized (dataLock) {
+			return workingCopyModules;
+		}
 	}
 
 	@Override
 	public List<ITernModule> getFilteredModules() {
-		return filteredModules;
+		synchronized (dataLock) {
+			return filteredModules;
+		}
 	}
 
 	@Override
@@ -210,11 +237,15 @@ public class WorkingCopy implements IWorkingCopy {
 
 	@Override
 	public void setEcmaVersion(EcmaVersion ecmaVersion) {
-		this.ecmaVersion = ecmaVersion;
+		synchronized (dataLock) {
+			this.ecmaVersion = ecmaVersion;
+		}
 	}
 
 	@Override
 	public EcmaVersion getEcmaVersion() {
-		return ecmaVersion;
+		synchronized (dataLock) {
+			return ecmaVersion;
+		}
 	}
 }

@@ -76,8 +76,6 @@ public abstract class AbstractTernPropertyPage extends PropertyPage {
 	 */
 	private void saveWorkingCopy() throws CoreException, IOException, TernException {
 		getWorkingCopy().commit(this);
-		//ensure that working copy is up to date after committing
-		getWorkingCopy().initialize();
 	}
 
 	@Override
@@ -88,8 +86,10 @@ public abstract class AbstractTernPropertyPage extends PropertyPage {
 				if (this instanceof IWorkingCopyListener) {
 					workingCopy.removeWorkingCopyListener((IWorkingCopyListener) this);
 				}
-				// on close page, clear the working copy.
-				workingCopy.clear();
+				if (!workingCopy.isDirty()) {
+					// on close page, clear the working copy.
+					workingCopy.clear();
+				}
 			}
 		} catch (Throwable e) {
 		}

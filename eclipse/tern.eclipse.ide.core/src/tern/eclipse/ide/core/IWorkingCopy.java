@@ -56,8 +56,9 @@ public interface IWorkingCopy {
 	 * 
 	 * @param caller
 	 * @throws IOException
+	 * @throws TernException 
 	 */
-	void commit(Object caller) throws IOException;
+	void commit(Object caller) throws IOException, TernException;
 
 	/**
 	 * Clear the working copy.
