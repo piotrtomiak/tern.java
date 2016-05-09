@@ -2,6 +2,9 @@ import * as tern from "tern/lib/tern";
 import * as infer from "tern/lib/infer";
 
 function processProperty(server, file, prop, parent, level, resType, resolvedTypes) {
+  if (prop.propertyName == "<i>") {
+    return;
+  }
   var originFile;
   if (prop.originNode && prop.originNode.sourceFile) {
     originFile = prop.originNode.sourceFile.name;
@@ -32,8 +35,8 @@ function processProperty(server, file, prop, parent, level, resType, resolvedTyp
   }
   // process property only if it is not a constructor
   if (prop.propertyName != "constructor" && (child || parent.kind == "prototype")) {
-    for (var typeNr in prop.types) {
-      var type = prop.types[typeNr];
+    if (prop.types && prop.types.length > 0) {
+      var type = prop.types[0];
       if (type && (type.originNode || type.instances || !type.name)) {
       var shouldResolve = resolveType(type.name, type.originNode ? type.originNode.start : "none", resolvedTypes);
       if (shouldResolve) {
