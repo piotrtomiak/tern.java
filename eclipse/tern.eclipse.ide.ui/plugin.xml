@@ -128,6 +128,7 @@
       <page
             name="JavaScript"        
             class="tern.eclipse.ide.ui.properties.TernMainPropertyPage"
+            category="myeclipse.root"
             id="org.eclipse.wst.jsdt.internal.ui.preferences.JavaScriptMainPage">
          <enabledWhen>
              <adapt type="org.eclipse.core.resources.IProject">
@@ -135,6 +136,10 @@
              </adapt>         
          </enabledWhen>
       </page>
+    </extension>
+
+    <extension
+         point="org.eclipse.ui.propertyPages">
       <page
             name="%TernContentAssistPropertyPage.name"
             category="org.eclipse.wst.jsdt.ui.propertyPages.JavaEditorPropertyPage"        
