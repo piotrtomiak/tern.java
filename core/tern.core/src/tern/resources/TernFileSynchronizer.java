@@ -16,6 +16,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock.ReadLock;
@@ -36,7 +37,6 @@ import tern.server.protocol.TernQuery;
 import tern.server.protocol.completions.TernCompletionsQuery;
 import tern.server.protocol.definition.TernDefinitionQuery;
 import tern.server.protocol.lint.TernLintQuery;
-import tern.server.protocol.type.TernTypeQuery;
 import tern.utils.StringUtils;
 
 import com.eclipsesource.json.JsonArray;
@@ -146,6 +146,11 @@ public class TernFileSynchronizer implements ITernFileSynchronizer {
 
 	@Override
 	public void ensureSynchronized() {
+		ensureSynchronized(new String[0]);
+	}
+	
+	@Override
+	public void ensureSynchronized(String... noRemove) {
 		TernDoc doc = new TernDoc();
 		writeLock.lock();
 		try {
@@ -162,34 +167,60 @@ public class TernFileSynchronizer implements ITernFileSynchronizer {
 				toRefresh.clear();
 			}
 			synced.removeAll(toRefreshLocal);
+			Set<String> toRemove = new HashSet<String>(synced);
 
 			if (project.getScope() == ContentScope.WHOLE_PROJECT) {
-			  for (ITernScriptPath path : getProject().getScriptPaths()) {
-				Set<String> perPath = new HashSet<String>();
-				syncedFilesPerPath.put(path, perPath);
-				for (ITernScriptResource resource : path.getScriptResources()) {
-					ITernFile file = resource.getFile();
-					if (file == null) {
-						continue;
-					}
-					String name = file.getFullName(getProject());
-					perPath.add(name);
-					if (!synced.contains(name)) {
-						try {
-							TernFile tf = file.toTernServerFile(getProject());
-							doc.addFile(tf);
-							synced.add(name);
-						} catch (IOException e) {
-							getProject().handleException(e);
+				Map<ITernScriptPath, Set<ITernScriptResource>> resources = new HashMap<ITernScriptPath, Set<ITernScriptResource>>();
+				Set<String> names = new HashSet<String>();
+				for (ITernScriptPath path : getProject().getScriptPaths()) {
+					Set<ITernScriptResource> perPath = new HashSet<ITernScriptResource>();
+					resources.put(path, perPath);
+					for (ITernScriptResource res: path.getScriptResources()) {
+						ITernFile file = res.getFile();
+						if (file == null) {
+							continue;
+						}
+						String name = file.getFullName(getProject());
+						if (!names.contains(name)) {
+							perPath.add(res);
+							names.add(name);
 						}
 					}
 				}
-			  }
+				
+				filterResources(resources);
+				
+				for (Entry<ITernScriptPath, Set<ITernScriptResource>> entry: resources.entrySet()) {
+					Set<String> perPath = new HashSet<String>();
+					syncedFilesPerPath.put(entry.getKey(), perPath);
+					for (ITernScriptResource resource : entry.getValue()) {
+						ITernFile file = resource.getFile();
+						if (file == null) {
+							continue;
+						}
+						String name = file.getFullName(getProject());
+						perPath.add(name);
+						toRemove.remove(name);
+						if (!synced.contains(name)) {
+							try {
+								TernFile tf = file.toTernServerFile(getProject());
+								doc.addFile(tf);
+								synced.add(name);
+							} catch (IOException e) {
+								getProject().handleException(e);
+							}
+						}
+					}
+				}
 			}
 
+			toRemove.removeAll(Arrays.asList(noRemove));
 			toRefreshLocal.removeAll(synced);
-			for (String toRemove : toRefreshLocal) {
-				doc.delFile(toRemove);
+			toRefreshLocal.addAll(toRemove);
+			for (String toRem : toRefreshLocal) {
+				synced.remove(toRem);
+				sentFiles.remove(toRem);
+				doc.delFile(toRem);
 			}
 
 			// perform actual synchronization with the server
@@ -197,6 +228,10 @@ public class TernFileSynchronizer implements ITernFileSynchronizer {
 		} finally {
 			writeLock.unlock();
 		}
+	}
+	
+	protected void filterResources(Map<ITernScriptPath, Set<ITernScriptResource>> resources) {
+		
 	}
 
 	@Override

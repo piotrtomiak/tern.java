@@ -591,10 +591,11 @@ public class TernProject extends JsonObject implements ITernProject {
 
 	protected void synchronize(TernDoc doc, JsonArray names, ITernScriptPath scriptPath, Node domNode, ITernFile file) {
 		ITernFileSynchronizer synchronizer = getFileSynchronizer();
-		synchronizer.ensureSynchronized();
 		if (file != null) {
+			String fName = file.getFullName(this);
+			synchronizer.ensureSynchronized(fName);
 			if (doc.getQuery() != null) {
-				doc.getQuery().setFile(file.getFullName(this));
+				doc.getQuery().setFile(fName);
 			}
 			if (domNode != null) {
 				DOMElementsScriptPath domPath = createDOMElementsScriptPath(domNode, file);
@@ -606,6 +607,8 @@ public class TernProject extends JsonObject implements ITernProject {
 					handleException(e);
 				}
 			}
+		} else {
+			synchronizer.ensureSynchronized();
 		}
 		if (names != null) {
 			synchronizer.fillSyncedFileNames(names, scriptPath);

@@ -29,6 +29,13 @@ public interface ITernFileSynchronizer {
 	public void ensureSynchronized();
 
 	/**
+	 * Ensures that all resources are synchronized with the server. Blocks until
+	 * server processes any additional resources. Does not remove listed files
+	 * from the server.
+	 */
+	public void ensureSynchronized(String... noRemove);
+
+	/**
 	 * Fills fileNames array with names of script files synchronized with the
 	 * server. If path is provided then only files from a particular path are
 	 * going to be added to the array.
