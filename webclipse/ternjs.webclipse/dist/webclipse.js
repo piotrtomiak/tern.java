@@ -364,7 +364,7 @@ function processProperty(server, file, prop, parent, level, resType, resolvedTyp
     if (prop.types && prop.types.length > 0) {
       var type = prop.types[0];
       if (type && (type.originNode || type.instances || !type.name)) {
-        var shouldResolve = resolveType(type.name, type.originNode ? type.originNode.start : "none", resolvedTypes);
+        var shouldResolve = resolveType(prop.propertyName, type.name, type.originNode ? type.originNode.start : "none", resolvedTypes);
         if (shouldResolve) {
           gather(server, file, type, child ? child : parent, level, "proto", resolvedTypes);
           // process possible scope only if type is from a current file
@@ -405,8 +405,8 @@ function processProperty(server, file, prop, parent, level, resType, resolvedTyp
   }
 }
 
-function resolveType(name, start, resolvedTypes) {
-  if (name) {
+function resolveType(propName, name, start, resolvedTypes) {
+  if (name && propName != name) {
     var loc = resolvedTypes[name];
     if (!loc) {
       resolvedTypes[name] = start;
