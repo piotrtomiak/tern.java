@@ -387,7 +387,7 @@ function processProperty(server, file, prop, parent, level, resType, resolvedTyp
       }
     }
   }
-  if (child) {
+  if (child && (child.children || child.start != -1)) {
     var children = parent;
     if (!(children instanceof Array)) {
       if (children.children) {
