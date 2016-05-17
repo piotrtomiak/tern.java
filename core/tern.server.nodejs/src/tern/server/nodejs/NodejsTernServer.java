@@ -106,9 +106,14 @@ public class NodejsTernServer extends AbstractTernServer implements INodejsLaunc
 	private boolean isDebugLaunch;
 
 	private boolean isSaveLaunch;
+	
+	private volatile boolean isCleanShutdown;
 
 	protected final INodejsProcessListener listener = new NodejsProcessAdapter() {
 
+		private StringBuilder errors = new StringBuilder();
+		private StringBuilder output = new StringBuilder();
+		
 		@Override
 		public void onStart(INodejsProcess server) {
 			NodejsTernServer.this.fireStartServer();
@@ -120,6 +125,18 @@ public class NodejsTernServer extends AbstractTernServer implements INodejsLaunc
 		public void onError(INodejsProcess process, String line) {
 			if (line.contains("throw new exports.TimedOut()")) {
 				fireTimedOutServer();
+			} else {
+				errors.append(line);
+				errors.append('\n');
+			}
+		};
+		
+		public void onData(INodejsProcess process, String line) {
+			if (line.startsWith("Was idle for") && line.endsWith("minutes. Shutting down.")) {
+				isCleanShutdown = true;
+			} else {
+				output.append(line);
+				output.append('\n');
 			}
 		};
 
@@ -143,6 +160,28 @@ public class NodejsTernServer extends AbstractTernServer implements INodejsLaunc
 
 		@Override
 		public void onStop(INodejsProcess server) {
+			if (!isCleanShutdown) {
+				//Log the error
+				StringBuilder msg = new StringBuilder();
+				msg.append("Tern server for project ");
+				msg.append(getProject().getName());
+				msg.append("was unexpectedly closed.");
+				if (errors.length() > 0) {
+					msg.append(" Server error output:\n");
+					msg.append(errors.toString());
+				}
+				if (output.length() > 0) {
+					if (errors.length() > 0) {
+						msg.append("\n\n");
+					} else {
+						msg.append(' ');
+					}
+					msg.append("Server output:\n");
+					msg.append(output.toString());
+				}
+				Exception e = new TernException(msg.toString());
+				NodejsTernServer.this.onError(e.getMessage(), e);
+			}
 			dispose();
 			fireEndServer();
 		}
@@ -353,6 +392,7 @@ public class NodejsTernServer extends AbstractTernServer implements INodejsLaunc
 	public void doDispose() {
 		beginWriteState();
 		try {
+			isCleanShutdown = true;
 			if (process != null) {
 				process.kill();
 			}

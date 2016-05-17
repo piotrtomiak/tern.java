@@ -154,7 +154,7 @@ public abstract class AbstractNodejsDebugProcess extends AbstractNodejsProcess {
 			int pos = 0;
 			int lastPos = 0;
 			while ((pos = text.indexOf('\n', pos)) >= 0) {
-				lineBuilder.append(text.substring(0, pos++));
+				lineBuilder.append(text.substring(lastPos, pos++));
 				lastPos = pos;
 				if (lineBuilder.length() > 0) {
 					processLine(lineBuilder.toString());
