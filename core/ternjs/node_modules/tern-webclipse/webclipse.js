@@ -429,7 +429,7 @@ function gather(server, file, node, parent, level, resType, resolvedTypes) {
   }
   for (var propName in node.props) {
     var prop = node.props[propName];
-    if (node.fnType && node.fnType.argNames.indexOf(prop.propertyName) != -1) {
+    if (node.fnType && node.fnType.argNames.indexOf(prop.propertyName) != -1 && prop.types.length == 0) {
       continue;
     }
     processProperty(server, file, prop, parent, level, resType, resolvedTypes);
@@ -454,37 +454,48 @@ function create(server, query, file, resolvedTypes) {
     var body = file.ast.body;
     for (var elementNr in body) {
       var element = body[elementNr];
-      if (element.type == "ExpressionStatement") {
-        var fns = findFnExpressions(element.expression);
-        for (var fnNr in fns) {
-          var fnExpr = fns[fnNr];
-          if (!fnExpr.name) {
-            var child = {
-              name: "<anonymous>",
-              file: file.name,
-              value: false,
-              type: "fn()",
-              resType: "scope",
-              start: fnExpr.start,
-              end: fnExpr.start + 8
-            };
-            if (fnExpr.scope) {
-              gather(server, file, fnExpr.scope, child, 0, "proto", resolvedTypes);
-            }
-            if (fnExpr.body.scope) {
-              gather(server, file, fnExpr.body.scope, child, 0, "proto", resolvedTypes);
-            }
-            if (child.children && child.children.length > 0) {
-              for (var childNr in outline) {
-                if (outline[childNr].start > child.start) {
-                  outline.splice(childNr, 0, child);
-                  child = null;
-                  break;
-                }
+      var expression;
+      if (element.type == "VariableDeclaration") {
+        var declarations = element.declarations;
+        for (var decNr in declarations) {
+          var dec = declarations[decNr];
+          if (dec && dec.type == "VariableDeclarator") {
+            expression = dec.init;
+            break;
+          }
+        }
+      } else if (element.type == "ExpressionStatement") {
+        expression = element.expression;
+      }
+      var fns = expression ? findFnExpressions(expression) : [];
+      for (var fnNr in fns) {
+        var fnExpr = fns[fnNr];
+        if (!fnExpr.name) {
+          var child = {
+            name: "<anonymous>",
+            file: file.name,
+            value: false,
+            type: "fn()",
+            resType: "scope",
+            start: fnExpr.start,
+            end: fnExpr.start + 8
+          };
+          if (fnExpr.scope) {
+            gather(server, file, fnExpr.scope, child, 0, "proto", resolvedTypes);
+          }
+          if (fnExpr.body.scope) {
+            gather(server, file, fnExpr.body.scope, child, 0, "proto", resolvedTypes);
+          }
+          if (child.children && child.children.length > 0) {
+            for (var childNr in outline) {
+              if (outline[childNr].start > child.start) {
+                outline.splice(childNr, 0, child);
+                child = null;
+                break;
               }
-              if (child) {
-                outline.push(child);
-              }
+            }
+            if (child) {
+              outline.push(child);
             }
           }
         }
@@ -512,12 +523,25 @@ function findFnExpressions(expression) {
   if (expression.type == "CallExpression") {
     for (var argNr in expression.arguments) {
       var arg = expression.arguments[argNr];
-      if (arg && arg.type == "FunctionExpression") {
-        fns.push(arg);
+      if (arg) {
+        if (arg.type == "FunctionExpression") {
+          fns.push(arg);
+        } else if (arg.type == "ArrayExpression") {
+          for (var elementNr in arg.elements) {
+            var element = arg.elements[elementNr];
+            if (element && element.type == "FunctionExpression") {
+              fns.push(element);
+            }
+          }
+        }
       }
     }
-    if (expression.callee && expression.callee.type == "FunctionExpression") {
-      fns.push(expression.callee);
+    if (expression.callee) {
+      if (expression.callee.type == "FunctionExpression") {
+        fns.push(expression.callee);
+      } else if (expression.callee.type == "MemberExpression") {
+        fns = fns.concat(findFnExpressions(expression.callee.object));
+      }
     }
   }
   return fns;
