@@ -429,7 +429,7 @@ function gather(server, file, node, parent, level, resType, resolvedTypes) {
   }
   for (var propName in node.props) {
     var prop = node.props[propName];
-    if (node.fnType && node.fnType.argNames.indexOf(prop.propertyName) != -1 && prop.types.length == 0) {
+    if (node.fnType && node.fnType.argNames.indexOf(prop.propertyName) != -1 && !isExtendedInCurrentNode(prop, node.originNode)) {
       continue;
     }
     processProperty(server, file, prop, parent, level, resType, resolvedTypes);
@@ -545,6 +545,19 @@ function findFnExpressions(expression) {
     }
   }
   return fns;
+}
+
+function isExtendedInCurrentNode(prop, node) {
+  if (prop.types && prop.types.length > 0) {
+    var type = prop.types[0];
+    for (var propName in type.props) {
+      var prop = type.props[propName];
+      if (prop.originNode && prop.originNode.start > node.start && prop.originNode.end < node.end) {
+        return true;
+      }
+    }
+  }
+  return false;
 }
 
 },{"tern/lib/infer":undefined,"tern/lib/tern":undefined}],3:[function(_dereq_,module,exports){
